@@ -9,56 +9,56 @@ import (
 	"sync"
 )
 
-type BlockModel struct {
+type TransactionModel struct {
 	db        *gorm.DB
-	model     *models.Block
-	modelORM  *models.BlockORM
-	writeChan chan *models.Block
+	model     *models.Transaction
+	modelORM  *models.Transaction
+	writeChan chan *models.Transaction
 }
 
-var blockModelInstance *BlockModel
+var blockModelInstance *TransactionModel
 var blockModelOnce sync.Once
 
-func GetBlockModel() *BlockModel {
+func GetTransacstionModel() *TransactionModel {
 	blockModelOnce.Do(func() {
-		blockModelInstance = &BlockModel{
+		blockModelInstance = &TransactionModel{
 			db:        GetPostgresConn().conn,
-			model:     &models.Block{},
-			writeChan: make(chan *models.Block, 1),
+			model:     &models.Transaction{},
+			writeChan: make(chan *models.Transaction, 1),
 		}
 
 		err := blockModelInstance.Migrate()
 		if err != nil {
-			zap.S().Error("BlockModel: Unable create postgres table: Blocks")
+			zap.S().Error("TransactionModel: Unable create postgres table: Transactions")
 		}
 	})
 	return blockModelInstance
 }
 
-func (m *BlockModel) GetDB() *gorm.DB {
+func (m *TransactionModel) GetDB() *gorm.DB {
 	return m.db
 }
 
-func (m *BlockModel) GetModel() *models.Block {
+func (m *TransactionModel) GetModel() *models.Transaction {
 	return m.model
 }
 
-func (m *BlockModel) GetWriteChan() chan *models.Block {
+func (m *TransactionModel) GetWriteChan() chan *models.Transaction {
 	return m.writeChan
 }
 
-func (m *BlockModel) Migrate() error {
+func (m *TransactionModel) Migrate() error {
 	// Only using BlockRawORM (ORM version of the proto generated struct) to create the TABLE
 	err := m.db.AutoMigrate(m.modelORM) // Migration and Index creation
 	return err
 }
 
-func (m *BlockModel) create(block *models.Block) (*gorm.DB, error) {
+func (m *TransactionModel) create(block *models.Transaction) (*gorm.DB, error) {
 	tx := m.db.Create(block)
 	return tx, tx.Error
 }
 
-func (m *BlockModel) RetryCreate(block *models.Block) (*gorm.DB, error) {
+func (m *TransactionModel) RetryCreate(block *models.Transaction) (*gorm.DB, error) {
 	var transaction *gorm.DB
 	operation := func() error {
 		tx, err := m.create(block)
@@ -75,14 +75,14 @@ func (m *BlockModel) RetryCreate(block *models.Block) (*gorm.DB, error) {
 	return transaction, err
 }
 
-func (m *BlockModel) FindOne(conds ...interface{}) (*models.Block, *gorm.DB) {
-	block := &models.Block{}
+func (m *TransactionModel) FindOne(conds ...interface{}) (*models.Transaction, *gorm.DB) {
+	block := &models.Transaction{}
 	tx := m.db.Find(block, conds...)
 	return block, tx
 }
 
-func (m *BlockModel) FindAll(conds ...interface{}) (*[]models.Block, *gorm.DB) {
-	blocks := &[]models.Block{}
+func (m *TransactionModel) FindAll(conds ...interface{}) (*[]models.Transaction, *gorm.DB) {
+	blocks := &[]models.Transaction{}
 	tx := m.db.Scopes().Find(blocks, conds...)
 	return blocks, tx
 }

@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var _ = Describe("BlockModel", func() {
+var _ = Describe("TransactionModel", func() {
 	testFixtures, _ := fixtures.LoadTestFixtures(fixtures.Block_raws_fixture)
 
 	Describe("blockModel with postgres", func() {
@@ -35,12 +35,12 @@ var _ = Describe("BlockModel", func() {
 	}) // Describe
 }) // Describe
 
-//func Update(m *crud.BlockModel, oldBlock *models.Block, newBlock *models.Block, whereClause ...interface{}) *gorm.DB {
+//func Update(m *crud.TransactionModel, oldBlock *models.Block, newBlock *models.Block, whereClause ...interface{}) *gorm.DB {
 //	tx := m.GetDB().Model(oldBlock).Where(whereClause[0], whereClause[1:]).Updates(newBlock)
 //	return tx
 //}
 
-func Delete(m *crud.BlockModel, conds ...interface{}) *gorm.DB {
+func Delete(m *crud.TransactionModel, conds ...interface{}) *gorm.DB {
 	tx := m.GetDB().Delete(m.GetModel(), conds...)
 	return tx
 }

@@ -27,7 +27,7 @@ func main() {
 	metrics.MetricsWorkerStart()
 
 	// Start Postgres loader
-	loader.StartBlockLoader()
+	loader.StartTransactionLoader()
 
 	// Start kafka Producer
 	kafka.StartProducers()

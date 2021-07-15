@@ -26,8 +26,8 @@ func StartProducers() {
 
 	for _, t := range producer_topics {
 		// Todo: parameterize schema
-		schema := "block" //config.Config.SchemaNameTopics["block-ws"] //"block"
-		_, err := RetriableRegisterSchema(RegisterSchema, t, false, "block", true)
+		schema := "transaction" //config.Config.SchemaNameTopics["transactions-ws"] //"transactions"
+		_, err := RetriableRegisterSchema(RegisterSchema, t, false, schema, true)
 		if err != nil {
 			zap.S().Error(fmt.Sprintf("Error in registering schema: %s for topic: %s", schema, t))
 			continue

@@ -17,23 +17,23 @@ func BlocksAddHandlers(app *fiber.App) {
 	app.Get(prefix+"/", handlerGetQuery)
 }
 
-// Blocks
-// @Summary Get Blocks that match the query
+// Transactions
+// @Summary Get Transactions that match the query
 // @Description Get all blocks in the system.
 // @Tags root
 // @Accept */*
 // @Produce json
 // @Router /blocks [get]
 func handlerGetQuery(c *fiber.Ctx) error {
-	params := new(service.BlocksQueryService)
+	params := new(service.TransactionsQuery)
 	if err := c.QueryParser(params); err != nil {
-		zap.S().Warnf("Blocks Get Handler ERROR: %s", err.Error())
+		zap.S().Warnf("Transactions Get Handler ERROR: %s", err.Error())
 
 		c.Status(422)
 		return c.SendString(`{"error": "could not parse query parameters"}`)
 	}
 
-	// Get Blocks
+	// Get Transactions
 	blocks := params.RunQuery()
 	if len(*blocks) == 0 {
 		// No Content

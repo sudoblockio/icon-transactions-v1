@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	blockModel *crud.BlockModel
+	blockModel *crud.TransactionModel
 )
 
 func TestCrud(t *testing.T) {
@@ -26,7 +26,7 @@ var _ = BeforeSuite(func() {
 	_ = blockModel.Migrate() // Have to create table before running tests
 })
 
-func NewBlockModel() *crud.BlockModel {
-	testBlockRawModel := crud.GetBlockModel()
+func NewBlockModel() *crud.TransactionModel {
+	testBlockRawModel := crud.GetTransacstionModel()
 	return testBlockRawModel
 }

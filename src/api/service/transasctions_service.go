@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-type BlocksQueryService struct {
+type TransactionsQuery struct {
 	Page     int `query:"page"`
 	PageSize int `query:"page_size"`
 
@@ -20,22 +20,22 @@ type BlocksQueryService struct {
 	Start     uint32 `query:"start"`
 }
 
-func (service *BlocksQueryService) RunQuery() *[]models.Block {
-	blocksModel := global.GetGlobal().Blocks
-	db := blocksModel.GetDB()
+func (service *TransactionsQuery) RunQuery() *[]models.Transaction {
+	transactionsModel := global.GetGlobal().Transactions
+	db := transactionsModel.GetDB()
 
 	whereClauseStrings := service.buildWhereClauseStrings()
 	orderClauseStrings := service.buildOrderClauseStrings()
-	blocks := &[]models.Block{}
+	transactions := &[]models.Transaction{}
 	_ = db.Scopes(Paginate(service)).
 		Order(orderClauseStrings).
-		Find(blocks, whereClauseStrings...)
+		Find(transactions, whereClauseStrings...)
 
-	zap.S().Debug("Blocks: ", blocks)
-	return blocks
+	zap.S().Debug("Transactions: ", transactions)
+	return transactions
 }
 
-func (service *BlocksQueryService) buildWhereClauseStrings() []interface{} {
+func (service *TransactionsQuery) buildWhereClauseStrings() []interface{} {
 	var strArr []interface{}
 	if service.Height > 0 || service.Start > 0 {
 		if service.Start > 0 {
@@ -53,14 +53,14 @@ func (service *BlocksQueryService) buildWhereClauseStrings() []interface{} {
 	return strArr
 }
 
-func (service *BlocksQueryService) buildOrderClauseStrings() interface{} {
+func (service *TransactionsQuery) buildOrderClauseStrings() interface{} {
 	var strArr string
 	strArr = "number desc" //number desc, item_timestamp"
 	return strArr
 }
 
-func (service *BlocksQueryService) buildLimitClause() int {
-	empty := BlocksQueryService{}
+func (service *TransactionsQuery) buildLimitClause() int {
+	empty := TransactionsQuery{}
 
 	pageSize := 1
 	if isEmpty := reflect.DeepEqual(empty, *service); isEmpty {
@@ -77,7 +77,7 @@ func (service *BlocksQueryService) buildLimitClause() int {
 	return pageSize
 }
 
-func Paginate(service *BlocksQueryService) func(db *gorm.DB) *gorm.DB {
+func Paginate(service *TransactionsQuery) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		page := service.Page
 		if page == 0 {

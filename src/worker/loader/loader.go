@@ -7,18 +7,18 @@ import (
 	"go.uber.org/zap"
 )
 
-func StartBlockLoader() {
-	go BlockLoader()
+func StartTransactionLoader() {
+	go TransactionLoader()
 }
 
-func BlockLoader() {
-	var block *models.Block
-	postgresLoaderChan := global.GetGlobal().Blocks.GetWriteChan()
+func TransactionLoader() {
+	var transaction *models.Transaction
+	postgresLoaderChan := global.GetGlobal().Transactions.GetWriteChan()
 	for {
-		block = <-postgresLoaderChan
-		global.GetGlobal().Blocks.RetryCreate(block) // inserted here !!
+		transaction = <-postgresLoaderChan
+		global.GetGlobal().Transactions.RetryCreate(transaction) // inserted here !!
 		zap.S().Debug(fmt.Sprintf(
-			"Loader Block: Loaded in postgres table Blocks, Block Number %d", block.Number),
+			"Loader Transaction: Loaded in postgres table Transasctions, Block Number %d", transaction.BlockNumber),
 		)
 	}
 }
