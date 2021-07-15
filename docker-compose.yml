@@ -1,0 +1,93 @@
+version: "3.7"
+
+x-env: &env
+  NAME: "blocks"
+  NETWORK_NAME: "mainnet"
+
+  # Ports
+  PORT: "8000"
+  HEALTH_PORT: "8180"
+  METRICS_PORT: "9400"
+
+  # Prefix
+  REST_PREFIX: "/api/v1"
+  WEBSOCKET_PREFIX: "/ws/v1"
+  HEALTH_PREFIX: "/heath"
+  METRICS_PREFIX: "/metrics"
+
+  # Monitoring
+  HEALTH_POLLING_INTERVAL: "60"
+
+  # Logging
+  LOG_LEVEL: "DEBUG"
+  LOG_TO_FILE: "false"
+  LOG_FILE_NAME: "blocks.log"
+
+  # Kafka
+  KAFKA_BROKER_URL: "kafka:9092"
+  SCHEMA_REGISTRY_URL: "schemaregistry:8081"
+  KAFKA_GROUP_ID: "blocks-service"
+
+  # Topics
+  CONSUMER_TOPICS: "blocks"
+  PRODUCER_TOPICS: "blocks-ws"
+  SCHEMA_NAME_TOPICS: "blocks-ws:block"
+  SCHEMA_FOLDER_PATH: "/app/schemas/"
+
+  # DB
+  DB_DRIVER: "postgres"
+  DB_HOST: "postgres"
+  DB_PORT: "5432"
+  DB_USER: "postgres"
+  DB_PASSWORD: "changeme"
+  DB_DBNAME: "postgres"
+  DB_SSLMODE: "disable"
+  DB_TIMEZONE: "UTC"
+
+services:
+  blocks-api:
+    build:
+      context: ${BLOCKS_CONTEXT:-.}
+      target: prod
+      args:
+        - SERVICE_NAME=api
+    ports:
+      - "8000:8000"     # API
+      - "8180:8180"     # Health
+      - "9400:9400"     # Prometheus
+      - "40000:40000"   # Remote Debug
+    security_opt:
+      - "seccomp:unconfined"
+    cap_add:
+      - SYS_PTRACE
+#    depends_on:
+#      - kafka
+#      - schemaregistry
+#      - postgres
+    volumes:
+      - ${BLOCKS_CONTEXT:-.}/src:/app
+    environment:
+      <<: *env
+
+  blocks-worker:
+    build:
+      context: ${BLOCKS_CONTEXT:-.}
+      target: prod
+      args:
+        - SERVICE_NAME=worker
+    ports:
+      - "8181:8181"     # Health
+      - "9401:9401"     # Prometheus
+      - "40001:40001"   # Remote Debug
+    security_opt:
+      - "seccomp:unconfined"
+    cap_add:
+      - SYS_PTRACE
+#    depends_on:
+#      - kafka
+#      - schemaregistry
+#      - postgres
+    volumes:
+      - ${BLOCKS_CONTEXT:-.}/src:/app
+    environment:
+      <<: *env
