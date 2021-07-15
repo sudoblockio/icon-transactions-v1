@@ -7,13 +7,13 @@ import (
 	"strconv"
 )
 
-func ConvertToBlockRaw(value []byte) (*BlockRaw, error) {
-	block := BlockRaw{}
-	err := protojson.Unmarshal(value, &block)
+func ConvertToTransactionRaw(value []byte) (*TransactionRaw, error) {
+	tx := TransactionRaw{}
+	err := protojson.Unmarshal(value, &tx)
 	if err != nil {
-		zap.S().Error("Block_raw_helper: Error in ConvertToBlockRaw: %v", err)
+		zap.S().Error("Transaction_raw_helper: Error in ConvertToTransactionRaw: %v", err)
 	}
-	return &block, err
+	return &tx, err
 }
 
 func ValidateHeight(heightString string) bool {

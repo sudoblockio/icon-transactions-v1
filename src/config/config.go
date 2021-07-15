@@ -7,7 +7,7 @@ import (
 )
 
 type configType struct {
-	Name        string `envconfig:"NAME" required:"false" default:"blocks-service"`
+	Name        string `envconfig:"NAME" required:"false" default:"transactions-service"`
 	NetworkName string `envconfig:"NETWORK_NAME" required:"false" default:"mainnnet"`
 
 	// Ports
@@ -25,17 +25,17 @@ type configType struct {
 	HealthPollingInterval int    `envconfig:"HEALTH_POLLING_INTERVAL" required:"false" default:"10"`
 	LogLevel              string `envconfig:"LOG_LEVEL" required:"false" default:"INFO"`
 	LogToFile             bool   `envconfig:"LOG_TO_FILE" required:"false" default:"false"`
-	LogFileName           string `envconfig:"LOG_FILE_NAME" required:"false" default:"blocks-service.log"`
+	LogFileName           string `envconfig:"LOG_FILE_NAME" required:"false" default:"transactions-service.log"`
 
 	// Kafka
 	KafkaBrokerURL    string `envconfig:"KAFKA_BROKER_URL" required:"false" default:"kafka:9092"`
 	SchemaRegistryURL string `envconfig:"SCHEMA_REGISTRY_URL" required:"false" default:"schemaregistry:8081"`
-	KafkaGroupID      string `envconfig:"KAFKA_GROUP_ID" required:"false" default:"blocks-service"`
+	KafkaGroupID      string `envconfig:"KAFKA_GROUP_ID" required:"false" default:"transactions-service"`
 
 	// Topics
-	ConsumerTopics   []string          `envconfig:"CONSUMER_TOPICS" required:"false" default:"blocks"`
-	ProducerTopics   []string          `envconfig:"PRODUCER_TOPICS" required:"false" default:"blocks-ws"`
-	SchemaNameTopics map[string]string `envconfig:"SCHEMA_NAME_TOPICS" required:"false" default:"blocks-ws:block"`
+	ConsumerTopics   []string          `envconfig:"CONSUMER_TOPICS" required:"false" default:"transactions"`
+	ProducerTopics   []string          `envconfig:"PRODUCER_TOPICS" required:"false" default:"transactions-ws"`
+	SchemaNameTopics map[string]string `envconfig:"SCHEMA_NAME_TOPICS" required:"false" default:"transactions-ws:transactions"`
 	SchemaFolderPath string            `envconfig:"SCHEMA_FOLDER_PATH" required:"false" default:"/app/schemas/"`
 
 	// DB

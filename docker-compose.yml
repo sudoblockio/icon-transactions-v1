@@ -1,7 +1,7 @@
 version: "3.7"
 
 x-env: &env
-  NAME: "blocks"
+  NAME: "transactions"
   NETWORK_NAME: "mainnet"
 
   # Ports
@@ -21,17 +21,17 @@ x-env: &env
   # Logging
   LOG_LEVEL: "DEBUG"
   LOG_TO_FILE: "false"
-  LOG_FILE_NAME: "blocks.log"
+  LOG_FILE_NAME: "transactions.log"
 
   # Kafka
   KAFKA_BROKER_URL: "kafka:9092"
   SCHEMA_REGISTRY_URL: "schemaregistry:8081"
-  KAFKA_GROUP_ID: "blocks-service"
+  KAFKA_GROUP_ID: "transactions-service"
 
   # Topics
-  CONSUMER_TOPICS: "blocks"
-  PRODUCER_TOPICS: "blocks-ws"
-  SCHEMA_NAME_TOPICS: "blocks-ws:block"
+  CONSUMER_TOPICS: "transactions"
+  PRODUCER_TOPICS: "transactions-ws"
+  SCHEMA_NAME_TOPICS: "transactions-ws:transactions"
   SCHEMA_FOLDER_PATH: "/app/schemas/"
 
   # DB
@@ -45,7 +45,7 @@ x-env: &env
   DB_TIMEZONE: "UTC"
 
 services:
-  blocks-api:
+  transactions-api:
     build:
       context: ${BLOCKS_CONTEXT:-.}
       target: prod
@@ -69,7 +69,7 @@ services:
     environment:
       <<: *env
 
-  blocks-worker:
+  transactions-worker:
     build:
       context: ${BLOCKS_CONTEXT:-.}
       target: prod
