@@ -41,13 +41,13 @@ func blocksTransformer() {
 	for {
 		// Read from kafka
 		consumer_topic_msg := <-consumer_topic_chan
-		blockRaw, err := models.ConvertToTransactionRaw(consumer_topic_msg.Value)
+		transactionRaw, err := models.ConvertToTransactionRaw(consumer_topic_msg.Value)
 		if err != nil {
-			zap.S().Error("Transactions Worker: Unable to proceed cannot convert kafka msg value to Block")
+			zap.S().Error("Transactions Worker: Unable to proceed cannot convert kafka msg value to Transaction")
 		}
 
 		// Transform logic
-		transformedBlock, _ := transform(blockRaw)
+		transformedBlock, _ := transform(transactionRaw)
 
 		// Produce to Kafka
 		producer_topic_msg := &sarama.ProducerMessage{
