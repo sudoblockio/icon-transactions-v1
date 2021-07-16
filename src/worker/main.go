@@ -6,15 +6,15 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/geometry-labs/icon-blocks/worker/transformers"
+	"github.com/geometry-labs/icon-transactions/worker/transformers"
 	"go.uber.org/zap"
 
-	"github.com/geometry-labs/icon-blocks/config"
-	"github.com/geometry-labs/icon-blocks/global"
-	"github.com/geometry-labs/icon-blocks/kafka"
-	"github.com/geometry-labs/icon-blocks/logging"
-	"github.com/geometry-labs/icon-blocks/metrics"
-	"github.com/geometry-labs/icon-blocks/worker/loader"
+	"github.com/geometry-labs/icon-transactions/config"
+	"github.com/geometry-labs/icon-transactions/global"
+	"github.com/geometry-labs/icon-transactions/kafka"
+	"github.com/geometry-labs/icon-transactions/logging"
+	"github.com/geometry-labs/icon-transactions/metrics"
+	"github.com/geometry-labs/icon-transactions/worker/loader"
 )
 
 func main() {

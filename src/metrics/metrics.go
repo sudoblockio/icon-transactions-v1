@@ -1,7 +1,7 @@
 package metrics
 
 import (
-	"github.com/geometry-labs/icon-blocks/config"
+	"github.com/geometry-labs/icon-transactions/config"
 	"go.uber.org/zap"
 	"net/http"
 

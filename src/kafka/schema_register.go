@@ -3,7 +3,7 @@ package kafka
 import (
 	"encoding/binary"
 	"github.com/cenkalti/backoff/v4"
-	"github.com/geometry-labs/icon-blocks/config"
+	"github.com/geometry-labs/icon-transactions/config"
 	"github.com/riferrei/srclient"
 	"go.uber.org/zap"
 	"io/ioutil"

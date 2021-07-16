@@ -2,7 +2,7 @@ package crud
 
 import (
 	"github.com/cenkalti/backoff/v4"
-	"github.com/geometry-labs/icon-blocks/models"
+	"github.com/geometry-labs/icon-transactions/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"

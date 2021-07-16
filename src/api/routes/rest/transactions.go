@@ -6,8 +6,8 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 
-	"github.com/geometry-labs/icon-blocks/api/service"
-	"github.com/geometry-labs/icon-blocks/config"
+	"github.com/geometry-labs/icon-transactions/api/service"
+	"github.com/geometry-labs/icon-transactions/config"
 )
 
 func BlocksAddHandlers(app *fiber.App) {

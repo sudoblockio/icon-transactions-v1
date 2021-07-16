@@ -1,4 +1,4 @@
-module github.com/geometry-labs/icon-blocks
+module github.com/geometry-labs/icon-transactions
 
 go 1.16
 

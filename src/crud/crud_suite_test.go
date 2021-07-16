@@ -1,8 +1,8 @@
 package crud_test
 
 import (
-	"github.com/geometry-labs/icon-blocks/config"
-	"github.com/geometry-labs/icon-blocks/crud"
+	"github.com/geometry-labs/icon-transactions/config"
+	"github.com/geometry-labs/icon-transactions/crud"
 	"testing"
 
 	. "github.com/onsi/ginkgo"

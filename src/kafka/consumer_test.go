@@ -3,7 +3,7 @@
 package kafka
 
 import (
-	"github.com/geometry-labs/icon-blocks/config"
+	"github.com/geometry-labs/icon-transactions/config"
 	"testing"
 	"time"
 

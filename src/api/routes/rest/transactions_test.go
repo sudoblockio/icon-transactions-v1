@@ -11,8 +11,8 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/geometry-labs/icon-blocks/config"
-	"github.com/geometry-labs/icon-blocks/models"
+	"github.com/geometry-labs/icon-transactions/config"
+	"github.com/geometry-labs/icon-transactions/models"
 )
 
 func init() {

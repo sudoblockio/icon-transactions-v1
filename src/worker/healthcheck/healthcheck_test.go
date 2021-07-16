@@ -3,13 +3,13 @@
 package healthcheck
 
 import (
-	"github.com/geometry-labs/icon-blocks/config"
+	"github.com/geometry-labs/icon-transactions/config"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/geometry-labs/icon-blocks/api/routes"
+	"github.com/geometry-labs/icon-transactions/api/routes"
 )
 
 func init() {

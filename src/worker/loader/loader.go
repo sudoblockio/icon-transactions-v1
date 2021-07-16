@@ -1,8 +1,8 @@
 package loader
 
 import (
-	"github.com/geometry-labs/icon-blocks/global"
-	"github.com/geometry-labs/icon-blocks/models"
+	"github.com/geometry-labs/icon-transactions/global"
+	"github.com/geometry-labs/icon-transactions/models"
 	"go.uber.org/zap"
 )
 

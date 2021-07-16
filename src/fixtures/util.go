@@ -8,7 +8,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/geometry-labs/icon-blocks/models"
+	"github.com/geometry-labs/icon-transactions/models"
 )
 
 const (

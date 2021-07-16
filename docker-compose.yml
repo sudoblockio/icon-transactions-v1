@@ -47,8 +47,8 @@ x-env: &env
 services:
   transactions-api:
     build:
-      context: ${BLOCKS_CONTEXT:-.}
-      target: ${BLOCKS_TARGET:-prod}
+      context: ${TRANSACTIONS_CONTEXT:-.}
+      target: ${TRANSACTIONS_TARGET:-prod}
       args:
         - SERVICE_NAME=api
     ports:
@@ -65,14 +65,14 @@ services:
 #      - schemaregistry
 #      - postgres
     volumes:
-      - ${BLOCKS_CONTEXT:-.}/src:/app
+      - ${TRANSACTIONS_CONTEXT:-.}/src:/app
     environment:
       <<: *env
 
   transactions-worker:
     build:
-      context: ${BLOCKS_CONTEXT:-.}
-      target: ${BLOCKS_TARGET:-prod}
+      context: ${TRANSACTIONS_CONTEXT:-.}
+      target: ${TRANSACTIONS_TARGET:-prod}
       args:
         - SERVICE_NAME=worker
     ports:
@@ -88,6 +88,6 @@ services:
 #      - schemaregistry
 #      - postgres
     volumes:
-      - ${BLOCKS_CONTEXT:-.}/src:/app
+      - ${TRANSACTIONS_CONTEXT:-.}/src:/app
     environment:
       <<: *env

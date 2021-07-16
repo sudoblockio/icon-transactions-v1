@@ -3,7 +3,7 @@ package kafka
 import (
 	"fmt"
 	"github.com/cenkalti/backoff/v4"
-	"github.com/geometry-labs/icon-blocks/config"
+	"github.com/geometry-labs/icon-transactions/config"
 	"go.uber.org/zap"
 	"gopkg.in/Shopify/sarama.v1"
 	"time"

@@ -4,7 +4,7 @@ package routes
 
 import (
 	"encoding/json"
-	"github.com/geometry-labs/icon-blocks/config"
+	"github.com/geometry-labs/icon-transactions/config"
 	"io/ioutil"
 	"net/http/httptest"
 	"testing"

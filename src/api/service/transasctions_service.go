@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/geometry-labs/icon-blocks/crud"
-	"github.com/geometry-labs/icon-blocks/global"
+	"github.com/geometry-labs/icon-transactions/crud"
+	"github.com/geometry-labs/icon-transactions/global"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
 )
