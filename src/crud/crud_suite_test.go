@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	blockModel *crud.TransactionModel
+	transactionModelMongo *crud.TransactionModelMongo
 )
 
 func TestCrud(t *testing.T) {
@@ -22,11 +22,10 @@ var _ = BeforeSuite(func() {
 	config.ReadEnvironment()
 	//logging.StartLoggingInit()
 
-	blockModel = NewBlockModel()
-	_ = blockModel.Migrate() // Have to create table before running tests
+	transactionModelMongo = NewTransactionModelMongo()
 })
 
-func NewBlockModel() *crud.TransactionModel {
-	testBlockRawModel := crud.GetTransacstionModel()
+func NewTransactionModelMongo() *crud.TransactionModelMongo {
+	testBlockRawModel := crud.GetTransactionModelMongo()
 	return testBlockRawModel
 }

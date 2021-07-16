@@ -34,8 +34,8 @@ func handlerGetQuery(c *fiber.Ctx) error {
 	}
 
 	// Get Transactions
-	blocks := params.RunQuery()
-	if len(*blocks) == 0 {
+	transactions := params.RunQuery()
+	if len(transactions) == 0 {
 		// No Content
 		c.Status(204)
 	} else {
@@ -43,6 +43,6 @@ func handlerGetQuery(c *fiber.Ctx) error {
 		c.Status(200)
 	}
 
-	body, _ := json.Marshal(blocks)
+	body, _ := json.Marshal(transactions)
 	return c.SendString(string(body))
 }

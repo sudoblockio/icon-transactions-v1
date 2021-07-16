@@ -20,21 +20,20 @@ services:
   ############
   # Database #
   ############
-  postgres:
-    image: postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+  mongo:
+    image: mongo:latest
     ports:
-      - "5432:5432"
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "mongo"
+      MONGO_INITDB_ROOT_PASSWORD: "changethis"
 
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+  mongo-express:
+    image: mongo-express
+    depends_on:
+      - mongo
     ports:
-      - "${PGADMIN_PORT:-5050}:80"
+      - 8081:8081
 
   #########
   # Kafka #

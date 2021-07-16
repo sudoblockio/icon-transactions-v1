@@ -1,7 +1,6 @@
 package loader
 
 import (
-	"fmt"
 	"github.com/geometry-labs/icon-blocks/global"
 	"github.com/geometry-labs/icon-blocks/models"
 	"go.uber.org/zap"
@@ -17,8 +16,6 @@ func TransactionLoader() {
 	for {
 		transaction = <-postgresLoaderChan
 		global.GetGlobal().Transactions.RetryCreate(transaction) // inserted here !!
-		zap.S().Debug(fmt.Sprintf(
-			"Loader Transaction: Loaded in postgres table Transasctions, Block Number %d", transaction.BlockNumber),
-		)
+		zap.S().Debug("Loader Transaction: Loaded in postgres table Transactions, Block Number", transaction.BlockNumber)
 	}
 }

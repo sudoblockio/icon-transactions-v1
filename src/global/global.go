@@ -9,7 +9,7 @@ import (
 const Version = "v0.1.0"
 
 type Global struct {
-	Transactions *crud.TransactionModel
+	Transactions *crud.TransactionModelMongo
 }
 
 var globalInstance *Global
@@ -18,7 +18,7 @@ var globalOnce sync.Once
 func GetGlobal() *Global {
 	globalOnce.Do(func() {
 		globalInstance = &Global{
-			Transactions: crud.GetTransacstionModel(),
+			Transactions: crud.GetTransactionModelMongo(),
 		}
 	})
 	return globalInstance

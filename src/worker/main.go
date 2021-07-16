@@ -19,6 +19,7 @@ import (
 
 func main() {
 	config.ReadEnvironment()
+	global.GetGlobal()
 
 	logging.StartLoggingInit()
 	log.Printf("Main: Starting logging with level %s", config.Config.LogLevel)
@@ -29,14 +30,14 @@ func main() {
 	// Start Postgres loader
 	loader.StartTransactionLoader()
 
+	// Start kafka consumer
+	kafka.StartWorkerConsumers()
+
 	// Start kafka Producer
 	kafka.StartProducers()
 
 	// Start transformers
 	transformers.StartBlocksTransformer()
-
-	// Start kafka consumer
-	kafka.StartWorkerConsumers()
 
 	// Listen for close sig
 	// Register for interupt (Ctrl+C) and SIGTERM (docker)

@@ -10,7 +10,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.1
 	github.com/gofiber/fiber/v2 v2.14.0
 	github.com/gofiber/websocket/v2 v2.0.7
-	github.com/golang/protobuf v1.5.2
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.3.1-0.20200116171513-9eb3fc897d6f // indirect
 	github.com/onsi/ginkgo v1.16.4
@@ -19,6 +18,7 @@ require (
 	github.com/riferrei/srclient v0.3.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
+	go.mongodb.org/mongo-driver v1.6.0
 	go.uber.org/zap v1.18.1
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect

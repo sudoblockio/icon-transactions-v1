@@ -29,7 +29,7 @@ func blocksTransformer() {
 
 	consumer_topic_chan := make(chan *sarama.ConsumerMessage)
 	producer_topic_chan := kafka.KafkaTopicProducers[producer_topic_name].TopicChan
-	postgresLoaderChan := global.GetGlobal().Transactions.GetWriteChan()
+	mongoLoaderChan := global.GetGlobal().Transactions.GetWriteChan()
 
 	// Register consumer channel
 	broadcaster_output_chan_id := kafka.Broadcasters[consumer_topic_name].AddBroadcastChannel(consumer_topic_chan)
@@ -43,11 +43,11 @@ func blocksTransformer() {
 		consumer_topic_msg := <-consumer_topic_chan
 		transactionRaw, err := models.ConvertToTransactionRaw(consumer_topic_msg.Value)
 		if err != nil {
-			zap.S().Error("Transactions Worker: Unable to proceed cannot convert kafka msg value to Transaction")
+			zap.S().Error("Transactions Worker: Unable to proceed cannot convert kafka msg value to TransactionRaw, err: ", err.Error())
 		}
 
 		// Transform logic
-		transformedBlock, _ := transform(transactionRaw)
+		transformedTransaction, _ := transform(transactionRaw)
 
 		// Produce to Kafka
 		producer_topic_msg := &sarama.ProducerMessage{
@@ -59,7 +59,7 @@ func blocksTransformer() {
 		producer_topic_chan <- producer_topic_msg
 
 		// Load to Postgres
-		postgresLoaderChan <- transformedBlock
+		mongoLoaderChan <- transformedTransaction
 
 		zap.S().Debug("Transactions worker: last seen block #", string(consumer_topic_msg.Key))
 	}
