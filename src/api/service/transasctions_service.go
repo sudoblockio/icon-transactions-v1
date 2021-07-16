@@ -11,14 +11,16 @@ type TransactionsQuery struct {
 	Page     int `query:"page"`
 	PageSize int `query:"page_size"`
 
-	Hash      string `query:"hash"`
-	Height    uint32 `query:"height"`
-	CreatedBy string `query:"created_by"`
-	Start     uint32 `query:"start"`
+	From string `query:"from"`
+	To   string `query:"to"`
+	Type string `query:"type"`
 }
 
 func (service *TransactionsQuery) RunQuery() []bson.M {
 	transactionsModel := global.GetGlobal().Transactions
+
+	// build key-value pairs
+
 	result := transactionsModel.FindAll(&crud.KeyValue{})
 
 	zap.S().Debug("Transactions: ", result)

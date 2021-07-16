@@ -12,7 +12,7 @@ import (
 
 func BlocksAddHandlers(app *fiber.App) {
 
-	prefix := config.Config.RestPrefix + "/blocks"
+	prefix := config.Config.RestPrefix + "/transactions"
 
 	app.Get(prefix+"/", handlerGetQuery)
 }
@@ -23,7 +23,7 @@ func BlocksAddHandlers(app *fiber.App) {
 // @Tags root
 // @Accept */*
 // @Produce json
-// @Router /blocks [get]
+// @Router /transaction [get]
 func handlerGetQuery(c *fiber.Ctx) error {
 	params := new(service.TransactionsQuery)
 	if err := c.QueryParser(params); err != nil {
