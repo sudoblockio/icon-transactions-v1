@@ -7,6 +7,7 @@ import (
 	"github.com/geometry-labs/icon-transactions/models"
 	"github.com/geometry-labs/icon-transactions/worker/utils"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/encoding/protojson"
 	"gopkg.in/Shopify/sarama.v1"
 )
 
@@ -41,7 +42,7 @@ func blocksTransformer() {
 	for {
 		// Read from kafka
 		consumer_topic_msg := <-consumer_topic_chan
-		transactionRaw, err := models.ConvertToTransactionRaw(consumer_topic_msg.Value)
+		transactionRaw, err := ConvertBytesToTransactionRaw(consumer_topic_msg.Value)
 		if err != nil {
 			zap.S().Error("Transactions Worker: Unable to proceed cannot convert kafka msg value to TransactionRaw, err: ", err.Error())
 		}
@@ -96,4 +97,13 @@ func transform(txRaw *models.TransactionRaw) (*models.Transaction, error) {
 		ItemId:                    txRaw.ItemId,
 		ItemTimestamp:             txRaw.ItemTimestamp,
 	}, nil
+}
+
+func ConvertBytesToTransactionRaw(value []byte) (*models.TransactionRaw, error) {
+	tx := models.TransactionRaw{}
+	err := protojson.Unmarshal(value, &tx)
+	if err != nil {
+		zap.S().Error("Transaction_raw_helper: Error in ConvertBytesToTransactionRaw: %v", err)
+	}
+	return &tx, err
 }

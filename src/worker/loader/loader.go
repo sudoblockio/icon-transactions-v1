@@ -7,10 +7,10 @@ import (
 )
 
 func StartTransactionLoader() {
-	go TransactionLoader()
+	go transactionLoader()
 }
 
-func TransactionLoader() {
+func transactionLoader() {
 	var transaction *models.Transaction
 	postgresLoaderChan := global.GetGlobal().Transactions.GetWriteChan()
 	for {
