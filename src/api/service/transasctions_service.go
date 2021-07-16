@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/geometry-labs/icon-transactions/crud"
-	"github.com/geometry-labs/icon-transactions/global"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
 )
@@ -17,9 +16,9 @@ type TransactionsQuery struct {
 }
 
 func (service *TransactionsQuery) RunQuery() []bson.M {
-	transactionsModel := global.GetGlobal().Transactions
+	transactionsModel := crud.GetTransactionModelMongo() //global.GetGlobal().Transactions
 
-	// build key-value pairs
+	// TODO: build key-value pairs
 
 	result := transactionsModel.FindAll(&crud.KeyValue{})
 

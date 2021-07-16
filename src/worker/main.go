@@ -10,16 +10,15 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/geometry-labs/icon-transactions/config"
+	"github.com/geometry-labs/icon-transactions/crud"
 	"github.com/geometry-labs/icon-transactions/global"
 	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/logging"
 	"github.com/geometry-labs/icon-transactions/metrics"
-	"github.com/geometry-labs/icon-transactions/worker/loader"
 )
 
 func main() {
 	config.ReadEnvironment()
-	global.GetGlobal()
 
 	logging.StartLoggingInit()
 	log.Printf("Main: Starting logging with level %s", config.Config.LogLevel)
@@ -28,7 +27,7 @@ func main() {
 	metrics.MetricsWorkerStart()
 
 	// Start Postgres loader
-	loader.StartTransactionLoader()
+	crud.StartTransactionLoader()
 
 	// Start kafka consumer
 	kafka.StartWorkerConsumers()

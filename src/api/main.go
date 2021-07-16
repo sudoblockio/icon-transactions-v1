@@ -22,7 +22,6 @@ func main() {
 	logging.StartLoggingInit()
 	zap.S().Debug("Main: Starting logging with level ", config.Config.LogLevel)
 
-	global.GetGlobal()
 	// Start kafka consumers
 	// Go routines start in function
 	kafka.StartApiConsumers()

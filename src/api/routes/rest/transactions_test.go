@@ -4,6 +4,7 @@ package rest
 
 import (
 	"encoding/json"
+	"github.com/geometry-labs/icon-transactions/crud"
 	"io/ioutil"
 	"net/http/httptest"
 	"testing"
@@ -23,8 +24,8 @@ func TestHandlerGetBlocks(t *testing.T) {
 	assert := assert.New(t)
 
 	// Insert block fixtures
-	block := *models.Blocks{}
-	global.GetGlobal().Blocks.RetryCreate(block)
+	tx := &models.Transaction{}
+	crud.GetTransactionModelMongo().RetryCreate(tx)
 
 	app := fiber.New()
 
@@ -40,10 +41,10 @@ func TestHandlerGetBlocks(t *testing.T) {
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
 
-	var blocks []models.Block
-	err = json.Unmarshal(bytes, &blocks)
+	var txs []models.Transaction
+	err = json.Unmarshal(bytes, &txs)
 	assert.Equal(nil, err)
 
 	// Verify body
-	assert.NotEqual(0, len(blocks[0].Hash))
+	assert.NotEqual(0, len(txs[0].Hash))
 }

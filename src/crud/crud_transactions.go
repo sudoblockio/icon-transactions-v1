@@ -35,7 +35,7 @@ func GetTransactionModelMongo() *TransactionModelMongo {
 		// TODO: Set from Config var
 		err := transactionModelMongoInstance.setCollectionHandle("local", "transactions")
 		if err != nil {
-			zap.S().Info("Unable to set collection: \"transactions\" in database: \"icon\"")
+			zap.S().Info("Unable to set collection: \"transactions\" in database: \"local\"")
 		}
 	})
 	return transactionModelMongoInstance
@@ -106,4 +106,18 @@ func (b *TransactionModelMongo) FindAll(kv *KeyValue) []bson.M {
 	}
 	return results
 
+}
+
+func StartTransactionLoader() {
+	go transactionLoader()
+}
+
+func transactionLoader() {
+	var transaction *models.Transaction
+	mongoLoaderChan := GetTransactionModelMongo().writeChan
+	for {
+		transaction = <-mongoLoaderChan
+		GetTransactionModelMongo().RetryCreate(transaction) // inserted here !!
+		zap.S().Debug("Loader Transaction: Loaded in postgres table Transactions, Block Number", transaction.BlockNumber)
+	}
 }

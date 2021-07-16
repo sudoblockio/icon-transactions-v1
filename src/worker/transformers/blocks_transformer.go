@@ -2,7 +2,7 @@ package transformers
 
 import (
 	"github.com/geometry-labs/icon-transactions/config"
-	"github.com/geometry-labs/icon-transactions/global"
+	"github.com/geometry-labs/icon-transactions/crud"
 	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/models"
 	"github.com/geometry-labs/icon-transactions/worker/utils"
@@ -30,7 +30,7 @@ func blocksTransformer() {
 
 	consumer_topic_chan := make(chan *sarama.ConsumerMessage)
 	producer_topic_chan := kafka.KafkaTopicProducers[producer_topic_name].TopicChan
-	mongoLoaderChan := global.GetGlobal().Transactions.GetWriteChan()
+	mongoLoaderChan := crud.GetTransactionModelMongo().GetWriteChan()
 
 	// Register consumer channel
 	broadcaster_output_chan_id := kafka.Broadcasters[consumer_topic_name].AddBroadcastChannel(consumer_topic_chan)
