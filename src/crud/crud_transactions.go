@@ -85,10 +85,72 @@ func (b *TransactionModelMongo) RetryCreate(transaction *models.Transaction) (*m
 	return insertOneResult, err
 }
 
-func (b *TransactionModelMongo) DeleteMany(kv *KeyValue) (*mongo.DeleteResult, error) {
-	delR, err := b.collectionHandle.DeleteMany(b.mongoConn.ctx, bson.D{{kv.Key, kv.Value}})
-	return delR, err
+func (b *TransactionModelMongo) Select(
+	limit int,
+	skip int,
+	from string,
+	to string,
+	_type string,
+) []bson.M {
+	transactionsModel := GetTransactionModelMongo() //global.GetGlobal().Transactions
+
+	// TODO: build key-value pairs
+
+	result := transactionsModel.FindAll(&KeyValue{})
+
+	zap.S().Debug("Transactions: ", result)
+	return result
 }
+
+//
+//func (m *BlockModel) Select(
+//	limit         int,
+//	skip          int,
+//	number        uint32,
+//	start_number  uint32,
+//	end_number    uint32,
+//	hash          string,
+//	created_by    string,
+//) (*[]models.Block) {
+//	db := m.db
+//
+//	// Limit is required and defaulted to 1
+//	db = db.Limit(limit)
+//
+//	// Skip
+//	if skip != 0 {
+//		db = db.Offset(skip)
+//	}
+//
+//	// Height
+//	if number != 0 {
+//		db = db.Where("number = ?", number)
+//	}
+//
+//	// Start number and end number
+//	if start_number != 0 && end_number != 0 {
+//		db = db.Where("number BETWEEN ? AND ?", start_number, end_number)
+//	} else if start_number != 0 {
+//		db = db.Where("number > ?", start_number)
+//	} else if end_number != 0 {
+//		db = db.Where("number < ?", end_number)
+//	}
+//
+//	// Hash
+//	if hash != "" {
+//		db = db.Where("hash = ?", hash)
+//	}
+//
+//	// Created By
+//	if created_by != "" {
+//		db = db.Where("created_by = ?", created_by)
+//	}
+//
+//	blocks := &[]models.Block{}
+//	db.Find(blocks)
+//
+//	return blocks
+//}
 
 func (b *TransactionModelMongo) find(kv *KeyValue) (*mongo.Cursor, error) {
 	cursor, err := b.collectionHandle.Find(b.mongoConn.ctx, bson.D{{kv.Key, kv.Value}})

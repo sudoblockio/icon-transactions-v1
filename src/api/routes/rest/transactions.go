@@ -2,13 +2,22 @@ package rest
 
 import (
 	"encoding/json"
+	"github.com/geometry-labs/icon-transactions/crud"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 
-	"github.com/geometry-labs/icon-transactions/api/service"
 	"github.com/geometry-labs/icon-transactions/config"
 )
+
+type TransactionsQuery struct {
+	Limit int `query:"limit"`
+	Skip  int `query:"skip"`
+
+	From string `query:"from"`
+	To   string `query:"to"`
+	Type string `query:"type"`
+}
 
 func BlocksAddHandlers(app *fiber.App) {
 
@@ -25,7 +34,7 @@ func BlocksAddHandlers(app *fiber.App) {
 // @Produce json
 // @Router /transaction [get]
 func handlerGetQuery(c *fiber.Ctx) error {
-	params := new(service.TransactionsQuery)
+	params := new(TransactionsQuery)
 	if err := c.QueryParser(params); err != nil {
 		zap.S().Warnf("Transactions Get Handler ERROR: %s", err.Error())
 
@@ -33,8 +42,13 @@ func handlerGetQuery(c *fiber.Ctx) error {
 		return c.SendString(`{"error": "could not parse query parameters"}`)
 	}
 
+	// Default Params
+	if params.Limit <= 0 {
+		params.Limit = 1
+	}
+
 	// Get Transactions
-	transactions := params.RunQuery()
+	transactions := crud.GetTransactionModelMongo().Select(params.Limit, params.Skip, params.From, params.To, params.Type)
 	if len(transactions) == 0 {
 		// No Content
 		c.Status(204)

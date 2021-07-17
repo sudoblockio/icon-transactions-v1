@@ -54,27 +54,6 @@ func (m *MongoConn) GetCtx() context.Context {
 	return m.ctx
 }
 
-func NewMongoConn(uri string) *MongoConn {
-	client, err := retryMongoConn(uri)
-	if err != nil {
-		zap.S().Info("MONGO: Finally Connection cannot be established")
-	} else {
-		zap.S().Info("MONGO: Finally Connection established")
-	}
-
-	ctx, _ := context.WithCancel(context.Background())
-	//defer cancel
-	err = client.Connect(ctx)
-	if err != nil {
-		zap.S().Fatal("Cannot connect to context for mongodb", err)
-	}
-	mongoInstance = &MongoConn{
-		client: client,
-		ctx:    ctx,
-	}
-	return mongoInstance
-}
-
 func (m *MongoConn) Close() error {
 	err := m.client.Disconnect(m.ctx)
 	if err != nil {
