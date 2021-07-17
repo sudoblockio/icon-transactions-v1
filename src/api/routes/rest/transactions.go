@@ -11,8 +11,8 @@ import (
 )
 
 type TransactionsQuery struct {
-	Limit int `query:"limit"`
-	Skip  int `query:"skip"`
+	Limit int64 `query:"limit"`
+	Skip  int64 `query:"skip"`
 
 	From string `query:"from"`
 	To   string `query:"to"`
