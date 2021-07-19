@@ -2,7 +2,9 @@ package crud
 
 import (
 	"context"
+	"fmt"
 	"github.com/cenkalti/backoff/v4"
+	"github.com/geometry-labs/icon-transactions/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -21,8 +23,7 @@ var mongoConnOnce sync.Once
 
 func GetMongoConn() *MongoConn {
 	mongoConnOnce.Do(func() {
-		// TODO: create uri string from env variables
-		uri := "mongodb://mongo:27017"
+		uri := fmt.Sprintf("%s://%s:%s", config.Config.DbDriver, config.Config.DbHost, config.Config.DbPort) //"mongodb://localhost:27017"
 		client, err := retryMongoConn(uri)
 		if err != nil {
 			zap.S().Info("MONGO: Finally Connection cannot be established")
@@ -89,8 +90,8 @@ func retryMongoConn(uri string) (*mongo.Client, error) {
 			AuthMechanism:           "",
 			AuthMechanismProperties: nil,
 			AuthSource:              "",
-			Username:                "mongo",
-			Password:                "changethis",
+			Username:                config.Config.DbUser,     //"mongo",
+			Password:                config.Config.DbPassword, //"changethis",
 			PasswordSet:             true,
 		}))
 		if err != nil {

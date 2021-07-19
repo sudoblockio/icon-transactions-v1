@@ -2,6 +2,7 @@ package crud
 
 import (
 	"github.com/cenkalti/backoff/v4"
+	"github.com/geometry-labs/icon-transactions/config"
 	"github.com/geometry-labs/icon-transactions/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -18,31 +19,22 @@ type TransactionModelMongo struct {
 	writeChan        chan *models.Transaction
 }
 
-//type KeyValue struct {
-//	Key   string
-//	Value string
-//}
-
-var KeyValue map[string]interface{}
-
 var transactionModelMongoInstance *TransactionModelMongo
 var transactionModelMongoOnce sync.Once
 
 func GetTransactionModelMongo() *TransactionModelMongo {
 	transactionModelMongoOnce.Do(func() {
 		transactionModelMongoInstance = &TransactionModelMongo{
-			mongoConn: GetMongoConn(),
-			model:     &models.Transaction{},
-			// TODO: Set from Config var
-			collectionHandle: GetMongoConn().DatabaseHandle("local").Collection("transactions"),
-			//collectionHandle: transactionModelMongoInstance.setCollectionHandle("local", "transactions"),
-			writeChan: make(chan *models.Transaction, 1),
+			mongoConn:        GetMongoConn(),
+			model:            &models.Transaction{},
+			collectionHandle: GetMongoConn().DatabaseHandle(config.Config.DbName).Collection(config.Config.DbCollection),
+			writeChan:        make(chan *models.Transaction, 1),
 		}
 
-		//collection := transactionModelMongoInstance.setCollectionHandle("local", "transactions")
-		//if err != nil {
-		//	zap.S().Info("Unable to set collection: \"transactions\" in database: \"local\", err: ", err)
-		//}
+		for _, index := range config.Config.DbIndex {
+			indexName, _ := transactionModelMongoInstance.CreateIndex(index, true, false)
+			zap.S().Info("Created Index: ", indexName)
+		}
 	})
 	return transactionModelMongoInstance
 }
@@ -59,13 +51,29 @@ func (b *TransactionModelMongo) GetWriteChan() chan *models.Transaction {
 	return b.writeChan
 }
 
-func (b *TransactionModelMongo) setCollectionHandle(database string, collection string) *mongo.Collection {
-	b.collectionHandle = b.mongoConn.DatabaseHandle(database).Collection(collection)
-	return b.collectionHandle
-}
+//func (b *TransactionModelMongo) setCollectionHandle(database string, collection string) *mongo.Collection {
+//	b.collectionHandle = b.mongoConn.DatabaseHandle(database).Collection(collection)
+//	return b.collectionHandle
+//}
 
 func (b *TransactionModelMongo) GetCollectionHandle() *mongo.Collection {
 	return b.collectionHandle
+}
+
+func (b *TransactionModelMongo) CreateIndex(column string, isAscending bool, isUnique bool) (string, error) {
+	ascending := 1
+	if !isAscending {
+		ascending = -1
+	}
+	indexModel := mongo.IndexModel{
+		Keys:    bson.M{column: ascending},
+		Options: options.Index().SetUnique(isUnique),
+	}
+	indexName, err := b.collectionHandle.Indexes().CreateOne(b.mongoConn.ctx, indexModel)
+	if err != nil {
+		zap.S().Errorf("Unable to create Index: %s, err: %s", column, err.Error())
+	}
+	return indexName, err
 }
 
 func (b *TransactionModelMongo) InsertOne(block *models.Transaction) (*mongo.InsertOneResult, error) {
@@ -100,7 +108,13 @@ func (b *TransactionModelMongo) Select(
 ) []bson.M {
 	transactionsModel := GetTransactionModelMongo()
 
-	// TODO: build key-value pairs
+	///////////////
+	//for _, index := range config.Config.DbIndex {
+	//	indexName, _ := b.CreateIndex(index, true, false)
+	//	zap.S().Info("Created Index: ", indexName)
+	//}
+	////////////////
+
 	// Building KeyValue pairs
 	kvPairs := make(map[string]interface{})
 	// from
@@ -131,9 +145,7 @@ func (b *TransactionModelMongo) Select(
 		Limit: &limit,
 	}
 
-	zap.S().Debug("kvPairs before Marshall: ", kvPairs)
-	var kvPairsD *bson.D
-	kvPairsD, err := toDoc(kvPairs) // TODO: NOT WORKING
+	kvPairsD, err := convertMapToBsonD(kvPairs)
 	if err != nil {
 		zap.S().Info("Error in converting key value pairs to bson.D, err:", err.Error())
 		kvPairsD = &bson.D{}
@@ -145,7 +157,7 @@ func (b *TransactionModelMongo) Select(
 	return result
 }
 
-func toDoc(v map[string]interface{}) (doc *bson.D, err error) {
+func convertMapToBsonD(v map[string]interface{}) (doc *bson.D, err error) {
 	zap.S().Debug("bson before Marshall: ", v)
 	data, err := bson.Marshal(v)
 	zap.S().Debug("bson Marshall: ", string(data))
@@ -213,9 +225,7 @@ func toDoc(v map[string]interface{}) (doc *bson.D, err error) {
 //}
 
 func (b *TransactionModelMongo) FindAll(kvPairsD *bson.D, opts *options.FindOptions) []bson.M {
-	zap.S().Debug("kvPairsD is: ", kvPairsD)
 	cursor, err := b.collectionHandle.Find(b.mongoConn.ctx, kvPairsD, opts)
-	//cursor, err := b.find(kv)
 	if err != nil {
 		zap.S().Info("Exception in getting a curser to a find in mongodb: ", err)
 	}
