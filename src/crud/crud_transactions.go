@@ -108,12 +108,7 @@ func (b *TransactionModelMongo) Select(
 ) []bson.M {
 	transactionsModel := GetTransactionModelMongo()
 
-	///////////////
-	//for _, index := range config.Config.DbIndex {
-	//	indexName, _ := b.CreateIndex(index, true, false)
-	//	zap.S().Info("Created Index: ", indexName)
-	//}
-	////////////////
+	_ = b.mongoConn.retryPing()
 
 	// Building KeyValue pairs
 	kvPairs := make(map[string]interface{})
@@ -158,9 +153,9 @@ func (b *TransactionModelMongo) Select(
 }
 
 func convertMapToBsonD(v map[string]interface{}) (doc *bson.D, err error) {
-	zap.S().Debug("bson before Marshall: ", v)
+	zap.S().Debug("Query before Marshall: ", v)
 	data, err := bson.Marshal(v)
-	zap.S().Debug("bson Marshall: ", string(data))
+	zap.S().Debug("Query in bson: ", string(data))
 	if err != nil {
 		return
 	}

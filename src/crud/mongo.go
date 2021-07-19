@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/zap"
 	"sync"
+	"time"
 )
 
 type MongoConn struct {
@@ -24,9 +25,10 @@ var mongoConnOnce sync.Once
 func GetMongoConn() *MongoConn {
 	mongoConnOnce.Do(func() {
 		uri := fmt.Sprintf("%s://%s:%s", config.Config.DbDriver, config.Config.DbHost, config.Config.DbPort) //"mongodb://localhost:27017"
+		// Getting client (or session)
 		client, err := retryMongoConn(uri)
 		if err != nil {
-			zap.S().Info("MONGO: Finally Connection cannot be established")
+			zap.S().Fatal("MONGO: Finally Connection cannot be established")
 		} else {
 			zap.S().Info("MONGO: Finally Connection established")
 		}
@@ -34,6 +36,11 @@ func GetMongoConn() *MongoConn {
 		//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		//defer cancel()
 		ctx, _ := context.WithCancel(context.Background())
+		//go func() {
+		//	<-global.ShutdownChan
+		//	zap.S().Info("Closing Mongodb client context")
+		//	defer cancel()
+		//}()
 
 		err = client.Connect(ctx)
 		if err != nil {
@@ -43,7 +50,15 @@ func GetMongoConn() *MongoConn {
 			client: client,
 			ctx:    ctx,
 		}
+
+		err = mongoInstance.retryPing()
+		if err != nil {
+			zap.S().Fatal("MONGO: Finally cannot ping mongodb")
+		} else {
+			zap.S().Info("MONGO: Finally pinged mongodb")
+		}
 	})
+
 	return mongoInstance
 }
 
@@ -64,10 +79,21 @@ func (m *MongoConn) Close() error {
 }
 
 func (m *MongoConn) Ping() error {
-	err := m.client.Ping(m.ctx, readpref.Primary())
+	ctx, _ := context.WithTimeout(context.TODO(), 5*time.Second)
+	err := m.client.Ping(ctx, readpref.Primary())
 	if err != nil {
-		zap.S().Fatal("Cannot ping mongodb", err)
+		zap.S().Info("Cannot ping mongodb", err)
 	}
+	return err
+}
+
+func (m *MongoConn) retryPing() error {
+	operation := func() error {
+		return m.Ping()
+	}
+	neb := backoff.NewExponentialBackOff()
+	err := backoff.Retry(operation, neb)
+
 	return err
 }
 
