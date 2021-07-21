@@ -1,4 +1,4 @@
-name: PR run tests
+name: PR Tests
 
 on:
   pull_request:
@@ -22,7 +22,15 @@ jobs:
         run: docker-compose -f docker-compose.db.yml up -d
 
       - name: Run unit tests
-        run: cd src && go test ./... -v --tags=unit
+        run: cd src && go test ./... -v
+
+      - name: Bring up stack
+        run: make up
 
       - name: Run integration tests
-        run: sleep 200 && cd src && go test ./... -v --tags=integration
+        run: cd tests && go test ./... -v
+
+      - name: Upload coverage to Codecov
+        run: |
+          make test-coverage
+          bash <(curl -s https://codecov.io/bash)
