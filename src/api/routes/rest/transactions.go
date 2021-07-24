@@ -2,11 +2,11 @@ package rest
 
 import (
 	"encoding/json"
-	"github.com/geometry-labs/icon-transactions/crud"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 
+	"github.com/geometry-labs/icon-transactions/crud"
 	"github.com/geometry-labs/icon-transactions/config"
 )
 
@@ -23,7 +23,7 @@ func BlocksAddHandlers(app *fiber.App) {
 
 	prefix := config.Config.RestPrefix + "/transactions"
 
-	app.Get(prefix+"/", handlerGetQuery)
+	app.Get(prefix+"/", handlerGetTransactions)
 }
 
 // Transactions
@@ -33,7 +33,7 @@ func BlocksAddHandlers(app *fiber.App) {
 // @Accept */*
 // @Produce json
 // @Router /transaction [get]
-func handlerGetQuery(c *fiber.Ctx) error {
+func handlerGetTransactions(c *fiber.Ctx) error {
 	params := new(TransactionsQuery)
 	if err := c.QueryParser(params); err != nil {
 		zap.S().Warnf("Transactions Get Handler ERROR: %s", err.Error())
@@ -48,7 +48,13 @@ func handlerGetQuery(c *fiber.Ctx) error {
 	}
 
 	// Get Transactions
-	transactions := crud.GetTransactionModelMongo().Select(params.Limit, params.Skip, params.From, params.To, params.Type)
+	transactions := crud.GetTransactionModelMongo().Select(
+    params.Limit,
+    params.Skip,
+    params.From,
+    params.To,
+    params.Type,
+  )
 	if len(transactions) == 0 {
 		// No Content
 		c.Status(204)

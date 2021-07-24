@@ -26,7 +26,7 @@ build-swagger:  ## Build the swagger docs
     go get github.com/riferrei/srclient@v0.3.0; \
     cd src/api && swag init -g routes/api.go
 
-build-all:  ## Build everything
+build:  ## Build everything
 	docker-compose build
 
 build-api:  ## Build the api

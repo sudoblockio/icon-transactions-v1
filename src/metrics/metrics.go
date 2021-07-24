@@ -12,10 +12,10 @@ import (
 
 var Metrics map[string]prometheus.Counter
 
-func MetricsApiStart() {
+func MetricsAPIStart() {
 	Metrics = make(map[string]prometheus.Counter)
 
-	createApiGauges()
+	createAPIGauges()
 
 	// Start server
 	http.Handle(config.Config.MetricsPrefix, promhttp.Handler())
@@ -35,7 +35,7 @@ func MetricsWorkerStart() {
 	zap.S().Info("Started Metrics on port:", config.Config.MetricsPort, config.Config.MetricsPrefix)
 }
 
-func createApiGauges() {
+func createAPIGauges() {
 	Metrics["requests_amount"] = promauto.NewCounter(prometheus.CounterOpts{
 		Name:        "requests_amount",
 		Help:        "amount of requests",

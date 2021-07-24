@@ -24,11 +24,11 @@ func main() {
 
 	// Start kafka consumers
 	// Go routines start in function
-	kafka.StartApiConsumers()
+	kafka.StartAPIConsumers()
 
 	// Start Prometheus client
 	// Go routine starts in function
-	metrics.MetricsApiStart()
+	metrics.MetricsAPIStart()
 
 	// Start API server
 	// Go routine starts in function

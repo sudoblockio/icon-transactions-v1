@@ -9,7 +9,7 @@ import (
 	swagger "github.com/arsmn/fiber-swagger/v2"
 	fiber "github.com/gofiber/fiber/v2"
 
-	_ "github.com/geometry-labs/icon-transactions/api/docs"
+	_ "github.com/geometry-labs/icon-transactions/api/docs"     // import swagger docs
 	"github.com/geometry-labs/icon-transactions/api/routes/rest"
 	"github.com/geometry-labs/icon-transactions/api/routes/ws"
 )
@@ -37,8 +37,8 @@ func Start() {
 	app.Get("/metadata", handlerMetadata)
 
 	// Add handlers
-	rest.BlocksAddHandlers(app)
-	ws.BlocksAddHandlers(app)
+	rest.TransactionsAddHandlers(app)
+	ws.TransactionsAddHandlers(app)
 
 	go app.Listen(":" + config.Config.Port)
 }
