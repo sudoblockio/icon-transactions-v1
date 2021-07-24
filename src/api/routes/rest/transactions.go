@@ -19,7 +19,7 @@ type TransactionsQuery struct {
 	Type string `query:"type"`
 }
 
-func BlocksAddHandlers(app *fiber.App) {
+func TransactionsAddHandlers(app *fiber.App) {
 
 	prefix := config.Config.RestPrefix + "/transactions"
 

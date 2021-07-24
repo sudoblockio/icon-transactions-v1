@@ -36,9 +36,9 @@ func GetTransactionModelMongo() *TransactionModelMongo {
 		}
 
     // Create indexes
-		indexName, _ := transactionModelMongoInstance.CreateIndex("from_address", true, false)
-		indexName, _ := transactionModelMongoInstance.CreateIndex("to_address", true, false)
-		indexName, _ := transactionModelMongoInstance.CreateIndex("method", true, false)
+		transactionModelMongoInstance.CreateIndex("from_address", true, false)
+	  transactionModelMongoInstance.CreateIndex("to_address", true, false)
+		transactionModelMongoInstance.CreateIndex("method", true, false)
 	})
 	return transactionModelMongoInstance
 }
@@ -59,20 +59,22 @@ func (b *TransactionModelMongo) GetCollectionHandle() *mongo.Collection {
 	return b.collectionHandle
 }
 
-func (b *TransactionModelMongo) CreateIndex(column string, isAscending bool, isUnique bool) (string, error) {
+func (b *TransactionModelMongo) CreateIndex(column string, isAscending bool, isUnique bool){
+
 	ascending := 1
 	if !isAscending {
 		ascending = -1
 	}
+
 	indexModel := mongo.IndexModel{
 		Keys:    bson.M{column: ascending},
 		Options: options.Index().SetUnique(isUnique),
 	}
-	indexName, err := b.collectionHandle.Indexes().CreateOne(b.mongoConn.ctx, indexModel)
+
+	_, err := b.collectionHandle.Indexes().CreateOne(b.mongoConn.ctx, indexModel)
 	if err != nil {
 		zap.S().Errorf("Unable to create Index: %s, err: %s", column, err.Error())
 	}
-	return indexName, err
 }
 
 func (b *TransactionModelMongo) InsertOne(block *models.Transaction) (*mongo.InsertOneResult, error) {
