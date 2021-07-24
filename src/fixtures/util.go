@@ -11,10 +11,6 @@ import (
 	"github.com/geometry-labs/icon-transactions/models"
 )
 
-const (
-	Block_raws_fixture = "block_raws.json"
-)
-
 type Fixtures []Fixture
 type Fixture struct {
 	Input    map[string]interface{}
@@ -65,21 +61,38 @@ func ReadCurrentDir() {
 	}
 }
 
-func (f *Fixture) GetBlock(data map[string]interface{}) *models.Block {
-	block := models.Block{
-		Signature:        data["signature"].(string),
-		ItemId:           data["item_id"].(string),
-		NextLeader:       data["next_leader"].(string),
-		TransactionCount: uint32(data["transaction_count"].(float64)),
-		Type:             data["type"].(string),
-		Version:          data["version"].(string),
-		PeerId:           data["peer_id"].(string),
-		Number:           uint32(data["number"].(float64)),
-		MerkleRootHash:   data["merkle_root_hash"].(string),
-		ItemTimestamp:    data["item_timestamp"].(string),
-		Hash:             data["hash"].(string),
-		ParentHash:       data["parent_hash"].(string),
-		Timestamp:        uint64(data["timestamp"].(float64)),
+func (f *Fixture) GetTransaction(data map[string]interface{}) *models.Transaction {
+	block := models.Transaction{
+		Type: data["type"].(string),
+		Version: data["version"].(string),
+		FromAddress: data["fromAddress"].(string),
+		ToAddress: data["toAddress"].(string),
+		Value: data["value"].(string),
+		StepLimit: data["stepLimit"].(string),
+		Timestamp: data["timestamp"].(string),
+		BlockTimestamp: data["blockTimestamp"].(uint64),
+		Nid: data["nid"].(string),
+		Nonce: data["nonce"].(string),
+		Hash: data["hash"].(string),
+		TransactionIndex: data["transactionIndex"].(uint64),
+		BlockHash: data["blockHash"].(string),
+		BlockNumber: data["blockNumber"].(uint64),
+		Fee: data["fee"].(string),
+		Signature: data["signature"].(string),
+		DataType: data["dataType"].(string),
+		Data: data["data"].([]byte),
+		ReceiptCumulativeStepUsed: data["receiptCumulativeStepUsed"].(string),
+		ReceiptStepUsed: data["receiptStepUsed"].(string),
+		ReceiptStepPrice: data["receiptStepPrice"].(string),
+		ReceiptScoreAddress: data["receiptScoreAddress"].(string),
+		ReceiptLogs: data["receiptLogs"].(string),
+		ReceiptStatus: data["receiptStatus"].(uint32),
+		ItemId: data["itemId"].(string),
+		ItemTimestamp: data["itemTimestamp"].(string),
 	}
 	return &block
+}
+
+func returnString(interface{} i) {
+
 }

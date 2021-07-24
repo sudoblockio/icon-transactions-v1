@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/geometry-labs/icon-transactions/global"
+	"github.com/geometry-labs/icon-transactions/kafka"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,8 +12,6 @@ import (
 	"github.com/geometry-labs/icon-transactions/api/healthcheck"
 	"github.com/geometry-labs/icon-transactions/api/routes"
 	"github.com/geometry-labs/icon-transactions/config"
-	"github.com/geometry-labs/icon-transactions/global"
-	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/logging"
 	"github.com/geometry-labs/icon-transactions/metrics"
 )
@@ -47,9 +47,10 @@ func main() {
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-sigChan
-		zap.S().Info("Shutting down...")
 		global.ShutdownChan <- 1
+		zap.S().Info("Shutting down...")
 	}()
 
 	<-global.ShutdownChan
+	zap.S().Info("Shut down...")
 }

@@ -1,46 +1,43 @@
-//+build integration
-
 package crud_test
 
 import (
+	"github.com/geometry-labs/icon-transactions/config"
+	"github.com/geometry-labs/icon-transactions/crud"
+	"github.com/geometry-labs/icon-transactions/fixtures"
+	"github.com/geometry-labs/icon-transactions/logging"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"log"
 )
 
-var _ = Describe("Mongo Integration test", func() {
-	testFixtures, _ := fixtures.LoadTestFixtures(fixtures.Block_raws_fixture)
+var _ = Describe("CrudTransactions", func() {
+	config.ReadEnvironment()
+	logging.StartLoggingInit()
 
-	Describe("BlockModel with mongodb", func() {
+	testFixtures, _ := fixtures.LoadTestFixtures("transaction_raws.json")
+	transactionModelMongo := crud.GetTransactionModelMongo()
 
-		Context("Insert in block collection", func() {
-			//testFixtures, _ = fixtures.LoadTestFixtures(fixtures.Block_raws_fixture) //To
+	Describe("TransactionModel with mongodb", func() {
+
+		Context("Insert in Transactions collection", func() {
 			for _, fixture := range testFixtures {
-				block := fixture.GetBlock(fixture.Input)
-				kv := &crud.KeyValue{
-					Key:   "signature",
-					Value: block.Signature,
-				}
-				BeforeEach(func() {
-					blockRawModelMongo.DeleteMany(&crud.KeyValue{Key: "signature", Value: block.Signature})
-				})
+				transaction := fixture.GetTransaction(fixture.Input)
+
 				It("insert in mongodb", func() {
-					_, err := blockRawModelMongo.InsertOne(block)
+					_, err := transactionModelMongo.RetryCreate(transaction)
 					if err != nil {
-						Expect(1).To(Equal(0))
+						log.Println(err.Error())
 					}
 					Expect(err).To(BeNil())
 
-					// test find
-					results := blockRawModelMongo.FindAll(kv)
-					Expect(len(results) == 1).To(Equal(true))
-
-					//test delete
-					_, err = blockRawModelMongo.DeleteMany(kv)
-					Expect(err).To(BeNil())
+					//result := transactionModelMongo.Select(1,0, transaction.FromAddress, "", "")
+					//kv := &crud.KeyValue{
+					//	Key:   "signature",
+					//	Value: transaction.Signature,
+					//}
 				}) // It
 			} // For each fixture
 		}) // Context "Insert in block collection"
 
 	}) // Describe "BlockModel with mongodb"
-
-}) // Describe "TransactionModelMongo"
+})
