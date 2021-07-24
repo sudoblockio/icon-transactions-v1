@@ -72,32 +72,32 @@ type Transaction struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Type                      string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	Version                   string `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
-	FromAddress               string `protobuf:"bytes,3,opt,name=from_address,json=fromAddress,proto3" json:"from_address,omitempty"`
-	ToAddress                 string `protobuf:"bytes,4,opt,name=to_address,json=toAddress,proto3" json:"to_address,omitempty"`
-	Value                     string `protobuf:"bytes,5,opt,name=value,proto3" json:"value,omitempty"`
-	StepLimit                 string `protobuf:"bytes,6,opt,name=step_limit,json=stepLimit,proto3" json:"step_limit,omitempty"`
-	Timestamp                 string `protobuf:"bytes,7,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	BlockTimestamp            uint64 `protobuf:"varint,8,opt,name=block_timestamp,json=blockTimestamp,proto3" json:"block_timestamp,omitempty"`
-	Nid                       string `protobuf:"bytes,9,opt,name=nid,proto3" json:"nid,omitempty"`
-	Nonce                     string `protobuf:"bytes,10,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	Hash                      string `protobuf:"bytes,11,opt,name=hash,proto3" json:"hash,omitempty"`
-	TransactionIndex          uint64 `protobuf:"varint,12,opt,name=transaction_index,json=transactionIndex,proto3" json:"transaction_index,omitempty"`
-	BlockHash                 string `protobuf:"bytes,13,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty"`
-	BlockNumber               uint64 `protobuf:"varint,14,opt,name=block_number,json=blockNumber,proto3" json:"block_number,omitempty"`
-	Fee                       string `protobuf:"bytes,15,opt,name=fee,proto3" json:"fee,omitempty"`
-	Signature                 string `protobuf:"bytes,16,opt,name=signature,proto3" json:"signature,omitempty"`
-	DataType                  string `protobuf:"bytes,17,opt,name=data_type,json=dataType,proto3" json:"data_type,omitempty"`
-	Data                      []byte `protobuf:"bytes,18,opt,name=data,proto3" json:"data,omitempty"`
-	ReceiptCumulativeStepUsed string `protobuf:"bytes,19,opt,name=receipt_cumulative_step_used,json=receiptCumulativeStepUsed,proto3" json:"receipt_cumulative_step_used,omitempty"`
-	ReceiptStepUsed           string `protobuf:"bytes,20,opt,name=receipt_step_used,json=receiptStepUsed,proto3" json:"receipt_step_used,omitempty"`
-	ReceiptStepPrice          string `protobuf:"bytes,21,opt,name=receipt_step_price,json=receiptStepPrice,proto3" json:"receipt_step_price,omitempty"`
-	ReceiptScoreAddress       string `protobuf:"bytes,22,opt,name=receipt_score_address,json=receiptScoreAddress,proto3" json:"receipt_score_address,omitempty"`
-	ReceiptLogs               string `protobuf:"bytes,23,opt,name=receipt_logs,json=receiptLogs,proto3" json:"receipt_logs,omitempty"`
-	ReceiptStatus             uint32 `protobuf:"varint,24,opt,name=receipt_status,json=receiptStatus,proto3" json:"receipt_status,omitempty"`
-	ItemId                    string `protobuf:"bytes,25,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
-	ItemTimestamp             string `protobuf:"bytes,26,opt,name=item_timestamp,json=itemTimestamp,proto3" json:"item_timestamp,omitempty"`
+	Type                      string  `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Version                   string  `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+	FromAddress               string  `protobuf:"bytes,3,opt,name=from_address,json=fromAddress,proto3" json:"from_address,omitempty"`
+	ToAddress                 string  `protobuf:"bytes,4,opt,name=to_address,json=toAddress,proto3" json:"to_address,omitempty"`
+	Value                     string  `protobuf:"bytes,5,opt,name=value,proto3" json:"value,omitempty"`
+	StepLimit                 string  `protobuf:"bytes,6,opt,name=step_limit,json=stepLimit,proto3" json:"step_limit,omitempty"`
+	Timestamp                 string  `protobuf:"bytes,7,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	BlockTimestamp            float64 `protobuf:"fixed64,8,opt,name=block_timestamp,json=blockTimestamp,proto3" json:"block_timestamp,omitempty"`
+	Nid                       string  `protobuf:"bytes,9,opt,name=nid,proto3" json:"nid,omitempty"`
+	Nonce                     string  `protobuf:"bytes,10,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Hash                      string  `protobuf:"bytes,11,opt,name=hash,proto3" json:"hash,omitempty"`
+	TransactionIndex          float64 `protobuf:"fixed64,12,opt,name=transaction_index,json=transactionIndex,proto3" json:"transaction_index,omitempty"`
+	BlockHash                 string  `protobuf:"bytes,13,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty"`
+	BlockNumber               float64 `protobuf:"fixed64,14,opt,name=block_number,json=blockNumber,proto3" json:"block_number,omitempty"`
+	Fee                       string  `protobuf:"bytes,15,opt,name=fee,proto3" json:"fee,omitempty"`
+	Signature                 string  `protobuf:"bytes,16,opt,name=signature,proto3" json:"signature,omitempty"`
+	DataType                  string  `protobuf:"bytes,17,opt,name=data_type,json=dataType,proto3" json:"data_type,omitempty"`
+	Data                      []byte  `protobuf:"bytes,18,opt,name=data,proto3" json:"data,omitempty"`
+	ReceiptCumulativeStepUsed string  `protobuf:"bytes,19,opt,name=receipt_cumulative_step_used,json=receiptCumulativeStepUsed,proto3" json:"receipt_cumulative_step_used,omitempty"`
+	ReceiptStepUsed           string  `protobuf:"bytes,20,opt,name=receipt_step_used,json=receiptStepUsed,proto3" json:"receipt_step_used,omitempty"`
+	ReceiptStepPrice          string  `protobuf:"bytes,21,opt,name=receipt_step_price,json=receiptStepPrice,proto3" json:"receipt_step_price,omitempty"`
+	ReceiptScoreAddress       string  `protobuf:"bytes,22,opt,name=receipt_score_address,json=receiptScoreAddress,proto3" json:"receipt_score_address,omitempty"`
+	ReceiptLogs               string  `protobuf:"bytes,23,opt,name=receipt_logs,json=receiptLogs,proto3" json:"receipt_logs,omitempty"`
+	ReceiptStatus             float64 `protobuf:"fixed64,24,opt,name=receipt_status,json=receiptStatus,proto3" json:"receipt_status,omitempty"`
+	ItemId                    string  `protobuf:"bytes,25,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
+	ItemTimestamp             string  `protobuf:"bytes,26,opt,name=item_timestamp,json=itemTimestamp,proto3" json:"item_timestamp,omitempty"`
 }
 
 func (x *Transaction) Reset() {
@@ -181,7 +181,7 @@ func (x *Transaction) GetTimestamp() string {
 	return ""
 }
 
-func (x *Transaction) GetBlockTimestamp() uint64 {
+func (x *Transaction) GetBlockTimestamp() float64 {
 	if x != nil {
 		return x.BlockTimestamp
 	}
@@ -209,7 +209,7 @@ func (x *Transaction) GetHash() string {
 	return ""
 }
 
-func (x *Transaction) GetTransactionIndex() uint64 {
+func (x *Transaction) GetTransactionIndex() float64 {
 	if x != nil {
 		return x.TransactionIndex
 	}
@@ -223,7 +223,7 @@ func (x *Transaction) GetBlockHash() string {
 	return ""
 }
 
-func (x *Transaction) GetBlockNumber() uint64 {
+func (x *Transaction) GetBlockNumber() float64 {
 	if x != nil {
 		return x.BlockNumber
 	}
@@ -293,7 +293,7 @@ func (x *Transaction) GetReceiptLogs() string {
 	return ""
 }
 
-func (x *Transaction) GetReceiptStatus() uint32 {
+func (x *Transaction) GetReceiptStatus() float64 {
 	if x != nil {
 		return x.ReceiptStatus
 	}
@@ -337,18 +337,18 @@ var file_transaction_proto_rawDesc = []byte{
 	0x73, 0x74, 0x65, 0x70, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x74, 0x69, 0x6d,
 	0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x07, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x74, 0x69,
 	0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x12, 0x27, 0x0a, 0x0f, 0x62, 0x6c, 0x6f, 0x63, 0x6b,
-	0x5f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x08, 0x20, 0x01, 0x28, 0x04,
+	0x5f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x08, 0x20, 0x01, 0x28, 0x01,
 	0x52, 0x0e, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70,
 	0x12, 0x10, 0x0a, 0x03, 0x6e, 0x69, 0x64, 0x18, 0x09, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6e,
 	0x69, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x6e, 0x6f, 0x6e, 0x63, 0x65, 0x18, 0x0a, 0x20, 0x01, 0x28,
 	0x09, 0x52, 0x05, 0x6e, 0x6f, 0x6e, 0x63, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x68, 0x61, 0x73, 0x68,
 	0x18, 0x0b, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x68, 0x61, 0x73, 0x68, 0x12, 0x2b, 0x0a, 0x11,
 	0x74, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x6e, 0x64, 0x65,
-	0x78, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x04, 0x52, 0x10, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63,
+	0x78, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x01, 0x52, 0x10, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63,
 	0x74, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x12, 0x1d, 0x0a, 0x0a, 0x62, 0x6c, 0x6f,
 	0x63, 0x6b, 0x5f, 0x68, 0x61, 0x73, 0x68, 0x18, 0x0d, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x62,
 	0x6c, 0x6f, 0x63, 0x6b, 0x48, 0x61, 0x73, 0x68, 0x12, 0x21, 0x0a, 0x0c, 0x62, 0x6c, 0x6f, 0x63,
-	0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x18, 0x0e, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0b,
+	0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x18, 0x0e, 0x20, 0x01, 0x28, 0x01, 0x52, 0x0b,
 	0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x12, 0x10, 0x0a, 0x03, 0x66,
 	0x65, 0x65, 0x18, 0x0f, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x66, 0x65, 0x65, 0x12, 0x1c, 0x0a,
 	0x09, 0x73, 0x69, 0x67, 0x6e, 0x61, 0x74, 0x75, 0x72, 0x65, 0x18, 0x10, 0x20, 0x01, 0x28, 0x09,
@@ -372,7 +372,7 @@ var file_transaction_proto_rawDesc = []byte{
 	0x65, 0x63, 0x65, 0x69, 0x70, 0x74, 0x5f, 0x6c, 0x6f, 0x67, 0x73, 0x18, 0x17, 0x20, 0x01, 0x28,
 	0x09, 0x52, 0x0b, 0x72, 0x65, 0x63, 0x65, 0x69, 0x70, 0x74, 0x4c, 0x6f, 0x67, 0x73, 0x12, 0x25,
 	0x0a, 0x0e, 0x72, 0x65, 0x63, 0x65, 0x69, 0x70, 0x74, 0x5f, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73,
-	0x18, 0x18, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0d, 0x72, 0x65, 0x63, 0x65, 0x69, 0x70, 0x74, 0x53,
+	0x18, 0x18, 0x20, 0x01, 0x28, 0x01, 0x52, 0x0d, 0x72, 0x65, 0x63, 0x65, 0x69, 0x70, 0x74, 0x53,
 	0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x17, 0x0a, 0x07, 0x69, 0x74, 0x65, 0x6d, 0x5f, 0x69, 0x64,
 	0x18, 0x19, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x69, 0x74, 0x65, 0x6d, 0x49, 0x64, 0x12, 0x25,
 	0x0a, 0x0e, 0x69, 0x74, 0x65, 0x6d, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70,

@@ -19,7 +19,7 @@ var _ = Describe("CrudTransactions", func() {
 
 	Describe("TransactionModel with mongodb", func() {
 
-		Context("Insert in Transactions collection", func() {
+		Context("Create & Select in Transactions collection", func() {
 			for _, fixture := range testFixtures {
 				transaction := fixture.GetTransaction(fixture.Input)
 
@@ -30,14 +30,11 @@ var _ = Describe("CrudTransactions", func() {
 					}
 					Expect(err).To(BeNil())
 
-					//result := transactionModelMongo.Select(1,0, transaction.FromAddress, "", "")
-					//kv := &crud.KeyValue{
-					//	Key:   "signature",
-					//	Value: transaction.Signature,
-					//}
+					result := transactionModelMongo.Select(1, 0, transaction.FromAddress, "", "")
+					log.Println(result)
 				}) // It
 			} // For each fixture
-		}) // Context "Insert in block collection"
+		}) // Context "Create and Select in transaction collection"
 
-	}) // Describe "BlockModel with mongodb"
+	}) // Describe "TransactionModel with mongodb"
 })
