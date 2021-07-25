@@ -15,6 +15,7 @@ require (
 	github.com/frankban/quicktest v1.13.0 // indirect
 	github.com/gofiber/fiber/v2 v2.14.0
 	github.com/gofiber/websocket/v2 v2.0.7
+	github.com/golang/protobuf v1.5.2
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.14.0

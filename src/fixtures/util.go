@@ -13,7 +13,7 @@ import (
 
 type Fixtures []Fixture
 type Fixture struct {
-	Input    map[string]interface{}
+	Input    models.Transaction
 	Expected map[string]interface{}
 }
 
@@ -61,34 +61,34 @@ func ReadCurrentDir() {
 	}
 }
 
-func (f *Fixture) GetTransaction(data map[string]interface{}) *models.Transaction {
+func (f *Fixture) GetTransaction(data models.Transaction) *models.Transaction {
 	block := models.Transaction{
-		Type:                      data["type"].(string),
-		Version:                   returnString(data["version"]),
-		FromAddress:               data["from_address"].(string),
-		ToAddress:                 data["to_address"].(string),
-		Value:                     data["value"].(string),
-		StepLimit:                 returnString(data["step_limit"]),
-		Timestamp:                 data["timestamp"].(string),
-		BlockTimestamp:            data["block_timestamp"].(float64),
-		Nid:                       returnString(data["nid"]),
-		Nonce:                     returnString(data["nonce"]),
-		Hash:                      data["hash"].(string),
-		TransactionIndex:          data["transaction_index"].(float64),
-		BlockHash:                 data["block_hash"].(string),
-		BlockNumber:               data["block_number"].(float64),
-		Fee:                       data["fee"].(string),
-		Signature:                 data["signature"].(string),
-		DataType:                  returnString(data["data_type"]),
-		Data:                      returnBytes(data["data"]),
-		ReceiptCumulativeStepUsed: data["receipt_cumulative_step_used"].(string),
-		ReceiptStepUsed:           data["receipt_step_used"].(string),
-		ReceiptStepPrice:          data["receipt_step_price"].(string),
-		ReceiptScoreAddress:       returnString(data["receipt_score_address"]),
-		ReceiptLogs:               returnString(data["receipt_logs"]),
-		ReceiptStatus:             data["receipt_status"].(float64),
-		ItemId:                    data["item_id"].(string),
-		ItemTimestamp:             data["item_timestamp"].(string),
+		Type:                      data.Type,
+		Version:                   data.Version,
+		FromAddress:               data.FromAddress,
+		ToAddress:                 data.ToAddress,
+		Value:                     data.Value,
+		StepLimit:                 data.StepLimit,
+		Timestamp:                 data.Timestamp,
+		BlockTimestamp:            data.BlockTimestamp,
+		Nid:                       data.Nid,
+		Nonce:                     data.Nonce,
+		Hash:                      data.Hash,
+		TransactionIndex:          data.TransactionIndex,
+		BlockHash:                 data.BlockHash,
+		BlockNumber:               data.BlockNumber,
+		Fee:                       data.Fee,
+		Signature:                 data.Signature,
+		DataType:                  data.DataType,
+		Data:                      data.Data,
+		ReceiptCumulativeStepUsed: data.ReceiptCumulativeStepUsed,
+		ReceiptStepUsed:           data.ReceiptStepUsed,
+		ReceiptStepPrice:          data.ReceiptStepPrice,
+		ReceiptScoreAddress:       data.ReceiptScoreAddress,
+		ReceiptLogs:               data.ReceiptLogs,
+		ReceiptStatus:             data.ReceiptStatus,
+		ItemId:                    data.ItemId,
+		ItemTimestamp:             data.ItemTimestamp,
 	}
 	return &block
 }
@@ -106,3 +106,9 @@ func returnBytes(i interface{}) []byte {
 	}
 	return i.([]byte)
 }
+
+//func returnStructpb(i interface{}) *structpb.Struct {
+//	log.Println(i)
+//	c := structpb.Struct{}
+//	c.Fields = i
+//}
