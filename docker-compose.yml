@@ -40,7 +40,7 @@ x-env: &env
   DB_PORT: "27017"
   DB_USER: "mongo"
   DB_PASSWORD: "changethis"
-  DB_DBNAME: "icon"
+  DB_DBNAME: "local"
   DB_SSLMODE: "disable"
   DB_TIMEZONE: "UTC"
 
