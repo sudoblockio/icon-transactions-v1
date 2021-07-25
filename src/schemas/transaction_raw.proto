@@ -25,7 +25,7 @@ message TransactionRaw {
   string fee = 15;
   string signature = 16;
   string data_type = 17;
-  bytes data = 18;
+  map<string, bytes> data = 18;
   string receipt_cumulative_step_used = 19;
   string receipt_step_used = 20;
   string receipt_step_price = 21;

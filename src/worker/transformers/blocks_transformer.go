@@ -103,7 +103,8 @@ func ConvertBytesToTransactionRaw(value []byte) (*models.TransactionRaw, error) 
 	tx := models.TransactionRaw{}
 	err := protojson.Unmarshal(value, &tx)
 	if err != nil {
-		zap.S().Error("Transaction_raw_helper: Error in ConvertBytesToTransactionRaw: %v", err)
+		zap.S().Error("Error in ConvertBytesToTransactionRaw: ", err.Error())
+		zap.S().Error(string(value))
 	}
 	return &tx, err
 }

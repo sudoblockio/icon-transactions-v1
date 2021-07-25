@@ -77,15 +77,15 @@ func (b *TransactionModelMongo) CreateIndex(column string, isAscending bool, isU
 	return indexName, err
 }
 
-func (b *TransactionModelMongo) InsertOne(transaction *models.Transaction) (*mongo.InsertOneResult, error) {
-	one, err := b.collectionHandle.InsertOne(b.mongoConn.ctx, transaction)
+func (b *TransactionModelMongo) InsertOne(ctx context.Context, transaction *models.Transaction) (*mongo.InsertOneResult, error) {
+	one, err := b.collectionHandle.InsertOne(ctx, transaction)
 	return one, err
 }
 
-func (b *TransactionModelMongo) RetryCreate(transaction *models.Transaction) (*mongo.InsertOneResult, error) {
+func (b *TransactionModelMongo) RetryCreate(ctx context.Context, transaction *models.Transaction) (*mongo.InsertOneResult, error) {
 	var insertOneResult *mongo.InsertOneResult
 	operation := func() error {
-		tx, err := b.InsertOne(transaction)
+		tx, err := b.InsertOne(ctx, transaction)
 		if err != nil {
 			zap.S().Info("MongoDb RetryCreate Error : ", err.Error())
 		} else {
@@ -100,6 +100,7 @@ func (b *TransactionModelMongo) RetryCreate(transaction *models.Transaction) (*m
 }
 
 func (b *TransactionModelMongo) Select(
+	ctx context.Context,
 	limit int64,
 	skip int64,
 	from string,
@@ -108,7 +109,7 @@ func (b *TransactionModelMongo) Select(
 ) []bson.M {
 	transactionsModel := GetTransactionModelMongo()
 
-	_ = b.mongoConn.retryPing()
+	_ = b.mongoConn.retryPing(ctx)
 
 	// Building KeyValue pairs
 	kvPairs := make(map[string]interface{})
@@ -146,7 +147,7 @@ func (b *TransactionModelMongo) Select(
 		kvPairsD = &bson.D{}
 	}
 
-	result := transactionsModel.FindAll(b.mongoConn.ctx, kvPairsD, &opts)
+	result := transactionsModel.FindAll(ctx, kvPairsD, &opts)
 
 	zap.S().Debug("Transactions: ", result)
 	return result
@@ -232,16 +233,19 @@ func (b *TransactionModelMongo) FindAll(ctx context.Context, kvPairsD *bson.D, o
 }
 
 func StartTransactionLoader() {
-	loaderCtx := context.TODO()
-	go transactionLoader(loaderCtx)
+	go transactionLoader()
 }
 
-func transactionLoader(loaderCtx context.Context) {
+func transactionLoader() { // TODO: TEST retry create !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	var transaction *models.Transaction
 	mongoLoaderChan := GetTransactionModelMongo().writeChan
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	for {
 		transaction = <-mongoLoaderChan
-		GetTransactionModelMongo().RetryCreate(transaction) // inserted here !!
-		zap.S().Debug("Loader Transaction: Loaded in postgres table Transactions, Block Number", transaction.BlockNumber)
+		GetTransactionModelMongo().RetryCreate(ctx, transaction) // inserted here !!
+		zap.S().Debug("Loader Transaction: Loaded in Mongodb table Transactions, Block Number", transaction.BlockNumber)
 	}
 }

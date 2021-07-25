@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/geometry-labs/icon-transactions/config"
+	"github.com/geometry-labs/icon-transactions/global"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/zap"
 	"sync"
-	"time"
 )
 
 type MongoConn struct {
@@ -35,12 +35,12 @@ func GetMongoConn() *MongoConn {
 
 		//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		//defer cancel()
-		ctx, _ := context.WithCancel(context.Background())
-		//go func() {
-		//	<-global.ShutdownChan
-		//	zap.S().Info("Closing Mongodb client context")
-		//	defer cancel()
-		//}()
+		ctx, cancel := context.WithCancel(context.Background())
+		go func() {
+			defer cancel()
+			<-global.ShutdownChan
+			zap.S().Info("Closing Mongodb client context")
+		}()
 
 		err = client.Connect(ctx)
 		if err != nil {
@@ -51,7 +51,7 @@ func GetMongoConn() *MongoConn {
 			ctx:    ctx,
 		}
 
-		err = mongoInstance.retryPing()
+		err = mongoInstance.retryPing(ctx)
 		if err != nil {
 			zap.S().Fatal("MONGO: Finally cannot ping mongodb")
 		} else {
@@ -78,8 +78,7 @@ func (m *MongoConn) Close() error {
 	return err
 }
 
-func (m *MongoConn) Ping() error {
-	ctx, _ := context.WithTimeout(context.TODO(), 5*time.Second)
+func (m *MongoConn) Ping(ctx context.Context) error {
 	err := m.client.Ping(ctx, readpref.Primary())
 	if err != nil {
 		zap.S().Info("Cannot ping mongodb", err)
@@ -87,9 +86,9 @@ func (m *MongoConn) Ping() error {
 	return err
 }
 
-func (m *MongoConn) retryPing() error {
+func (m *MongoConn) retryPing(ctx context.Context) error {
 	operation := func() error {
-		return m.Ping()
+		return m.Ping(ctx)
 	}
 	neb := backoff.NewExponentialBackOff()
 	err := backoff.Retry(operation, neb)

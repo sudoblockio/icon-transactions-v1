@@ -8,7 +8,6 @@ src/docs/*
 .vscode
 
 # In case use local volumes
-postgres
 mongodb
 
 # ETL updated file - should always be

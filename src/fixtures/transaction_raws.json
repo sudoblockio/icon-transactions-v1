@@ -49,7 +49,15 @@
       "fee": "0x2386f26fc10000",
       "signature": "LidTshI7pBRSv7+97cdsiGmENMBufg4d/Qhw5x6MQMw4c2Bw/G5NZPma1hZ/2amqlkXU3abrGoEw0QJb0eCgogE=",
       "data_type": null,
-      "data": null,
+      "data": {
+        "abc": "okay",
+        "efg": 1234,
+        "ijk": ["qwe", "poi"],
+        "lmn": {
+          "key1": "val1",
+          "key2": "val2"
+        }
+      },
       "receipt_cumulative_step_used": "0xf4240",
       "receipt_step_used": "0xf4240",
       "receipt_step_price": "0x2540be400",
