@@ -26,7 +26,7 @@ func main() {
 	// Start Prometheus client
 	metrics.MetricsWorkerStart()
 
-	// Start Postgres loader
+	// Start Mongodb loader
 	crud.StartTransactionLoader()
 
 	// Start kafka consumer

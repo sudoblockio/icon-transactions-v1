@@ -28,8 +28,8 @@ type configType struct {
 	LogFileName           string `envconfig:"LOG_FILE_NAME" required:"false" default:"transactions-service.log"`
 
 	// Kafka
-	KafkaBrokerURL    string `envconfig:"KAFKA_BROKER_URL" required:"false" default:"kafka:9092"`
-	SchemaRegistryURL string `envconfig:"SCHEMA_REGISTRY_URL" required:"false" default:"schemaregistry:8081"`
+	KafkaBrokerURL    string `envconfig:"KAFKA_BROKER_URL" required:"false" default:"localhost:9092"`
+	SchemaRegistryURL string `envconfig:"SCHEMA_REGISTRY_URL" required:"false" default:"localhost:8081"`
 	KafkaGroupID      string `envconfig:"KAFKA_GROUP_ID" required:"false" default:"transactions-service"`
 
 	// Topics
@@ -37,7 +37,7 @@ type configType struct {
 	ConsumerTopics   []string          `envconfig:"CONSUMER_TOPICS" required:"false" default:"transactions"`
 	ProducerTopics   []string          `envconfig:"PRODUCER_TOPICS" required:"false" default:"transactions-ws"`
 	SchemaNameTopics map[string]string `envconfig:"SCHEMA_NAME_TOPICS" required:"false" default:"transactions-ws:transactions"`
-	SchemaFolderPath string            `envconfig:"SCHEMA_FOLDER_PATH" required:"false" default:"/app/schemas/"`
+	SchemaFolderPath string            `envconfig:"SCHEMA_FOLDER_PATH" required:"false" default:"schemas/"`
 
 	// DB
 	DbDriver     string   `envconfig:"DB_DRIVER" required:"false" default:"mongodb"`

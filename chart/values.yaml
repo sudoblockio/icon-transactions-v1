@@ -61,8 +61,8 @@ api:
   logFileName: "./api.log"
 
   # DB
-  dbUser: postgres
-  dbPassword: changeme
+  dbUser: mongo
+  dbPassword: changethis
 
 worker:
   replicaCount: 1

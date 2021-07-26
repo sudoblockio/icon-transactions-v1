@@ -1,13 +1,15 @@
 package rest
 
 import (
+	"context"
 	"encoding/json"
+	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 
-	"github.com/geometry-labs/icon-transactions/crud"
 	"github.com/geometry-labs/icon-transactions/config"
+	"github.com/geometry-labs/icon-transactions/crud"
 )
 
 type TransactionsQuery struct {
@@ -48,13 +50,16 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	}
 
 	// Get Transactions
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	transactions := crud.GetTransactionModelMongo().Select(
-    params.Limit,
-    params.Skip,
-    params.From,
-    params.To,
-    params.Type,
-  )
+		ctx,
+		params.Limit,
+		params.Skip,
+		params.From,
+		params.To,
+		params.Type,
+	)
 	if len(transactions) == 0 {
 		// No Content
 		c.Status(204)

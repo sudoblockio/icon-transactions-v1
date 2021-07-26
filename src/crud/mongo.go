@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/geometry-labs/icon-transactions/config"
+	"github.com/geometry-labs/icon-transactions/global"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -16,7 +17,6 @@ import (
 
 type MongoConn struct {
 	client *mongo.Client
-	ctx    context.Context
 }
 
 var mongoInstance *MongoConn
@@ -35,23 +35,24 @@ func GetMongoConn() *MongoConn {
 
 		//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		//defer cancel()
-		ctx, _ := context.WithCancel(context.Background())
-		//go func() {
-		//	<-global.ShutdownChan
-		//	zap.S().Info("Closing Mongodb client context")
-		//	defer cancel()
-		//}()
+		ctx, cancel := context.WithCancel(context.Background())
+		go func() {
+			defer cancel()
+			<-global.ShutdownChan
+			zap.S().Info("Closing Mongodb client context")
+		}()
 
 		err = client.Connect(ctx)
 		if err != nil {
 			zap.S().Fatal("Cannot connect to context for mongodb", err)
 		}
+		go clientClose(client)
+
 		mongoInstance = &MongoConn{
 			client: client,
-			ctx:    ctx,
 		}
 
-		err = mongoInstance.retryPing()
+		err = mongoInstance.retryPing(ctx)
 		if err != nil {
 			zap.S().Fatal("MONGO: Finally cannot ping mongodb")
 		} else {
@@ -66,20 +67,18 @@ func (m *MongoConn) GetClient() *mongo.Client {
 	return m.client
 }
 
-func (m *MongoConn) GetCtx() context.Context {
-	return m.ctx
-}
-
-func (m *MongoConn) Close() error {
-	err := m.client.Disconnect(m.ctx)
+func clientClose(client *mongo.Client) error {
+	<-global.ShutdownChan
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	err := client.Disconnect(ctx)
 	if err != nil {
 		zap.S().Fatal("Cannot disconnect from mongodb", err)
 	}
 	return err
 }
 
-func (m *MongoConn) Ping() error {
-	ctx, _ := context.WithTimeout(context.TODO(), 5*time.Second)
+func (m *MongoConn) Ping(ctx context.Context) error {
 	err := m.client.Ping(ctx, readpref.Primary())
 	if err != nil {
 		zap.S().Info("Cannot ping mongodb", err)
@@ -87,9 +86,9 @@ func (m *MongoConn) Ping() error {
 	return err
 }
 
-func (m *MongoConn) retryPing() error {
+func (m *MongoConn) retryPing(ctx context.Context) error {
 	operation := func() error {
-		return m.Ping()
+		return m.Ping(ctx)
 	}
 	neb := backoff.NewExponentialBackOff()
 	err := backoff.Retry(operation, neb)
@@ -98,7 +97,9 @@ func (m *MongoConn) retryPing() error {
 }
 
 func (m *MongoConn) ListAllDatabases() []string {
-	databases, err := m.client.ListDatabaseNames(m.ctx, bson.M{})
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	databases, err := m.client.ListDatabaseNames(ctx, bson.M{})
 	if err != nil {
 		zap.S().Fatal("Cannot List databases", err)
 	}
