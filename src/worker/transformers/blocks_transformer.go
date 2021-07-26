@@ -66,6 +66,16 @@ func blocksTransformer() {
 	}
 }
 
+func ConvertBytesToTransactionRaw(value []byte) (*models.TransactionRaw, error) {
+	tx := models.TransactionRaw{}
+	err := protojson.Unmarshal(value, &tx)
+	if err != nil {
+		zap.S().Error("Error in ConvertBytesToTransactionRaw: ", err.Error())
+		zap.S().Error(string(value))
+	}
+	return &tx, err
+}
+
 // Business logic goes here
 func transform(txRaw *models.TransactionRaw) (*models.Transaction, error) {
 	//time.Sleep(time.Minute)
@@ -97,14 +107,4 @@ func transform(txRaw *models.TransactionRaw) (*models.Transaction, error) {
 		ItemId:                    txRaw.ItemId,
 		ItemTimestamp:             txRaw.ItemTimestamp,
 	}, nil
-}
-
-func ConvertBytesToTransactionRaw(value []byte) (*models.TransactionRaw, error) {
-	tx := models.TransactionRaw{}
-	err := protojson.Unmarshal(value, &tx)
-	if err != nil {
-		zap.S().Error("Error in ConvertBytesToTransactionRaw: ", err.Error())
-		zap.S().Error(string(value))
-	}
-	return &tx, err
 }

@@ -12,11 +12,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/zap"
 	"sync"
+	"time"
 )
 
 type MongoConn struct {
 	client *mongo.Client
-	ctx    context.Context
 }
 
 var mongoInstance *MongoConn
@@ -46,9 +46,10 @@ func GetMongoConn() *MongoConn {
 		if err != nil {
 			zap.S().Fatal("Cannot connect to context for mongodb", err)
 		}
+		go clientClose(client)
+
 		mongoInstance = &MongoConn{
 			client: client,
-			ctx:    ctx,
 		}
 
 		err = mongoInstance.retryPing(ctx)
@@ -66,12 +67,11 @@ func (m *MongoConn) GetClient() *mongo.Client {
 	return m.client
 }
 
-func (m *MongoConn) GetCtx() context.Context {
-	return m.ctx
-}
-
-func (m *MongoConn) Close() error {
-	err := m.client.Disconnect(m.ctx)
+func clientClose(client *mongo.Client) error {
+	<-global.ShutdownChan
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	err := client.Disconnect(ctx)
 	if err != nil {
 		zap.S().Fatal("Cannot disconnect from mongodb", err)
 	}
@@ -97,7 +97,9 @@ func (m *MongoConn) retryPing(ctx context.Context) error {
 }
 
 func (m *MongoConn) ListAllDatabases() []string {
-	databases, err := m.client.ListDatabaseNames(m.ctx, bson.M{})
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	databases, err := m.client.ListDatabaseNames(ctx, bson.M{})
 	if err != nil {
 		zap.S().Fatal("Cannot List databases", err)
 	}

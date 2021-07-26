@@ -2,7 +2,7 @@ syntax = "proto3";
 package models;
 option go_package = "./models";
 
-import "google/protobuf/struct.proto";
+//import "google/protobuf/struct.proto";
 
 
 message TransactionsRaw {
@@ -20,7 +20,7 @@ message TransactionRaw {
   string timestamp = 7;
   double block_timestamp = 8;
   string nid = 9;
-  string nonce = 10;
+  double nonce = 10;
   string hash = 11;
   double transaction_index = 12;
   string block_hash = 13;
@@ -28,7 +28,7 @@ message TransactionRaw {
   string fee = 15;
   string signature = 16;
   string data_type = 17;
-  google.protobuf.Struct data = 18;
+  bytes data = 18;
   string receipt_cumulative_step_used = 19;
   string receipt_step_used = 20;
   string receipt_step_price = 21;
