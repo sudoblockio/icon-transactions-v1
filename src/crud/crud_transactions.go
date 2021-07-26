@@ -15,8 +15,6 @@ import (
 type TransactionModelMongo struct {
 	mongoConn *MongoConn
 	model     *models.Transaction
-	//databaseHandle   *mongo.Database
-	collectionHandle *mongo.Collection
 	writeChan        chan *models.Transaction
 }
 
@@ -28,7 +26,6 @@ func GetTransactionModelMongo() *TransactionModelMongo {
 		transactionModelMongoInstance = &TransactionModelMongo{
 			mongoConn:        GetMongoConn(),
 			model:            &models.Transaction{},
-			collectionHandle: GetMongoConn().DatabaseHandle(config.Config.DbName).Collection(config.Config.DbCollection),
 			writeChan:        make(chan *models.Transaction, 1),
 		}
 
@@ -40,8 +37,11 @@ func GetTransactionModelMongo() *TransactionModelMongo {
 	return transactionModelMongoInstance
 }
 
-func (b *TransactionModelMongo) GetMongoConn() *MongoConn {
-	return b.mongoConn
+func (b *TransactionModelMongo) getCollectionHandle() *mongo.Collection {
+  dbName := config.Config.DbName
+  dbCollection := config.Config.DbCollection
+
+  return GetMongoConn().DatabaseHandle(dbName).Collection(dbCollection)
 }
 
 func (b *TransactionModelMongo) GetModel() *models.Transaction {
@@ -50,15 +50,6 @@ func (b *TransactionModelMongo) GetModel() *models.Transaction {
 
 func (b *TransactionModelMongo) GetWriteChan() chan *models.Transaction {
 	return b.writeChan
-}
-
-//func (b *TransactionModelMongo) setCollectionHandle(database string, collection string) *mongo.Collection {
-//	b.collectionHandle = b.mongoConn.DatabaseHandle(database).Collection(collection)
-//	return b.collectionHandle
-//}
-
-func (b *TransactionModelMongo) GetCollectionHandle() *mongo.Collection {
-	return b.collectionHandle
 }
 
 func (b *TransactionModelMongo) CreateIndex(column string, isAscending bool, isUnique bool) (string, error) {
@@ -74,7 +65,7 @@ func (b *TransactionModelMongo) CreateIndex(column string, isAscending bool, isU
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	indexName, err := b.collectionHandle.Indexes().CreateOne(ctx, indexModel)
+	indexName, err := b.getCollectionHandle().Indexes().CreateOne(ctx, indexModel)
 	if err != nil {
 		zap.S().Errorf("Unable to create Index: %s, err: %s", column, err.Error())
 	}
@@ -82,7 +73,7 @@ func (b *TransactionModelMongo) CreateIndex(column string, isAscending bool, isU
 }
 
 func (b *TransactionModelMongo) InsertOne(ctx context.Context, transaction *models.Transaction) (*mongo.InsertOneResult, error) {
-	one, err := b.collectionHandle.InsertOne(ctx, transaction)
+	one, err := b.getCollectionHandle().InsertOne(ctx, transaction)
 	return one, err
 }
 
@@ -168,7 +159,7 @@ func convertMapToBsonD(v map[string]interface{}) (doc *bson.D, err error) {
 }
 
 func (b *TransactionModelMongo) FindAll(ctx context.Context, kvPairsD *bson.D, opts *options.FindOptions) []bson.M {
-	cursor, err := b.collectionHandle.Find(ctx, kvPairsD, opts)
+	cursor, err := b.getCollectionHandle().Find(ctx, kvPairsD, opts)
 	if err != nil {
 		zap.S().Info("Exception in getting a curser to a find in mongodb: ", err)
 	}

@@ -29,12 +29,20 @@ func TransactionsAddHandlers(app *fiber.App) {
 }
 
 // Transactions
-// @Summary Get Transactions that match the query
-// @Description Get all blocks in the system.
-// @Tags root
+// @Summary Get Transactions
+// @Description get historical transactions
+// @Tags Transactions
+// @BasePath /api/v1
 // @Accept */*
 // @Produce json
-// @Router /transaction [get]
+// @Param limit query int false "amount of records"
+// @Param skip query int false "skip to a record"
+// @Param from query string false "find by from address"
+// @Param to query string false "find by to address"
+// @Param type query string false "find by transaction type"
+// @Router /api/v1/transactions [get]
+// @Success 200 {object} []models.Transaction
+// @Failure 422 {object} map[string]interface{}
 func handlerGetTransactions(c *fiber.Ctx) error {
 	params := new(TransactionsQuery)
 	if err := c.QueryParser(params); err != nil {

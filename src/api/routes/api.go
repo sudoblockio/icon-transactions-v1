@@ -46,7 +46,7 @@ func Start() {
 // Version
 // @Summary Show the status of server.
 // @Description get the status of server.
-// @Tags root
+// @Tags Version
 // @Accept */*
 // @Produce json
 // @Success 200 {object} map[string]interface{}
@@ -64,7 +64,7 @@ func handlerVersion(c *fiber.Ctx) error {
 // Metadata
 // @Summary Show the status of server.
 // @Description get the status of server.
-// @Tags root
+// @Tags Version
 // @Accept */*
 // @Produce json
 // @Success 200 {object} map[string]interface{}

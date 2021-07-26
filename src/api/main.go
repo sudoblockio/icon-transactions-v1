@@ -14,6 +14,7 @@ import (
 	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/logging"
 	"github.com/geometry-labs/icon-transactions/metrics"
+	_ "github.com/geometry-labs/icon-transactions/models" // for swagger docs
 )
 
 func main() {
