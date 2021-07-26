@@ -111,12 +111,25 @@ func (k *kafkaTopicConsumer) consumeGroup(group string) {
 	saramaConfig.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
 	saramaConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
 
-	ctx, cancel := context.WithCancel(context.Background())
-	client, err := sarama.NewConsumerGroup([]string{k.brokerURL}, group, saramaConfig)
+	// Connect consumer on Retry
+	var client sarama.ConsumerGroup
+	err = backoff.Retry(func() error {
+		var err error
+	  client, err = sarama.NewConsumerGroup([]string{k.brokerURL}, group, saramaConfig)
+		if err != nil {
+			zap.S().Warn("Kafka New Consumer Error: ", err.Error())
+			zap.S().Warn("Cannot connect to kafka broker retrying...")
+			return err
+		}
+
+		return nil
+	}, backoff.NewExponentialBackOff())
+
 	if err != nil {
-		zap.S().Panic("CONSUME GROUP ERROR: creating consumer group client: ", err.Error())
+    zap.S().Panic("CONSUME GROUP PANIC: creating consumer group client: ", err.Error())
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
 	// From example: /sarama/blob/master/examples/consumergroup/main.go
 	go func() {
 		for {

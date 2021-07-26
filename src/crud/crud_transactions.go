@@ -111,8 +111,6 @@ func (b *TransactionModelMongo) Select(
 	to string,
 	_type string,
 ) []bson.M {
-	transactionsModel := GetTransactionModelMongo()
-
 	_ = b.mongoConn.retryPing(ctx)
 
 	// Building KeyValue pairs
@@ -151,7 +149,7 @@ func (b *TransactionModelMongo) Select(
 		kvPairsD = &bson.D{}
 	}
 
-	result := transactionsModel.FindAll(ctx, kvPairsD, &opts)
+	result := b.FindAll(ctx, kvPairsD, &opts)
 
 	zap.S().Debug("Transactions: ", result)
 	return result

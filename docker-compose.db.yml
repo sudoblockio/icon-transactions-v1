@@ -24,6 +24,7 @@ services:
     image: mongo
     ports:
       - "27017:27017"
+    restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: "mongo"
       MONGO_INITDB_ROOT_PASSWORD: "changethis"
@@ -34,6 +35,7 @@ services:
       - mongo
     ports:
       - 8081:8081
+    restart: on-failure
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: "mongo"
       ME_CONFIG_MONGODB_ADMINPASSWORD: "changethis"
