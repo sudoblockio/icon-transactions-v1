@@ -68,17 +68,18 @@ func blocksTransformer() {
 
 func ConvertBytesToTransactionRaw(value []byte) (*models.TransactionRaw, error) {
 	tx := models.TransactionRaw{}
+
 	err := protojson.Unmarshal(value, &tx)
 	if err != nil {
-		zap.S().Error("Error in ConvertBytesToTransactionRaw: ", err.Error())
-		zap.S().Error(string(value))
+    zap.S().Panic("Error: ", err.Error(), " Value: ", string(value))
 	}
-	return &tx, err
+
+	return &tx, nil
 }
 
 // Business logic goes here
 func transform(txRaw *models.TransactionRaw) (*models.Transaction, error) {
-	//time.Sleep(time.Minute)
+
 	return &models.Transaction{
 		Type:                      txRaw.Type,
 		Version:                   txRaw.Version,

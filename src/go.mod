@@ -15,7 +15,7 @@ require (
 	github.com/frankban/quicktest v1.13.0 // indirect
 	github.com/gofiber/fiber/v2 v2.14.0
 	github.com/gofiber/websocket/v2 v2.0.7
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.14.0
@@ -28,8 +28,10 @@ require (
 	go.mongodb.org/mongo-driver v1.6.0
 	go.uber.org/zap v1.18.1
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
+	golang.org/x/net v0.0.0-20210726213435-c6fcb2dbf985 // indirect
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
-	golang.org/x/tools v0.1.4 // indirect
+	google.golang.org/genproto v0.0.0-20210726200206-e7812ac95cc0 // indirect
+	google.golang.org/grpc v1.39.0 // indirect
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/Shopify/sarama.v1 v1.20.1
 )

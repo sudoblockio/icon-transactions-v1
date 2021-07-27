@@ -22,12 +22,9 @@ func convertMapToBsonD(v map[string]interface{}) (*bson.D, error) {
 func convertBsonMToTransaction(m bson.M) models.Transaction {
 
   // Data field may be null
-  var data []byte
-  dataString, ok := m["data"].(string)
+  data, ok := m["data"].(string)
   if ok == false {
-    data = []byte{}
-  } else {
-    data = []byte(dataString)
+    data = ""
   }
 
   return models.Transaction {
@@ -38,13 +35,13 @@ func convertBsonMToTransaction(m bson.M) models.Transaction {
     Value: m["value"].(string),
     StepLimit: m["steplimit"].(string),
     Timestamp: m["timestamp"].(string),
-    BlockTimestamp: m["blocktimestamp"].(float64),
-    Nid: m["nid"].(string),
-    Nonce: m["nonce"].(float64),
+    BlockTimestamp: uint64(m["blocktimestamp"].(float64)),
+    Nid: uint32(m["nid"].(float64)),
+    Nonce: uint64(m["nonce"].(float64)),
     Hash: m["hash"].(string),
-    TransactionIndex: m["transactionindex"].(float64),
+    TransactionIndex: uint32(m["transactionindex"].(float64)),
     BlockHash: m["blockhash"].(string),
-    BlockNumber: m["blocknumber"].(float64),
+    BlockNumber: uint64(m["blocknumber"].(float64)),
     Fee: m["fee"].(string),
     Signature: m["signature"].(string),
     DataType: m["datatype"].(string),
@@ -54,7 +51,7 @@ func convertBsonMToTransaction(m bson.M) models.Transaction {
     ReceiptStepPrice: m["receiptstepprice"].(string),
     ReceiptScoreAddress: m["receiptscoreaddress"].(string),
     ReceiptLogs: m["receiptlogs"].(string),
-    ReceiptStatus: m["receiptstatus"].(float64),
+    ReceiptStatus: uint32(m["receiptstatus"].(float64)),
     ItemId: m["itemid"].(string),
     ItemTimestamp: m["itemtimestamp"].(string),
   }

@@ -29,8 +29,6 @@ x-env: &env
   KAFKA_GROUP_ID: "transactions-service"
 
   # Topics
-  CONSUMER_TOPICS: "transactions"
-  PRODUCER_TOPICS: "transactions-ws"
   SCHEMA_NAME_TOPICS: "transactions-ws:transactions"
   SCHEMA_FOLDER_PATH: "/app/schemas/"
 
@@ -64,6 +62,7 @@ services:
       - ${TRANSACTIONS_CONTEXT:-.}/src:/app
     environment:
       <<: *env
+      CONSUMER_TOPICS: "transactions-ws"
 
   transactions-worker:
     build:
@@ -83,3 +82,5 @@ services:
       - ${TRANSACTIONS_CONTEXT:-.}/src:/app
     environment:
       <<: *env
+      CONSUMER_TOPICS: "transactions"
+      PRODUCER_TOPICS: "transactions-ws"
