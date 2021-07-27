@@ -60,7 +60,7 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	// Get Transactions
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	transactions := crud.GetTransactionModelMongo().Select(
+	transactions, err := crud.GetTransactionModelMongo().Select(
 		ctx,
 		params.Limit,
 		params.Skip,
@@ -68,7 +68,13 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 		params.To,
 		params.Type,
 	)
-	if len(transactions) == 0 {
+  if err != nil {
+    c.Status(500)
+    zap.S().Errorf("ERROR: %s", err.Error())
+    return c.SendString(`{"error": "unable to query transactions"}`)
+  }
+
+	if len(*transactions) == 0 {
 		// No Content
 		c.Status(204)
 	} else {

@@ -1,20 +1,21 @@
 package crud
 
 import (
+	"sync"
 	"context"
+
+	"go.uber.org/zap"
 	"github.com/cenkalti/backoff/v4"
-	"github.com/geometry-labs/icon-transactions/config"
-	"github.com/geometry-labs/icon-transactions/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.uber.org/zap"
-	"sync"
+
+	"github.com/geometry-labs/icon-transactions/config"
+	"github.com/geometry-labs/icon-transactions/models"
 )
 
 type TransactionModelMongo struct {
-	mongoConn *MongoConn
-	model     *models.Transaction
+	mongoConn        *MongoConn
 	writeChan        chan *models.Transaction
 }
 
@@ -25,14 +26,10 @@ func GetTransactionModelMongo() *TransactionModelMongo {
 	transactionModelMongoOnce.Do(func() {
 		transactionModelMongoInstance = &TransactionModelMongo{
 			mongoConn:        GetMongoConn(),
-			model:            &models.Transaction{},
 			writeChan:        make(chan *models.Transaction, 1),
 		}
 
-		for _, index := range config.Config.DbIndex {
-			indexName, _ := transactionModelMongoInstance.CreateIndex(index, true, false)
-			zap.S().Info("Created Index: ", indexName)
-		}
+		transactionModelMongoInstance.CreateIndex("blocknumber", true, false)
 	})
 	return transactionModelMongoInstance
 }
@@ -44,15 +41,11 @@ func (b *TransactionModelMongo) getCollectionHandle() *mongo.Collection {
   return GetMongoConn().DatabaseHandle(dbName).Collection(dbCollection)
 }
 
-func (b *TransactionModelMongo) GetModel() *models.Transaction {
-	return b.model
-}
-
 func (b *TransactionModelMongo) GetWriteChan() chan *models.Transaction {
 	return b.writeChan
 }
 
-func (b *TransactionModelMongo) CreateIndex(column string, isAscending bool, isUnique bool) (string, error) {
+func (b *TransactionModelMongo) CreateIndex(column string, isAscending bool, isUnique bool) {
 	ascending := 1
 	if !isAscending {
 		ascending = -1
@@ -65,11 +58,7 @@ func (b *TransactionModelMongo) CreateIndex(column string, isAscending bool, isU
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	indexName, err := b.getCollectionHandle().Indexes().CreateOne(ctx, indexModel)
-	if err != nil {
-		zap.S().Errorf("Unable to create Index: %s, err: %s", column, err.Error())
-	}
-	return indexName, err
+	b.getCollectionHandle().Indexes().CreateOne(ctx, indexModel)
 }
 
 func (b *TransactionModelMongo) InsertOne(ctx context.Context, transaction *models.Transaction) (*mongo.InsertOneResult, error) {
@@ -101,73 +90,66 @@ func (b *TransactionModelMongo) Select(
 	from string,
 	to string,
 	_type string,
-) []bson.M {
-	_ = b.mongoConn.retryPing(ctx)
+) (*[]models.Transaction, error) {
+  err := b.mongoConn.retryPing(ctx)
+  if err != nil {
+    return nil, err
+  }
 
-	// Building KeyValue pairs
-	kvPairs := make(map[string]interface{})
-	// from
-	if from != "" {
-		kvPairs["fromaddress"] = from
-	}
-	// to
-	if to != "" {
-		kvPairs["toaddress"] = to
-	}
-	// type
-	if _type != "" {
-		kvPairs["type"] = _type
-	}
-	// limit
 	if limit <= 0 {
 		limit = 1
 	} else if limit > 100 {
 		limit = 100
 	}
-	// skip
 	if skip < 0 {
 		skip = 0
 	}
+
+	// Building KeyValue pairs
+	queryParams := make(map[string]interface{})
+	// from
+	if from != "" {
+		queryParams["fromaddress"] = from
+	}
+	// to
+	if to != "" {
+		queryParams["toaddress"] = to
+	}
+	// type
+	if _type != "" {
+		queryParams["type"] = _type
+	}
+
 	// Building FindOptions
 	opts := options.FindOptions{
 		Skip:  &skip,
 		Limit: &limit,
 	}
+  opts.SetSort(bson.D{{"blocknumber", -1}})
 
-	kvPairsD, err := convertMapToBsonD(kvPairs)
+	queryParamsD, err := convertMapToBsonD(queryParams)
 	if err != nil {
-		zap.S().Info("Error in converting key value pairs to bson.D, err:", err.Error())
-		kvPairsD = &bson.D{}
+    return nil, err
 	}
 
-	result := b.FindAll(ctx, kvPairsD, &opts)
-
-	zap.S().Debug("Transactions: ", result)
-	return result
-}
-
-func convertMapToBsonD(v map[string]interface{}) (doc *bson.D, err error) {
-	zap.S().Debug("Query before Marshall: ", v)
-	data, err := bson.Marshal(v)
-	zap.S().Debug("Query in bson: ", string(data))
+	cursor, err := b.getCollectionHandle().Find(ctx, queryParamsD, &opts)
 	if err != nil {
-		return
+    return nil, err
 	}
 
-	err = bson.Unmarshal(data, &doc)
-	return
-}
-
-func (b *TransactionModelMongo) FindAll(ctx context.Context, kvPairsD *bson.D, opts *options.FindOptions) []bson.M {
-	cursor, err := b.getCollectionHandle().Find(ctx, kvPairsD, opts)
-	if err != nil {
-		zap.S().Info("Exception in getting a curser to a find in mongodb: ", err)
-	}
 	var results []bson.M
-	if err = cursor.All(ctx, &results); err != nil {
-		zap.S().Info("Exception in find all: ", err)
+  err = cursor.All(ctx, &results)
+	if err != nil {
+    return nil, err
 	}
-	return results
+
+  // convert bson to model
+  transactions := make([]models.Transaction, 0)
+  for _, r := range results {
+    transactions = append(transactions, convertBsonMToTransaction(r))
+  }
+
+	return &transactions, nil
 }
 
 func StartTransactionLoader() {
@@ -184,6 +166,6 @@ func transactionLoader() {
 	for {
 		transaction = <-mongoLoaderChan
 		GetTransactionModelMongo().RetryCreate(ctx, transaction) // inserted here !!
-		zap.S().Debug("Loader Transaction: Loaded in Mongodb table Transactions, Block Number", transaction.BlockNumber)
+    zap.S().Info("Loader: Loaded in collection Transactions - BlockNumber=", transaction.BlockNumber)
 	}
 }

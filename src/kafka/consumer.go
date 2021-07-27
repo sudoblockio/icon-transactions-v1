@@ -87,15 +87,11 @@ func (k *kafkaTopicConsumer) ConsumeClaim(sess sarama.ConsumerGroupSession, clai
 			continue
 		}
 
-		zap.S().Info("New Kafka Consumer Group Message: offset=", topicMsg.Offset, " key=", string(topicMsg.Key))
-
 		// Commit offset
 		sess.MarkMessage(topicMsg, "")
 
 		// Broadcast
 		k.broadcaster.ConsumerChan <- topicMsg
-
-		zap.S().Debug("Consumer ", k.topicName, ": Broadcasted message key=", string(topicMsg.Key))
 	}
 	return nil
 }
@@ -220,13 +216,8 @@ func (k *kafkaTopicConsumer) consumeTopic() {
 					zap.S().Debug("Consumer ", k.topicName, ": No new kafka messages, waited 5 secs")
 					continue
 				}
-				//topicMsg := <-pc.Messages()
-				zap.S().Debug("Consumer ", k.topicName, ": Consumed message key=", string(topicMsg.Key))
-
 				// Broadcast
 				k.broadcaster.ConsumerChan <- topicMsg
-
-				zap.S().Debug("Consumer ", k.topicName, ": Broadcasted message key=", string(topicMsg.Key))
 			}
 		}(pc)
 	}
