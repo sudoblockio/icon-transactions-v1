@@ -14,38 +14,34 @@ import (
 	"github.com/geometry-labs/icon-transactions/models"
 )
 
-type TransactionModelMongo struct {
+type TransactionModel struct {
 	mongoConn        *MongoConn
-	writeChan        chan *models.Transaction
+	WriteChan        chan *models.Transaction
 }
 
-var transactionModelMongoInstance *TransactionModelMongo
-var transactionModelMongoOnce sync.Once
+var transactionModelInstance *TransactionModel
+var transactionModelOnce sync.Once
 
-func GetTransactionModelMongo() *TransactionModelMongo {
-	transactionModelMongoOnce.Do(func() {
-		transactionModelMongoInstance = &TransactionModelMongo{
+func GetTransactionModel() *TransactionModel {
+	transactionModelOnce.Do(func() {
+		transactionModelInstance = &TransactionModel{
 			mongoConn:        GetMongoConn(),
-			writeChan:        make(chan *models.Transaction, 1),
+			WriteChan:        make(chan *models.Transaction, 1),
 		}
 
-		transactionModelMongoInstance.CreateIndex("blocknumber", true, false)
+		transactionModelInstance.CreateIndex("blocknumber", true, false)
 	})
-	return transactionModelMongoInstance
+	return transactionModelInstance
 }
 
-func (b *TransactionModelMongo) getCollectionHandle() *mongo.Collection {
+func (b *TransactionModel) getCollectionHandle() *mongo.Collection {
   dbName := config.Config.DbName
   dbCollection := config.Config.DbCollection
 
   return GetMongoConn().DatabaseHandle(dbName).Collection(dbCollection)
 }
 
-func (b *TransactionModelMongo) GetWriteChan() chan *models.Transaction {
-	return b.writeChan
-}
-
-func (b *TransactionModelMongo) CreateIndex(column string, isAscending bool, isUnique bool) {
+func (b *TransactionModel) CreateIndex(column string, isAscending bool, isUnique bool) {
 	ascending := 1
 	if !isAscending {
 		ascending = -1
@@ -61,36 +57,28 @@ func (b *TransactionModelMongo) CreateIndex(column string, isAscending bool, isU
 	b.getCollectionHandle().Indexes().CreateOne(ctx, indexModel)
 }
 
-func (b *TransactionModelMongo) InsertOne(ctx context.Context, transaction *models.Transaction) (*mongo.InsertOneResult, error) {
-	one, err := b.getCollectionHandle().InsertOne(ctx, transaction)
-	return one, err
-}
+func (b *TransactionModel) Insert(ctx context.Context, transaction *models.Transaction) error {
 
-func (b *TransactionModelMongo) RetryCreate(ctx context.Context, transaction *models.Transaction) (*mongo.InsertOneResult, error) {
-	var insertOneResult *mongo.InsertOneResult
-	operation := func() error {
-		tx, err := b.InsertOne(ctx, transaction)
+  err := backoff.Retry(func() error {
+	  _, err := b.getCollectionHandle().InsertOne(ctx, transaction)
+
 		if err != nil {
 			zap.S().Info("MongoDb RetryCreate Error : ", err.Error())
-		} else {
-			insertOneResult = tx
-			return nil
 		}
-		return err
-	}
-	neb := backoff.NewExponentialBackOff()
-	err := backoff.Retry(operation, neb)
-	return insertOneResult, err
+
+    return err
+	}, backoff.NewExponentialBackOff())
+
+	return err
 }
 
-func (b *TransactionModelMongo) Select(
+func (b *TransactionModel) Select(
 	ctx context.Context,
 	limit int64,
 	skip int64,
 	from string,
 	to string,
-	_type string,
-) (*[]models.Transaction, error) {
+) ([]models.Transaction, error) {
   err := b.mongoConn.retryPing(ctx)
   if err != nil {
     return nil, err
@@ -114,10 +102,6 @@ func (b *TransactionModelMongo) Select(
 	// to
 	if to != "" {
 		queryParams["toaddress"] = to
-	}
-	// type
-	if _type != "" {
-		queryParams["type"] = _type
 	}
 
 	// Building FindOptions
@@ -149,23 +133,23 @@ func (b *TransactionModelMongo) Select(
     transactions = append(transactions, convertBsonMToTransaction(r))
   }
 
-	return &transactions, nil
+	return transactions, nil
 }
 
 func StartTransactionLoader() {
-	go transactionLoader()
-}
 
-func transactionLoader() {
-	var transaction *models.Transaction
-	mongoLoaderChan := GetTransactionModelMongo().writeChan
+  go func() {
+    var transaction *models.Transaction
+    mongoLoaderChan := GetTransactionModel().WriteChan
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+    ctx, cancel := context.WithCancel(context.Background())
+    defer cancel()
 
-	for {
-		transaction = <-mongoLoaderChan
-		GetTransactionModelMongo().RetryCreate(ctx, transaction) // inserted here !!
-    zap.S().Info("Loader: Loaded in collection Transactions - BlockNumber=", transaction.BlockNumber)
-	}
+    for {
+      transaction = <-mongoLoaderChan
+      GetTransactionModel().Insert(ctx, transaction)
+
+      zap.S().Info("Loader: Loaded in collection Transactions - BlockNumber=", transaction.BlockNumber)
+    }
+  }()
 }

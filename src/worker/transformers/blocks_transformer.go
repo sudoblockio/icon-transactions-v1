@@ -1,14 +1,15 @@
 package transformers
 
 import (
+	"go.uber.org/zap"
+	"google.golang.org/protobuf/encoding/protojson"
+	"gopkg.in/Shopify/sarama.v1"
+
 	"github.com/geometry-labs/icon-transactions/config"
 	"github.com/geometry-labs/icon-transactions/crud"
 	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/models"
 	"github.com/geometry-labs/icon-transactions/worker/utils"
-	"go.uber.org/zap"
-	"google.golang.org/protobuf/encoding/protojson"
-	"gopkg.in/Shopify/sarama.v1"
 )
 
 func StartBlocksTransformer() {
@@ -30,7 +31,7 @@ func blocksTransformer() {
 
 	consumer_topic_chan := make(chan *sarama.ConsumerMessage)
 	producer_topic_chan := kafka.KafkaTopicProducers[producer_topic_name].TopicChan
-	mongoLoaderChan := crud.GetTransactionModelMongo().GetWriteChan()
+	mongoLoaderChan := crud.GetTransactionModel().WriteChan
 
 	// Register consumer channel
 	broadcaster_output_chan_id := kafka.Broadcasters[consumer_topic_name].AddBroadcastChannel(consumer_topic_chan)
@@ -42,7 +43,7 @@ func blocksTransformer() {
 	for {
 		// Read from kafka
 		consumer_topic_msg := <-consumer_topic_chan
-		transactionRaw, err := ConvertBytesToTransactionRaw(consumer_topic_msg.Value)
+		transactionRaw, err := convertBytesToTransactionRaw(consumer_topic_msg.Value)
 		if err != nil {
 			zap.S().Error("Transactions Worker: Unable to proceed cannot convert kafka msg value to TransactionRaw, err: ", err.Error())
 		}
@@ -66,7 +67,7 @@ func blocksTransformer() {
 	}
 }
 
-func ConvertBytesToTransactionRaw(value []byte) (*models.TransactionRaw, error) {
+func convertBytesToTransactionRaw(value []byte) (*models.TransactionRaw, error) {
 	tx := models.TransactionRaw{}
 
 	err := protojson.Unmarshal(value, &tx)

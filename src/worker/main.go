@@ -20,7 +20,7 @@ import (
 func main() {
 	config.ReadEnvironment()
 
-	logging.StartLoggingInit()
+	logging.Init()
 	log.Printf("Main: Starting logging with level %s", config.Config.LogLevel)
 
 	// Start Prometheus client

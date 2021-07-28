@@ -1,52 +1,123 @@
-package crud_test
+package crud
 
 import (
-	"context"
+	"testing"
+	"time"
+  "context"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/geometry-labs/icon-transactions/config"
-	"github.com/geometry-labs/icon-transactions/crud"
 	"github.com/geometry-labs/icon-transactions/fixtures"
 	"github.com/geometry-labs/icon-transactions/logging"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"go.mongodb.org/mongo-driver/bson"
-	"log"
-	"time"
 )
 
-var _ = Describe("CrudTransactions", func() {
+func init() {
+	// Read env
+	// Defaults should work
 	config.ReadEnvironment()
-	logging.StartLoggingInit()
 
-	testFixtures, _ := fixtures.LoadTestFixtures("transaction_raws.json")
-	transactionModelMongo := crud.GetTransactionModelMongo()
+	// Set up logging
+	logging.Init()
+}
 
-	Describe("TransactionModel with mongodb", func() {
+func TestGetTransactionModel(t *testing.T) {
+	assert := assert.New(t)
 
-		Context("Create & Select in Transactions collection", func() {
-			for _, fixture := range testFixtures {
-				transaction := fixture.GetTransaction(fixture.Input)
+	transactionModel := GetTransactionModel()
+	assert.NotEqual(nil, transactionModel)
+}
 
-				It("insert and Find in mongodb", func() {
-					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-					defer cancel()
-					_, err := transactionModelMongo.RetryCreate(ctx, transaction)
-					if err != nil {
-						log.Println(err.Error())
-					}
-					Expect(err).To(BeNil())
+func TestTransactionModelInsert(t *testing.T) {
+	assert := assert.New(t)
 
-					result := transactionModelMongo.Select(ctx, 1, 0, transaction.FromAddress, "", "")
-					Expect(result).ToNot(BeEmpty())
-					log.Println(result)
+	transactionModel := GetTransactionModel()
+	assert.NotEqual(nil, transactionModel)
 
-					del, err := transactionModelMongo.GetCollectionHandle().DeleteMany(
-						ctx, bson.M{"signature": transaction.Signature})
-					Expect(err).To(BeNil())
-					Expect(del.DeletedCount).To(BeEquivalentTo(1))
+	// Load fixtures
+	transactionFixtures := fixtures.LoadTransactionFixtures()
 
-				}) // It
-			} // For each fixture
-		}) // Context "Create and Select in transaction collection"
+  ctx, cancel := context.WithCancel(context.Background())
+  defer cancel()
 
-	}) // Describe "TransactionModel with mongodb"
-})
+	for _, tx := range transactionFixtures {
+
+		insertErr := transactionModel.Insert(ctx, tx)
+		assert.Equal(nil, insertErr)
+	}
+}
+
+func TestTransactionModelSelect(t *testing.T) {
+	assert := assert.New(t)
+
+	transactionModel := GetTransactionModel()
+	assert.NotEqual(nil, transactionModel)
+
+	// Load fixtures
+	transactionFixtures := fixtures.LoadTransactionFixtures()
+
+  ctx, cancel := context.WithCancel(context.Background())
+  defer cancel()
+
+	for _, tx := range transactionFixtures {
+
+		insertErr := transactionModel.Insert(ctx, tx)
+		assert.Equal(nil, insertErr)
+	}
+
+	// Select all transactions
+	transactions, err := transactionModel.Select(ctx, int64(len(transactionFixtures)), 0, "", "")
+	assert.Equal(len(transactionFixtures), len(transactions))
+  assert.Equal(nil, err)
+
+	// Test limit
+	transactions, err = transactionModel.Select(ctx, 1, 0, "", "")
+	assert.Equal(1, len(transactions))
+  assert.Equal(nil, err)
+
+	// Test skip
+	transactions, err = transactionModel.Select(ctx, 1, 1, "", "")
+	assert.Equal(1, len(transactions))
+  assert.Equal(nil, err)
+
+	// Test from
+	transactions, err = transactionModel.Select(ctx, 1, 0, "hx02e6bf5860b7d7744ec5050545d10d37c72ac2ef", "")
+	assert.Equal(1, len(transactions))
+  assert.Equal(nil, err)
+
+	// Test to
+	transactions, err = transactionModel.Select(ctx, 1, 0, "", "cx38fd2687b202caf4bd1bda55223578f39dbb6561")
+	assert.Equal(1, len(transactions))
+  assert.Equal(nil, err)
+}
+
+func TestTransactionModelLoader(t *testing.T) {
+	assert := assert.New(t)
+
+	transactionModel := GetTransactionModel()
+	assert.NotEqual(nil, transactionModel)
+
+	// Load fixtures
+	transactionFixtures := fixtures.LoadTransactionFixtures()
+
+	// Start loader
+	go StartTransactionLoader()
+
+	// Write to loader channel
+	go func() {
+		for _, fixture := range transactionFixtures {
+			transactionModel.WriteChan <- fixture
+		}
+	}()
+
+	// Wait for inserts
+	time.Sleep(5)
+
+  ctx, cancel := context.WithCancel(context.Background())
+  defer cancel()
+
+	// Select all transactions
+	transactions, err := transactionModel.Select(ctx, int64(len(transactionFixtures)), 0, "", "")
+	assert.Equal(len(transactionFixtures), len(transactions))
+  assert.Equal(nil, err)
+}

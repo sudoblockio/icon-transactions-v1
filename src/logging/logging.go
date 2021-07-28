@@ -11,20 +11,19 @@ import (
 	"github.com/geometry-labs/icon-transactions/global"
 )
 
-func StartLoggingInit() {
-	go loggingInit()
-}
+// Init - init logging config
+func Init() {
+	go func() {
+		cfg := newLoggerConfig()
 
-func loggingInit() {
-	cfg := newLoggerConfig()
+		logger := newLogger(cfg)
+		defer logger.Sync()
 
-	logger := newLogger(cfg)
-	defer logger.Sync()
+		undo := zap.ReplaceGlobals(logger)
+		defer undo()
 
-	undo := zap.ReplaceGlobals(logger)
-	defer undo()
-
-	<-global.ShutdownChan
+		<-global.ShutdownChan
+	}()
 }
 
 func newLogger(cfg zap.Config) *zap.Logger {
