@@ -37,8 +37,8 @@ func newLogger(cfg zap.Config) *zap.Logger {
 func newLoggerConfig() zap.Config {
 	cfg := zap.Config{
 		Level:            setLoggerConfigLogLevel(),
-		Development:      true,
-		Encoding:         "console",
+		Development:      setDevelopment(),
+		Encoding:         setEncoding(),
 		EncoderConfig:    newLoggerEncoderConfig(),
 		OutputPaths:      setLoggerConfigOutputPaths(),
 		ErrorOutputPaths: setLoggerConfigErrorOutputPaths(),
@@ -61,6 +61,22 @@ func newLoggerEncoderConfig() zapcore.EncoderConfig {
 		EncodeDuration: zapcore.StringDurationEncoder, //zapcore.SecondsDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
+}
+
+func setEncoding() string {
+	encoding := "json"
+	if config.Config.LogFormat == "string" {
+		encoding = "console"
+	}
+	return encoding
+}
+
+func setDevelopment() bool {
+	development := false
+	if config.Config.LogFormat == "string" {
+		development = true
+	}
+	return development
 }
 
 func setLoggerConfigLogLevel() zap.AtomicLevel {
