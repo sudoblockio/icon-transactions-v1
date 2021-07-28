@@ -29,7 +29,10 @@ func GetTransactionModel() *TransactionModel {
 			WriteChan:        make(chan *models.Transaction, 1),
 		}
 
-		transactionModelInstance.CreateIndex("blocknumber", true, false)
+		transactionModelInstance.CreateNumberIndex("blocknumber", false, false)
+		transactionModelInstance.CreateStringIndex("hash")
+		transactionModelInstance.CreateStringIndex("fromaddress")
+		transactionModelInstance.CreateStringIndex("toaddress")
 	})
 	return transactionModelInstance
 }
@@ -41,20 +44,39 @@ func (b *TransactionModel) getCollectionHandle() *mongo.Collection {
   return GetMongoConn().DatabaseHandle(dbName).Collection(dbCollection)
 }
 
-func (b *TransactionModel) CreateIndex(column string, isAscending bool, isUnique bool) {
+func (b *TransactionModel) CreateNumberIndex(field string, isAscending bool, isUnique bool) {
 	ascending := 1
 	if !isAscending {
 		ascending = -1
 	}
+
 	indexModel := mongo.IndexModel{
-		Keys:    bson.M{column: ascending},
+		Keys:    bson.M{field: ascending},
 		Options: options.Index().SetUnique(isUnique),
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	b.getCollectionHandle().Indexes().CreateOne(ctx, indexModel)
+	_, err := b.getCollectionHandle().Indexes().CreateOne(ctx, indexModel)
+  if err != nil {
+    zap.S().Fatal("CREATENUMBERINDEX PANIC: ", err.Error())
+  }
+}
+
+func (b *TransactionModel) CreateStringIndex(field string) {
+
+	indexModel := mongo.IndexModel{
+		Keys:    bson.M{field: "hashed"},
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	_, err := b.getCollectionHandle().Indexes().CreateOne(ctx, indexModel)
+  if err != nil {
+    zap.S().Fatal("CREATESTRINGINDEX PANIC: ", err.Error())
+  }
 }
 
 func (b *TransactionModel) Insert(ctx context.Context, transaction *models.Transaction) error {
@@ -76,6 +98,7 @@ func (b *TransactionModel) Select(
 	ctx context.Context,
 	limit int64,
 	skip int64,
+	hash string,
 	from string,
 	to string,
 ) ([]models.Transaction, error) {
@@ -95,6 +118,10 @@ func (b *TransactionModel) Select(
 
 	// Building KeyValue pairs
 	queryParams := make(map[string]interface{})
+	// hash
+	if hash != "" {
+		queryParams["hash"] = hash
+	}
 	// from
 	if from != "" {
 		queryParams["fromaddress"] = from

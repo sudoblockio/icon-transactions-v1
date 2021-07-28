@@ -28,13 +28,11 @@ func GetMongoConn() *MongoConn {
 		// Getting client (or session)
 		client, err := retryMongoConn(uri)
 		if err != nil {
-			zap.S().Fatal("MONGO: Finally Connection cannot be established")
+			zap.S().Fatal("MONGO: Connection cannot be established")
 		} else {
-			zap.S().Info("MONGO: Finally Connection established")
+			zap.S().Info("MONGO: Connection established")
 		}
 
-		//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		//defer cancel()
 		ctx, cancel := context.WithCancel(context.Background())
 		go func() {
 			defer cancel()

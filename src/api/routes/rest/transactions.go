@@ -16,6 +16,7 @@ type TransactionsQuery struct {
 	Limit int64 `query:"limit"`
 	Skip  int64 `query:"skip"`
 
+	Hash string `query:"hash"`
 	From string `query:"from"`
 	To   string `query:"to"`
 }
@@ -36,6 +37,7 @@ func TransactionsAddHandlers(app *fiber.App) {
 // @Produce json
 // @Param limit query int false "amount of records"
 // @Param skip query int false "skip to a record"
+// @Param hash query string false "find by hash"
 // @Param from query string false "find by from address"
 // @Param to query string false "find by to address"
 // @Router /api/v1/transactions [get]
@@ -62,6 +64,7 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 		ctx,
 		params.Limit,
 		params.Skip,
+		params.Hash,
 		params.From,
 		params.To,
 	)
@@ -74,9 +77,6 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	if len(transactions) == 0 {
 		// No Content
 		c.Status(204)
-	} else {
-		// Success
-		c.Status(200)
 	}
 
 	body, _ := json.Marshal(&transactions)
