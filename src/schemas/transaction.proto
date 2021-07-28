@@ -2,14 +2,7 @@ syntax = "proto3";
 package models;
 option go_package = "./models";
 
-//import "google/protobuf/struct.proto";
-
-message Transactions {
-  repeated Transaction transactions = 1;
-}
-
 message Transaction {
-
   string type = 1;
   string version = 2;
   string from_address = 3;
