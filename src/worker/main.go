@@ -36,7 +36,7 @@ func main() {
 	kafka.StartProducers()
 
 	// Start transformers
-	transformers.StartBlocksTransformer()
+	transformers.StartTransactionsTransformer()
 
 	// Listen for close sig
 	// Register for interupt (Ctrl+C) and SIGTERM (docker)

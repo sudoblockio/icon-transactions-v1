@@ -83,5 +83,5 @@ services:
       - ${TRANSACTIONS_CONTEXT:-.}/src:/app
     environment:
       <<: *env
-      CONSUMER_TOPICS: "transactions"
+      CONSUMER_TOPICS: "transactions,logs"
       PRODUCER_TOPICS: "transactions-ws"
