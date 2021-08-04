@@ -36,7 +36,7 @@ func GetMongoConn() *MongoConn {
 		ctx, cancel := context.WithCancel(context.Background())
 		go func() {
 			defer cancel()
-			<-global.ShutdownChan
+      global.WaitShutdownSig()
 			zap.S().Info("Closing Mongodb client context")
 		}()
 
@@ -66,7 +66,9 @@ func (m *MongoConn) GetClient() *mongo.Client {
 }
 
 func clientClose(client *mongo.Client) error {
-	<-global.ShutdownChan
+
+  global.WaitShutdownSig()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	err := client.Disconnect(ctx)

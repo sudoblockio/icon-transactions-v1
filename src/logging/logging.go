@@ -22,7 +22,8 @@ func Init() {
 		undo := zap.ReplaceGlobals(logger)
 		defer undo()
 
-		<-global.ShutdownChan
+    global.WaitShutdownSig()
+
 	}()
 }
 
