@@ -3,9 +3,11 @@ package transformers
 import (
   "strings"
   "encoding/json"
+  "encoding/hex"
 
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"
+	"github.com/golang/protobuf/proto"
 	"gopkg.in/Shopify/sarama.v1"
 
 	"github.com/geometry-labs/icon-transactions/config"
@@ -61,7 +63,7 @@ func transactionsTransformer() {
     select {
     case consumer_topic_msg = <-consumer_topic_chan_transactions:
       // Transaction message from ETL
-		  transactionRaw, err := convertBytesToTransactionRaw(consumer_topic_msg.Value)
+		  transactionRaw, err := convertBytesToTransactionRawProtoBuf(consumer_topic_msg.Value)
       if err != nil {
         zap.S().Fatal("Transactions Worker: Unable to proceed cannot convert kafka msg value to TransactionRaw, err: ", err.Error())
       }
@@ -70,7 +72,7 @@ func transactionsTransformer() {
       transformedTransaction = transformTransactionRaw(transactionRaw)
     case consumer_topic_msg = <-consumer_topic_chan_logs:
       // Log message from ETL
-		  logRaw, err := convertBytesToLogRaw(consumer_topic_msg.Value)
+		  logRaw, err := convertBytesToLogRawProtoBuf(consumer_topic_msg.Value)
       if err != nil {
         zap.S().Fatal("Unable to proceed cannot convert kafka msg value to LogRaw, err: ", err.Error())
       }
@@ -99,7 +101,7 @@ func transactionsTransformer() {
 	}
 }
 
-func convertBytesToTransactionRaw(value []byte) (*models.TransactionRaw, error) {
+func convertBytesToTransactionRawJSON(value []byte) (*models.TransactionRaw, error) {
 	tx := models.TransactionRaw{}
 
 	err := protojson.Unmarshal(value, &tx)
@@ -110,7 +112,17 @@ func convertBytesToTransactionRaw(value []byte) (*models.TransactionRaw, error) 
 	return &tx, nil
 }
 
-func convertBytesToLogRaw(value []byte) (*models.LogRaw, error) {
+func convertBytesToTransactionRawProtoBuf(value []byte) (*models.TransactionRaw, error) {
+	tx := models.TransactionRaw{}
+	err := proto.Unmarshal(value[6:], &tx)
+	if err != nil {
+		zap.S().Error("Error: ", err.Error())
+		zap.S().Error("Value=", hex.Dump(value[6:]))
+	}
+	return &tx, err
+}
+
+func convertBytesToLogRawJSON(value []byte) (*models.LogRaw, error) {
 	log := models.LogRaw{}
 
 	err := protojson.Unmarshal(value, &log)
@@ -119,6 +131,16 @@ func convertBytesToLogRaw(value []byte) (*models.LogRaw, error) {
 	}
 
 	return &log, nil
+}
+
+func convertBytesToLogRawProtoBuf(value []byte) (*models.LogRaw, error) {
+	log := models.LogRaw{}
+	err := proto.Unmarshal(value[6:], &log)
+	if err != nil {
+		zap.S().Error("Error: ", err.Error())
+		zap.S().Error("Value=", hex.Dump(value[6:]))
+	}
+	return &log, err
 }
 
 // Business logic goes here
