@@ -1,9 +1,7 @@
 package rest
 
 import (
-	"context"
 	"encoding/json"
-	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -13,8 +11,8 @@ import (
 )
 
 type TransactionsQuery struct {
-	Limit int64 `query:"limit"`
-	Skip  int64 `query:"skip"`
+	Limit int `query:"limit"`
+	Skip  int `query:"skip"`
 
 	Hash string `query:"hash"`
 	From string `query:"from"`
@@ -58,21 +56,13 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	}
 
 	// Get Transactions
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	transactions, err := crud.GetTransactionModel().Select(
-		ctx,
+	transactions := crud.GetTransactionModel().Select(
 		params.Limit,
 		params.Skip,
 		params.Hash,
 		params.From,
 		params.To,
 	)
-  if err != nil {
-    c.Status(500)
-    zap.S().Errorf("ERROR: %s", err.Error())
-    return c.SendString(`{"error": "unable to query transactions"}`)
-  }
 
 	if len(transactions) == 0 {
 		// No Content

@@ -34,12 +34,12 @@ x-env: &env
   SCHEMA_FOLDER_PATH: "/app/schemas/"
 
   # DB
-  DB_DRIVER: "mongodb"
-  DB_HOST: "mongo"
-  DB_PORT: "27017"
-  DB_USER: "mongo"
-  DB_PASSWORD: "changethis"
-  DB_DBNAME: "local"
+  DB_DRIVER: "postgres"
+  DB_HOST: "postgres"
+  DB_PORT: "5432"
+  DB_USER: "postgres"
+  DB_PASSWORD: "changeme"
+  DB_DBNAME: "postgres"
   DB_SSLMODE: "disable"
   DB_TIMEZONE: "UTC"
 

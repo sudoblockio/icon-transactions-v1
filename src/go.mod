@@ -16,6 +16,10 @@ require (
 	github.com/gofiber/fiber/v2 v2.14.0
 	github.com/gofiber/websocket/v2 v2.0.7
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645 // indirect
+	github.com/infobloxopen/go-trees v0.0.0-20180608122459-a1e500cde93c // indirect
+	github.com/infobloxopen/protoc-gen-gorm v0.21.0 // indirect
+	github.com/infobloxopen/themis v0.0.0-20180709114455-d62bb103665c // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.14.0
