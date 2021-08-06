@@ -56,13 +56,18 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	}
 
 	// Get Transactions
-	transactions := crud.GetTransactionModel().Select(
+	transactions, err := crud.GetTransactionModel().Select(
 		params.Limit,
 		params.Skip,
 		params.Hash,
 		params.From,
 		params.To,
 	)
+  if err != nil {
+		zap.S().Warnf("Transactions CRUD ERROR: %s", err.Error())
+    c.Status(500)
+		return c.SendString(`{"error": "could not retrieve transactions"}`)
+  }
 
 	if len(transactions) == 0 {
 		// No Content

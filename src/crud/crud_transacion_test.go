@@ -3,7 +3,6 @@ package crud
 import (
 	"testing"
 	"time"
-  "context"
 
 	"github.com/stretchr/testify/assert"
 
@@ -37,12 +36,9 @@ func TestTransactionModelInsert(t *testing.T) {
 	// Load fixtures
 	transactionFixtures := fixtures.LoadTransactionFixtures()
 
-  ctx, cancel := context.WithCancel(context.Background())
-  defer cancel()
-
 	for _, tx := range transactionFixtures {
 
-		insertErr := transactionModel.Insert(ctx, tx)
+		insertErr := transactionModel.Insert(tx)
 		assert.Equal(nil, insertErr)
 	}
 }
@@ -56,37 +52,39 @@ func TestTransactionModelSelect(t *testing.T) {
 	// Load fixtures
 	transactionFixtures := fixtures.LoadTransactionFixtures()
 
-  ctx, cancel := context.WithCancel(context.Background())
-  defer cancel()
-
 	for _, tx := range transactionFixtures {
 
-		insertErr := transactionModel.Insert(ctx, tx)
+		insertErr := transactionModel.Insert(tx)
 		assert.Equal(nil, insertErr)
 	}
 
 	// Select all transactions
-	transactions, err := transactionModel.Select(ctx, int64(len(transactionFixtures)), 0, "", "")
+	transactions, err := transactionModel.Select(len(transactionFixtures), 0, "", "", "")
 	assert.Equal(len(transactionFixtures), len(transactions))
   assert.Equal(nil, err)
 
 	// Test limit
-	transactions, err = transactionModel.Select(ctx, 1, 0, "", "")
+	transactions, err = transactionModel.Select(1, 0, "", "", "")
 	assert.Equal(1, len(transactions))
   assert.Equal(nil, err)
 
 	// Test skip
-	transactions, err = transactionModel.Select(ctx, 1, 1, "", "")
+	transactions, err = transactionModel.Select(1, 1, "", "", "")
+	assert.Equal(1, len(transactions))
+  assert.Equal(nil, err)
+
+	// Test hash
+	transactions, err = transactionModel.Select(1, 0, "0x18094ca8e7f5cc52511c36a8c85f56c8788b8802025a8cbcd84fb0f5b5ea7d82", "", "")
 	assert.Equal(1, len(transactions))
   assert.Equal(nil, err)
 
 	// Test from
-	transactions, err = transactionModel.Select(ctx, 1, 0, "hx02e6bf5860b7d7744ec5050545d10d37c72ac2ef", "")
+  transactions, err = transactionModel.Select(1, 0, "", "hx02e6bf5860b7d7744ec5050545d10d37c72ac2ef", "")
 	assert.Equal(1, len(transactions))
   assert.Equal(nil, err)
 
 	// Test to
-	transactions, err = transactionModel.Select(ctx, 1, 0, "", "cx38fd2687b202caf4bd1bda55223578f39dbb6561")
+	transactions, err = transactionModel.Select(1, 0, "", "", "cx38fd2687b202caf4bd1bda55223578f39dbb6561")
 	assert.Equal(1, len(transactions))
   assert.Equal(nil, err)
 }
@@ -113,11 +111,8 @@ func TestTransactionModelLoader(t *testing.T) {
 	// Wait for inserts
 	time.Sleep(5)
 
-  ctx, cancel := context.WithCancel(context.Background())
-  defer cancel()
-
 	// Select all transactions
-	transactions, err := transactionModel.Select(ctx, int64(len(transactionFixtures)), 0, "", "")
+	transactions, err := transactionModel.Select(len(transactionFixtures), 0, "", "", "")
 	assert.Equal(len(transactionFixtures), len(transactions))
   assert.Equal(nil, err)
 }

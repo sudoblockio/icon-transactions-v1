@@ -38,8 +38,8 @@ build-worker:  ## Build the worker
 ps:  ## List all containers and running status
 	docker-compose -f docker-compose.db.yml -f docker-compose.yml ps
 
-mongo-console:  ## Start mongo terminal
-	docker-compose -f docker-compose.yml -f docker-compose.db.yml exec mongo mongo -u mongo -p changethis
+postgres-console:  ## Start postgres terminal
+	docker-compose -f docker-compose.db.yml -f docker-compose.yml exec postgres psql -U postgres
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}'

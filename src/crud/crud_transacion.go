@@ -75,7 +75,7 @@ func (m *TransactionModel) Select(
   hash string,
   from string,
   to string,
-) []models.Transaction {
+) ([]models.Transaction, error){
 	db := m.db
 
 	// Latest transactions first
@@ -100,14 +100,14 @@ func (m *TransactionModel) Select(
 	}
 
 	// to
-	if hash != "" {
+	if to != "" {
 		db = db.Where("to_address = ?", to)
 	}
 
 	transactions := []models.Transaction{}
-	db.Find(&transactions)
+	db = db.Find(&transactions)
 
-	return transactions
+	return transactions, db.Error
 }
 
 // StartTransactionLoader starts loader
