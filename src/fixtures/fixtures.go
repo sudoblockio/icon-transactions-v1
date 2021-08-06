@@ -79,9 +79,9 @@ func parseFixtureToTransaction(m map[string]interface{}) *models.Transaction {
   if ok == false {
     nonce = 0
   }
-  fee, ok := m["fee"].(string)
+  fee, ok := m["fee"].(uint64)
   if ok == false {
-    fee = ""
+    fee = 0
   }
   itemTimestamp, ok := m["itemtimestamp"].(string)
   if ok == false {
@@ -94,7 +94,7 @@ func parseFixtureToTransaction(m map[string]interface{}) *models.Transaction {
     FromAddress: m["from_address"].(string),
     ToAddress: m["to_address"].(string),
     Value: m["value"].(string),
-    StepLimit: m["step_limit"].(string),
+    StepLimit: uint64(m["step_limit"].(float64)),
     Timestamp: m["timestamp"].(string),
     BlockTimestamp: uint64(m["block_timestamp"].(float64)),
     Nid: uint32(m["nid"].(float64)),
@@ -107,9 +107,9 @@ func parseFixtureToTransaction(m map[string]interface{}) *models.Transaction {
     Signature: m["signature"].(string),
     DataType: m["data_type"].(string),
     Data: m["data"].(string),
-    ReceiptCumulativeStepUsed: m["receipt_cumulative_step_used"].(string),
-    ReceiptStepUsed: m["receipt_step_used"].(string),
-    ReceiptStepPrice: m["receipt_step_price"].(string),
+    ReceiptCumulativeStepUsed: uint64(m["receipt_cumulative_step_used"].(float64)),
+    ReceiptStepUsed: uint64(m["receipt_step_used"].(float64)),
+    ReceiptStepPrice: uint64(m["receipt_step_price"].(float64)),
     ReceiptScoreAddress: m["receipt_score_address"].(string),
     ReceiptLogs: m["receipt_logs"].(string),
     ReceiptStatus: uint32(m["receipt_status"].(float64)),

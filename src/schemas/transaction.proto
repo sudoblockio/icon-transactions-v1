@@ -34,5 +34,6 @@ message Transaction {
   string item_id = 25;
   string item_timestamp = 26;
 
+  // Postgres primary key
   uint64 id = 27;
 }
