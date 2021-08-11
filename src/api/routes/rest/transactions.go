@@ -76,7 +76,7 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	}
 
   // Set headers
-  c.Append("X-TOTAL-COUNT", strconv.Itoa(len(transactions)))
+  c.Append("X-TOTAL-COUNT", strconv.FormatInt(crud.GetTransactionModel().CountAll(), 10))
 
 	body, _ := json.Marshal(&transactions)
 	return c.SendString(string(body))

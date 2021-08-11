@@ -72,10 +72,10 @@ func (m *TransactionModel) Insert(transaction *models.Transaction) error {
 func (m *TransactionModel) Select(
 	limit int,
 	skip int,
-  hash string,
-  from string,
-  to string,
-) ([]models.Transaction, error){
+	hash string,
+	from string,
+	to string,
+) ([]models.Transaction, error) {
 	db := m.db
 
 	// Latest transactions first
@@ -110,6 +110,15 @@ func (m *TransactionModel) Select(
 	return transactions, db.Error
 }
 
+func (m *TransactionModel) CountAll() int64 {
+	db := m.db
+
+	var count int64
+	db.Model(&[]models.Transaction{}).Count(&count)
+
+	return count
+}
+
 // StartTransactionLoader starts loader
 func StartTransactionLoader() {
 	go func() {
@@ -123,7 +132,7 @@ func StartTransactionLoader() {
 			// Load transaction to database
 			GetTransactionModel().Insert(transaction)
 
-      zap.S().Debugf("Loader Transaction: Loaded in postgres table Transactions, Block Number: %d", transaction.BlockNumber)
+			zap.S().Debugf("Loader Transaction: Loaded in postgres table Transactions, Block Number: %d", transaction.BlockNumber)
 		}
 	}()
 }
