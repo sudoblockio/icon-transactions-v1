@@ -154,7 +154,7 @@ func TestTransactionModelLoader(t *testing.T) {
 	time.Sleep(5)
 
 	// Select all transactions
-	transactions, err := transactionModel.Select(len(transactionFixtures), 0, "", "", "")
+	transactions, err := transactionModel.SelectMany(len(transactionFixtures), 0, "", "", "")
 	assert.Equal(len(transactionFixtures), len(transactions))
 	assert.Equal(nil, err)
 }
