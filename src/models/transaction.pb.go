@@ -52,7 +52,8 @@ type Transaction struct {
 	ReceiptStatus             uint32 `protobuf:"varint,24,opt,name=receipt_status,json=receiptStatus,proto3" json:"receipt_status,omitempty"`
 	ItemId                    string `protobuf:"bytes,25,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
 	ItemTimestamp             string `protobuf:"bytes,26,opt,name=item_timestamp,json=itemTimestamp,proto3" json:"item_timestamp,omitempty"`
-	Id                        uint64 `protobuf:"varint,27,opt,name=id,proto3" json:"id,omitempty"`
+	// Postgres primary key
+	Id uint64 `protobuf:"varint,27,opt,name=id,proto3" json:"id,omitempty"`
 }
 
 func (x *Transaction) Reset() {

@@ -1,8 +1,9 @@
 package rest
 
 import (
-  "strconv"
 	"encoding/json"
+	"regexp"
+	"strconv"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -25,6 +26,7 @@ func TransactionsAddHandlers(app *fiber.App) {
 	prefix := config.Config.RestPrefix + "/transactions"
 
 	app.Get(prefix+"/", handlerGetTransactions)
+	app.Get(prefix+"/:hash", handlerGetTransactionDetails)
 }
 
 // Transactions
@@ -40,7 +42,7 @@ func TransactionsAddHandlers(app *fiber.App) {
 // @Param from query string false "find by from address"
 // @Param to query string false "find by to address"
 // @Router /api/v1/transactions [get]
-// @Success 200 {object} []models.Transaction
+// @Success 200 {object} []models.TransactionAPI
 // @Failure 422 {object} map[string]interface{}
 func handlerGetTransactions(c *fiber.Ctx) error {
 	params := new(TransactionsQuery)
@@ -57,27 +59,68 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	}
 
 	// Get Transactions
-	transactions, err := crud.GetTransactionModel().Select(
+	transactions, err := crud.GetTransactionModel().SelectMany(
 		params.Limit,
 		params.Skip,
 		params.Hash,
 		params.From,
 		params.To,
 	)
-  if err != nil {
+	if err != nil {
 		zap.S().Warnf("Transactions CRUD ERROR: %s", err.Error())
-    c.Status(500)
+		c.Status(500)
 		return c.SendString(`{"error": "could not retrieve transactions"}`)
-  }
+	}
 
 	if len(transactions) == 0 {
 		// No Content
 		c.Status(204)
 	}
 
-  // Set headers
-  c.Append("X-TOTAL-COUNT", strconv.FormatInt(crud.GetTransactionModel().CountAll(), 10))
+	// Set headers
+	c.Append("X-TOTAL-COUNT", strconv.FormatInt(crud.GetTransactionModel().CountAll(), 10))
 
 	body, _ := json.Marshal(&transactions)
 	return c.SendString(string(body))
+}
+
+// Transaction Details
+// @Summary Get Transaction Details
+// @Description get details of a transaction
+// @Tags Transactions
+// @BasePath /api/v1
+// @Accept */*
+// @Produce json
+// @Param hash path string true "transaction hash"
+// @Router /api/v1/transactions/{hash} [get]
+// @Success 200 {object} models.Transaction
+// @Failure 422 {object} map[string]interface{}
+func handlerGetTransactionDetails(c *fiber.Ctx) error {
+	hash := c.Params("hash")
+
+	if hash == "" {
+		c.Status(422)
+		return c.SendString(`{"error": "hash required"}`)
+	}
+
+	// Is hash?
+	isHash, err := regexp.Match("0x([0-9a-fA-F]*)", []byte(hash))
+	if err != nil {
+		c.Status(422)
+		return c.SendString(`{"error": "invalid hash"}`)
+	}
+	if isHash == true {
+		// ID is Hash
+		transaction, err := crud.GetTransactionModel().SelectOne(hash)
+		if err != nil {
+			c.Status(404)
+			return c.SendString(`{"error": "no transaction found"}`)
+		}
+
+		body, _ := json.Marshal(&transaction)
+		return c.SendString(string(body))
+	}
+
+	c.Status(422)
+	return c.SendString(`{"error": "invalid hash"}`)
 }

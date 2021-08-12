@@ -68,14 +68,14 @@ func (m *TransactionModel) Insert(transaction *models.Transaction) error {
 	return err
 }
 
-// Select - select from transactions table
-func (m *TransactionModel) Select(
+// SelectMany - select from transactions table
+func (m *TransactionModel) SelectMany(
 	limit int,
 	skip int,
 	hash string,
 	from string,
 	to string,
-) ([]models.Transaction, error) {
+) ([]models.TransactionAPI, error) {
 	db := m.db
 
 	// Latest transactions first
@@ -104,10 +104,30 @@ func (m *TransactionModel) Select(
 		db = db.Where("to_address = ?", to)
 	}
 
-	transactions := []models.Transaction{}
+	// Set table
+	db = db.Model(&[]models.Transaction{})
+
+	transactions := []models.TransactionAPI{}
 	db = db.Find(&transactions)
 
 	return transactions, db.Error
+}
+
+// SelectOne - select from transactions table
+func (m *TransactionModel) SelectOne(
+	hash string,
+) (models.Transaction, error) {
+	db := m.db
+
+	// Hash
+	if hash != "" {
+		db = db.Where("hash = ?", hash)
+	}
+
+	transaction := models.Transaction{}
+	db = db.First(&transaction)
+
+	return transaction, db.Error
 }
 
 func (m *TransactionModel) CountAll() int64 {
