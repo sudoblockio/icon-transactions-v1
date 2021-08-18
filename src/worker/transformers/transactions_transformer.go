@@ -1,13 +1,13 @@
 package transformers
 
 import (
-  "strings"
-  "encoding/json"
-  "encoding/hex"
+	"encoding/hex"
+	"encoding/json"
+	"strings"
 
+	"github.com/golang/protobuf/proto"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"
-	"github.com/golang/protobuf/proto"
 	"gopkg.in/Shopify/sarama.v1"
 
 	"github.com/geometry-labs/icon-transactions/config"
@@ -22,8 +22,8 @@ func StartTransactionsTransformer() {
 }
 
 func transactionsTransformer() {
-  consumer_topic_name_transactions := "transactions"
-  consumer_topic_name_logs := "logs"
+	consumer_topic_name_transactions := "transactions"
+	consumer_topic_name_logs := "logs"
 	producer_topic_name := "transactions-ws"
 
 	// TODO: Need to move all of the config validations to config.go
@@ -57,33 +57,33 @@ func transactionsTransformer() {
 	zap.S().Debug("Transactions Worker: started working")
 	for {
 		// Read from kafka
-    var consumer_topic_msg *sarama.ConsumerMessage
-    var transformedTransaction *models.Transaction
+		var consumer_topic_msg *sarama.ConsumerMessage
+		var transaction *models.Transaction
 
-    select {
-    case consumer_topic_msg = <-consumer_topic_chan_transactions:
-      // Transaction message from ETL
-		  transactionRaw, err := convertBytesToTransactionRawProtoBuf(consumer_topic_msg.Value)
-      if err != nil {
-        zap.S().Fatal("Transactions Worker: Unable to proceed cannot convert kafka msg value to TransactionRaw, err: ", err.Error())
-      }
+		select {
+		case consumer_topic_msg = <-consumer_topic_chan_transactions:
+			// Transaction message from ETL
+			transactionRaw, err := convertBytesToTransactionRawProtoBuf(consumer_topic_msg.Value)
+			if err != nil {
+				zap.S().Fatal("Transactions Worker: Unable to proceed cannot convert kafka msg value to TransactionRaw, err: ", err.Error())
+			}
 
-      // Transform logic
-      transformedTransaction = transformTransactionRaw(transactionRaw)
-    case consumer_topic_msg = <-consumer_topic_chan_logs:
-      // Log message from ETL
-		  logRaw, err := convertBytesToLogRawProtoBuf(consumer_topic_msg.Value)
-      if err != nil {
-        zap.S().Fatal("Unable to proceed cannot convert kafka msg value to LogRaw, err: ", err.Error())
-      }
+			// Transform logic
+			transaction = transformTransactionRaw(transactionRaw)
+		case consumer_topic_msg = <-consumer_topic_chan_logs:
+			// Log message from ETL
+			logRaw, err := convertBytesToLogRawProtoBuf(consumer_topic_msg.Value)
+			if err != nil {
+				zap.S().Fatal("Unable to proceed cannot convert kafka msg value to LogRaw, err: ", err.Error())
+			}
 
-      transformedTransaction = transformLogRaw(logRaw)
+			transaction = transformLogRaw(logRaw)
 
-      // Not and internal transaction
-      if transformedTransaction == nil {
-        continue
-      }
-    }
+			// Not and internal transaction
+			if transaction == nil {
+				continue
+			}
+		}
 
 		// Produce to Kafka
 		producer_topic_msg := &sarama.ProducerMessage{
@@ -95,7 +95,7 @@ func transactionsTransformer() {
 		producer_topic_chan <- producer_topic_msg
 
 		// Load to Postgres
-		mongoLoaderChan <- transformedTransaction
+		mongoLoaderChan <- transaction
 
 		zap.S().Debug("Transactions worker: last seen transaction #", string(consumer_topic_msg.Key))
 	}
@@ -106,7 +106,7 @@ func convertBytesToTransactionRawJSON(value []byte) (*models.TransactionRaw, err
 
 	err := protojson.Unmarshal(value, &tx)
 	if err != nil {
-    zap.S().Panic("Error: ", err.Error(), " Value: ", string(value))
+		zap.S().Panic("Error: ", err.Error(), " Value: ", string(value))
 	}
 
 	return &tx, nil
@@ -127,7 +127,7 @@ func convertBytesToLogRawJSON(value []byte) (*models.LogRaw, error) {
 
 	err := protojson.Unmarshal(value, &log)
 	if err != nil {
-    zap.S().Panic("Error: ", err.Error(), " Value: ", string(value))
+		zap.S().Panic("Error: ", err.Error(), " Value: ", string(value))
 	}
 
 	return &log, nil
@@ -179,18 +179,18 @@ func transformTransactionRaw(txRaw *models.TransactionRaw) *models.Transaction {
 // Business logic goes here
 func transformLogRaw(logRaw *models.LogRaw) *models.Transaction {
 
-  var indexed []string
-  err := json.Unmarshal([]byte(logRaw.Indexed), &indexed)
-  if err != nil {
-    zap.S().Fatal("Unable to parse indexed field in log; indexed=", logRaw.Indexed, " error: ", err.Error())
-  }
+	var indexed []string
+	err := json.Unmarshal([]byte(logRaw.Indexed), &indexed)
+	if err != nil {
+		zap.S().Fatal("Unable to parse indexed field in log; indexed=", logRaw.Indexed, " error: ", err.Error())
+	}
 
-  method := strings.Split(indexed[0], "(")[0]
+	method := strings.Split(indexed[0], "(")[0]
 
-  if method != "ICXTransfer" {
-    // Not internal transaction
-    return nil
-  }
+	if method != "ICXTransfer" {
+		// Not internal transaction
+		return nil
+	}
 
 	return &models.Transaction{
 		Type:                      logRaw.Type,
@@ -219,5 +219,5 @@ func transformLogRaw(logRaw *models.LogRaw) *models.Transaction {
 		ReceiptStatus:             1,
 		ItemId:                    logRaw.ItemId,
 		ItemTimestamp:             logRaw.ItemTimestamp,
-  }
+	}
 }

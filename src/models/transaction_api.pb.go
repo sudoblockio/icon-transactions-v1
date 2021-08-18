@@ -25,13 +25,13 @@ type TransactionAPI struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FromAddress string `protobuf:"bytes,1,opt,name=from_address,json=fromAddress,proto3" json:"from_address,omitempty"`
-	ToAddress   string `protobuf:"bytes,2,opt,name=to_address,json=toAddress,proto3" json:"to_address,omitempty"`
-	Value       string `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
-	Timestamp   string `protobuf:"bytes,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Hash        string `protobuf:"bytes,5,opt,name=hash,proto3" json:"hash,omitempty"`
-	BlockNumber uint64 `protobuf:"varint,6,opt,name=block_number,json=blockNumber,proto3" json:"block_number,omitempty"`
-	Fee         uint64 `protobuf:"varint,7,opt,name=fee,proto3" json:"fee,omitempty"`
+	FromAddress string `protobuf:"bytes,1,opt,name=from_address,json=fromAddress,proto3" json:"from_address"`
+	ToAddress   string `protobuf:"bytes,2,opt,name=to_address,json=toAddress,proto3" json:"to_address"`
+	Value       string `protobuf:"bytes,3,opt,name=value,proto3" json:"value"`
+	Timestamp   string `protobuf:"bytes,4,opt,name=timestamp,proto3" json:"timestamp"`
+	Hash        string `protobuf:"bytes,5,opt,name=hash,proto3" json:"hash"`
+	BlockNumber uint64 `protobuf:"varint,6,opt,name=block_number,json=blockNumber,proto3" json:"block_number"`
+	Fee         uint64 `protobuf:"varint,7,opt,name=fee,proto3" json:"fee"`
 }
 
 func (x *TransactionAPI) Reset() {
