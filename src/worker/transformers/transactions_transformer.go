@@ -210,7 +210,7 @@ func transformLogRaw(logRaw *models.LogRaw) *models.Transaction {
 		Timestamp:                 "",
 		BlockTimestamp:            logRaw.BlockTimestamp,
 		Nid:                       0,
-		Nonce:                     0,
+		Nonce:                     "",
 		Hash:                      logRaw.TransactionHash,
 		TransactionIndex:          logRaw.TransactionIndex,
 		BlockHash:                 logRaw.BlockHash,

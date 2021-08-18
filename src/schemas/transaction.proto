@@ -16,7 +16,7 @@ message Transaction {
   string timestamp = 7;
   uint64 block_timestamp = 8;
   uint32 nid = 9;
-  uint64 nonce = 10;
+  string nonce = 10;
   string hash = 11 [(gorm.field).tag = {index: "idx_hash"}];
   uint32 transaction_index = 12;
   string block_hash = 13;

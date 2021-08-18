@@ -33,7 +33,7 @@ type TransactionORM struct {
 	ItemId                    string
 	ItemTimestamp             string
 	Nid                       uint32
-	Nonce                     uint64
+	Nonce                     string
 	ReceiptCumulativeStepUsed uint64
 	ReceiptLogs               string
 	ReceiptScoreAddress       string
