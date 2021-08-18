@@ -111,9 +111,11 @@ func (m *TransactionModel) SelectMany(
 	}
 
 	// Limit is required and defaulted to 1
+	// Note: Count before setting limit
 	db = db.Limit(limit)
 
 	// Skip
+	// Note: Count before setting skip
 	if skip != 0 {
 		db = db.Offset(skip)
 	}
