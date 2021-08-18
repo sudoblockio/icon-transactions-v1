@@ -26,7 +26,6 @@ func transactionsTransformer() {
 	consumer_topic_name_logs := "logs"
 	producer_topic_name := "transactions-ws"
 
-	// TODO: Need to move all of the config validations to config.go
 	// Check topic names
 	if utils.StringInSlice(consumer_topic_name_transactions, config.Config.ConsumerTopics) == false {
 		zap.S().Panic("Transactions Worker: no ", consumer_topic_name_transactions, " topic found in CONSUMER_TOPICS=", config.Config.ConsumerTopics)
@@ -41,7 +40,8 @@ func transactionsTransformer() {
 	consumer_topic_chan_transactions := make(chan *sarama.ConsumerMessage)
 	consumer_topic_chan_logs := make(chan *sarama.ConsumerMessage)
 	producer_topic_chan := kafka.KafkaTopicProducers[producer_topic_name].TopicChan
-	mongoLoaderChan := crud.GetTransactionModel().WriteChan
+	transactionLoaderChan := crud.GetTransactionModel().WriteChan
+	transactionCountLoaderChan := crud.GetTransactionCountModel().WriteChan
 
 	// Register consumer channel transactions
 	broadcaster_output_chan_id_transaction := kafka.Broadcasters[consumer_topic_name_transactions].AddBroadcastChannel(consumer_topic_chan_transactions)
@@ -95,7 +95,14 @@ func transactionsTransformer() {
 		producer_topic_chan <- producer_topic_msg
 
 		// Load to Postgres
-		mongoLoaderChan <- transaction
+		transactionLoaderChan <- transaction
+
+		// Load log counter to Postgres
+		transactionCount := &models.TransactionCount{
+			Count: 1, // Adds with current
+			Id:    1, // Only one row
+		}
+		transactionCountLoaderChan <- transactionCount
 
 		zap.S().Debug("Transactions worker: last seen transaction #", string(consumer_topic_msg.Key))
 	}

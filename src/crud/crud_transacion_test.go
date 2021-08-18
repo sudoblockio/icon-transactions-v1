@@ -111,26 +111,6 @@ func TestTransactionModelSelectOne(t *testing.T) {
 	assert.NotEqual(nil, transaction)
 }
 
-func TestTransactionModelCountAll(t *testing.T) {
-	assert := assert.New(t)
-
-	transactionModel := GetTransactionModel()
-	assert.NotEqual(nil, transactionModel)
-
-	migrateErr := transactionModel.Migrate()
-	assert.Equal(nil, migrateErr)
-
-	// Load fixtures
-	transactionFixtures := fixtures.LoadTransactionFixtures()
-	for _, transaction := range transactionFixtures {
-		insertErr := transactionModel.Insert(transaction)
-		assert.Equal(nil, insertErr)
-	}
-
-	count := transactionModel.CountAll()
-	assert.NotEqual(0, count)
-}
-
 func TestTransactionModelLoader(t *testing.T) {
 	assert := assert.New(t)
 

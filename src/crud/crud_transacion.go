@@ -130,15 +130,6 @@ func (m *TransactionModel) SelectOne(
 	return transaction, db.Error
 }
 
-func (m *TransactionModel) CountAll() int64 {
-	db := m.db
-
-	var count int64
-	db.Model(&[]models.Transaction{}).Count(&count)
-
-	return count
-}
-
 // StartTransactionLoader starts loader
 func StartTransactionLoader() {
 	go func() {
