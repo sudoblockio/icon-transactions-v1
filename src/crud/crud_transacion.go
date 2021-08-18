@@ -69,17 +69,46 @@ func (m *TransactionModel) Insert(transaction *models.Transaction) error {
 }
 
 // SelectMany - select from transactions table
+// Returns: models, total count (if filters), error (if present)
 func (m *TransactionModel) SelectMany(
 	limit int,
 	skip int,
 	hash string,
 	from string,
 	to string,
-) ([]models.TransactionAPI, error) {
+) ([]models.TransactionAPI, int64, error) {
 	db := m.db
+	computeCount := false
+
+	// Set table
+	db = db.Model(&[]models.Transaction{})
 
 	// Latest transactions first
 	db = db.Order("block_number desc")
+
+	// Hash
+	if hash != "" {
+		computeCount = true
+		db = db.Where("hash = ?", hash)
+	}
+
+	// from
+	if from != "" {
+		computeCount = true
+		db = db.Where("from_address = ?", from)
+	}
+
+	// to
+	if to != "" {
+		computeCount = true
+		db = db.Where("to_address = ?", to)
+	}
+
+	// Count, if needed
+	count := int64(-1)
+	if computeCount {
+		db.Count(&count)
+	}
 
 	// Limit is required and defaulted to 1
 	db = db.Limit(limit)
@@ -89,28 +118,10 @@ func (m *TransactionModel) SelectMany(
 		db = db.Offset(skip)
 	}
 
-	// Hash
-	if hash != "" {
-		db = db.Where("hash = ?", hash)
-	}
-
-	// from
-	if from != "" {
-		db = db.Where("from_address = ?", from)
-	}
-
-	// to
-	if to != "" {
-		db = db.Where("to_address = ?", to)
-	}
-
-	// Set table
-	db = db.Model(&[]models.Transaction{})
-
 	transactions := []models.TransactionAPI{}
 	db = db.Find(&transactions)
 
-	return transactions, db.Error
+	return transactions, count, db.Error
 }
 
 // SelectOne - select from transactions table

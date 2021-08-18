@@ -59,32 +59,32 @@ func TestTransactionModelSelectMany(t *testing.T) {
 	}
 
 	// SelectMany all transactions
-	transactions, err := transactionModel.SelectMany(len(transactionFixtures), 0, "", "", "")
+	transactions, _, err := transactionModel.SelectMany(len(transactionFixtures), 0, "", "", "")
 	assert.Equal(len(transactionFixtures), len(transactions))
 	assert.Equal(nil, err)
 
 	// Test limit
-	transactions, err = transactionModel.SelectMany(1, 0, "", "", "")
+	transactions, _, err = transactionModel.SelectMany(1, 0, "", "", "")
 	assert.Equal(1, len(transactions))
 	assert.Equal(nil, err)
 
 	// Test skip
-	transactions, err = transactionModel.SelectMany(1, 1, "", "", "")
+	transactions, _, err = transactionModel.SelectMany(1, 1, "", "", "")
 	assert.Equal(1, len(transactions))
 	assert.Equal(nil, err)
 
 	// Test hash
-	transactions, err = transactionModel.SelectMany(1, 0, "0x18094ca8e7f5cc52511c36a8c85f56c8788b8802025a8cbcd84fb0f5b5ea7d82", "", "")
+	transactions, _, err = transactionModel.SelectMany(1, 0, "0x18094ca8e7f5cc52511c36a8c85f56c8788b8802025a8cbcd84fb0f5b5ea7d82", "", "")
 	assert.Equal(1, len(transactions))
 	assert.Equal(nil, err)
 
 	// Test from
-	transactions, err = transactionModel.SelectMany(1, 0, "", "hx02e6bf5860b7d7744ec5050545d10d37c72ac2ef", "")
+	transactions, _, err = transactionModel.SelectMany(1, 0, "", "hx02e6bf5860b7d7744ec5050545d10d37c72ac2ef", "")
 	assert.Equal(1, len(transactions))
 	assert.Equal(nil, err)
 
 	// Test to
-	transactions, err = transactionModel.SelectMany(1, 0, "", "", "cx38fd2687b202caf4bd1bda55223578f39dbb6561")
+	transactions, _, err = transactionModel.SelectMany(1, 0, "", "", "cx38fd2687b202caf4bd1bda55223578f39dbb6561")
 	assert.Equal(1, len(transactions))
 	assert.Equal(nil, err)
 }
@@ -134,7 +134,7 @@ func TestTransactionModelLoader(t *testing.T) {
 	time.Sleep(5)
 
 	// Select all transactions
-	transactions, err := transactionModel.SelectMany(len(transactionFixtures), 0, "", "", "")
+	transactions, _, err := transactionModel.SelectMany(len(transactionFixtures), 0, "", "", "")
 	assert.Equal(len(transactionFixtures), len(transactions))
 	assert.Equal(nil, err)
 }

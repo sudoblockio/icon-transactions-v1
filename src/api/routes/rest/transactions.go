@@ -60,7 +60,7 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	}
 
 	// Get Transactions
-	transactions, err := crud.GetTransactionModel().SelectMany(
+	transactions, count, err := crud.GetTransactionModel().SelectMany(
 		params.Limit,
 		params.Skip,
 		params.Hash,
@@ -79,15 +79,23 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	}
 
 	// Set X-TOTAL-COUNT
-	counter, err := crud.GetTransactionCountModel().Select()
-	if err != nil {
-		counter = models.TransactionCount{
-			Count: 0,
-			Id:    0,
+	if count != -1 {
+		// Filters given, count some
+		c.Append("X-TOTAL-COUNT", strconv.FormatInt(count, 10))
+	} else {
+		// No filters given, count all
+		// Total count in the transaction_counts table
+		counter, err := crud.GetTransactionCountModel().Select()
+		if err != nil {
+			counter = models.TransactionCount{
+				Count: 0,
+				Id:    0,
+			}
+			zap.S().Warn("Could not retrieve transaction count: ", err.Error())
 		}
-		zap.S().Warn("Could not retrieve transaction count: ", err.Error())
+
+		c.Append("X-TOTAL-COUNT", strconv.FormatUint(counter.Count, 10))
 	}
-	c.Append("X-TOTAL-COUNT", strconv.FormatUint(counter.Count, 10))
 
 	body, _ := json.Marshal(&transactions)
 	return c.SendString(string(body))
