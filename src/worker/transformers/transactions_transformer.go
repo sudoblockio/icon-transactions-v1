@@ -70,6 +70,14 @@ func transactionsTransformer() {
 
 			// Transform logic
 			transaction = transformTransactionRaw(transactionRaw)
+
+			// TODO split transfomer
+			// Load log counter to Postgres
+			transactionCount := &models.TransactionCount{
+				Count: 1, // Adds with current
+				Id:    1, // Only one row
+			}
+			transactionCountLoaderChan <- transactionCount
 		case consumer_topic_msg = <-consumer_topic_chan_logs:
 			// Log message from ETL
 			logRaw, err := convertBytesToLogRawProtoBuf(consumer_topic_msg.Value)
@@ -96,13 +104,6 @@ func transactionsTransformer() {
 
 		// Load to Postgres
 		transactionLoaderChan <- transaction
-
-		// Load log counter to Postgres
-		transactionCount := &models.TransactionCount{
-			Count: 1, // Adds with current
-			Id:    1, // Only one row
-		}
-		transactionCountLoaderChan <- transactionCount
 
 		zap.S().Debug("Transactions worker: last seen transaction #", string(consumer_topic_msg.Key))
 	}
