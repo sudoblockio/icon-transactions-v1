@@ -43,6 +43,9 @@ x-env: &env
   DB_SSLMODE: "disable"
   DB_TIMEZONE: "UTC"
 
+  # Endpoints
+  MAX_PAGE_SIZE: 100
+
 services:
   transactions-api:
     build:
