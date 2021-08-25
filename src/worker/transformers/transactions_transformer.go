@@ -11,7 +11,6 @@ import (
 	"github.com/geometry-labs/icon-transactions/crud"
 	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/models"
-	"github.com/geometry-labs/icon-transactions/worker/utils"
 )
 
 func StartTransactionsTransformer() {
@@ -19,25 +18,14 @@ func StartTransactionsTransformer() {
 }
 
 func transactionsTransformer() {
-	consumerTopicNameTransactions := "transactions"
-
-	// Check topic names
-	if utils.StringInSlice(consumerTopicNameTransactions, config.Config.ConsumerTopics) == false {
-		zap.S().Panic("Transactions Worker: no ", consumerTopicNameTransactions, " topic found in CONSUMER_TOPICS=", config.Config.ConsumerTopics)
-	}
+	consumerTopicNameTransactions := config.Config.ConsumerTopicTransactions
 
 	// Input channels
-	consumerTopicChanTransactions := make(chan *sarama.ConsumerMessage)
+	consumerTopicChanTransactions := kafka.KafkaTopicConsumers[consumerTopicNameTransactions].TopicChan
 
 	// Output channels
 	transactionLoaderChan := crud.GetTransactionModel().WriteChan
 	transactionCountLoaderChan := crud.GetTransactionCountModel().WriteChan
-
-	// Register input channels
-	broadcaster_output_chan_id_transaction := kafka.Broadcasters[consumerTopicNameTransactions].AddBroadcastChannel(consumerTopicChanTransactions)
-	defer func() {
-		kafka.Broadcasters[consumerTopicNameTransactions].RemoveBroadcastChannel(broadcaster_output_chan_id_transaction)
-	}()
 
 	zap.S().Debug("Transactions Transformer: started working")
 	for {

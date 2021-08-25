@@ -28,6 +28,9 @@ x-env: &env
   KAFKA_BROKER_URL: "kafka:9092"
   SCHEMA_REGISTRY_URL: "schemaregistry:8081"
   KAFKA_GROUP_ID: "transactions-service"
+  CONSUMER_TOPIC_BLOCKS: "blocks"
+  CONSUMER_TOPIC_TRANSACTIONS: "transactions"
+  CONSUMER_TOPIC_LOGS: "logs"
 
   # Topics
   SCHEMA_NAME_TOPICS: "transactions-ws:transactions"
@@ -66,7 +69,6 @@ services:
       - ${TRANSACTIONS_CONTEXT:-.}/src:/app
     environment:
       <<: *env
-      CONSUMER_TOPICS: "transactions-ws"
 
   transactions-worker:
     build:
@@ -86,5 +88,3 @@ services:
       - ${TRANSACTIONS_CONTEXT:-.}/src:/app
     environment:
       <<: *env
-      CONSUMER_TOPICS: "transactions,logs"
-      PRODUCER_TOPICS: "transactions-ws"

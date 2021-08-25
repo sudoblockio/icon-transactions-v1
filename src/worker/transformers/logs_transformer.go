@@ -13,7 +13,6 @@ import (
 	"github.com/geometry-labs/icon-transactions/crud"
 	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/models"
-	"github.com/geometry-labs/icon-transactions/worker/utils"
 )
 
 func StartLogsTransformer() {
@@ -21,21 +20,14 @@ func StartLogsTransformer() {
 }
 
 func logsTransformer() {
-	consumerTopicNameLogs := "logs"
+	consumerTopicNameLogs := config.Config.ConsumerTopicLogs
 
-	if utils.StringInSlice(consumerTopicNameLogs, config.Config.ConsumerTopics) == false {
-		zap.S().Panic("Transactions Worker: no ", consumerTopicNameLogs, " topic found in CONSUMER_TOPICS=", config.Config.ConsumerTopics)
-	}
+	// Input channels
+	consumerTopicChanLogs := kafka.KafkaTopicConsumers[consumerTopicNameLogs].TopicChan
 
-	consumerTopicChanLogs := make(chan *sarama.ConsumerMessage)
+	// Output channels
 	transactionLoaderChan := crud.GetTransactionModel().WriteChan
 	transactionCountLoaderChan := crud.GetTransactionCountModel().WriteChan
-
-	// Register consumer channel transactions
-	broadcaster_output_chan_id_log := kafka.Broadcasters[consumerTopicNameLogs].AddBroadcastChannel(consumerTopicChanLogs)
-	defer func() {
-		kafka.Broadcasters[consumerTopicNameLogs].RemoveBroadcastChannel(broadcaster_output_chan_id_log)
-	}()
 
 	zap.S().Debug("Logs Transformer: started working")
 	for {

@@ -7,7 +7,6 @@ import (
 	"github.com/geometry-labs/icon-transactions/api/routes"
 	"github.com/geometry-labs/icon-transactions/config"
 	"github.com/geometry-labs/icon-transactions/global"
-	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/logging"
 	"github.com/geometry-labs/icon-transactions/metrics"
 	_ "github.com/geometry-labs/icon-transactions/models" // for swagger docs
@@ -18,10 +17,6 @@ func main() {
 
 	logging.Init()
 	zap.S().Debug("Main: Starting logging with level ", config.Config.LogLevel)
-
-	// Start kafka consumers
-	// Go routines start in function
-	kafka.StartAPIConsumers()
 
 	// Start Prometheus client
 	// Go routine starts in function
@@ -35,5 +30,5 @@ func main() {
 	// Go routine starts in function
 	healthcheck.Start()
 
-  global.WaitShutdownSig()
+	global.WaitShutdownSig()
 }

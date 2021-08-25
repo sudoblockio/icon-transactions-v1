@@ -36,11 +36,13 @@ type configType struct {
 	KafkaGroupID      string `envconfig:"KAFKA_GROUP_ID" required:"false" default:"transactions-service"`
 
 	// Topics
-	ConsumerGroup    string            `envconfig:"CONSUMER_GROUP" required:"false" default:"transactions-consumer-group"`
-	ConsumerTopics   []string          `envconfig:"CONSUMER_TOPICS" required:"false" default:"transactions"`
-	ProducerTopics   []string          `envconfig:"PRODUCER_TOPICS" required:"false" default:"transactions-ws"`
-	SchemaNameTopics map[string]string `envconfig:"SCHEMA_NAME_TOPICS" required:"false" default:"transactions-ws:transactions"`
-	SchemaFolderPath string            `envconfig:"SCHEMA_FOLDER_PATH" required:"false" default:"schemas/"`
+	ConsumerGroup             string            `envconfig:"CONSUMER_GROUP" required:"false" default:"transactions-consumer-group"`
+	ConsumerTopicBlocks       string            `envconfig:"CONSUMER_TOPIC_BLOCKS" required:"false" default:"blocks"`
+	ConsumerTopicTransactions string            `envconfig:"CONSUMER_TOPIC_TRANSACTIONS" required:"false" default:"transactions"`
+	ConsumerTopicLogs         string            `envconfig:"CONSUMER_TOPIC_LOGS" required:"false" default:"logs"`
+	ProducerTopics            []string          `envconfig:"PRODUCER_TOPICS" required:"false" default:"transactions-ws"`
+	SchemaNameTopics          map[string]string `envconfig:"SCHEMA_NAME_TOPICS" required:"false" default:"transactions-ws:transactions"`
+	SchemaFolderPath          string            `envconfig:"SCHEMA_FOLDER_PATH" required:"false" default:"schemas/"`
 
 	// DB
 	DbDriver   string `envconfig:"DB_DRIVER" required:"false" default:"postgres"`
