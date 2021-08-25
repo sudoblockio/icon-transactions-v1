@@ -3,6 +3,7 @@ package crud
 import (
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/cenkalti/backoff/v4"
 	"go.uber.org/zap"
@@ -137,6 +138,9 @@ func (m *TransactionModel) SelectOne(
 		db = db.Where("hash = ?", hash)
 	}
 
+	// No internal transactions
+	db = db.Where("type = ?", "transaction")
+
 	transaction := models.Transaction{}
 	db = db.First(&transaction)
 
@@ -146,17 +150,65 @@ func (m *TransactionModel) SelectOne(
 // StartTransactionLoader starts loader
 func StartTransactionLoader() {
 	go func() {
-		var transaction *models.Transaction
 		postgresLoaderChan := GetTransactionModel().WriteChan
 
 		for {
 			// Read transaction
-			transaction = <-postgresLoaderChan
+			newTransaction := <-postgresLoaderChan
 
 			// Load transaction to database
-			GetTransactionModel().Insert(transaction)
+			GetTransactionModel().Insert(newTransaction)
 
-			zap.S().Debugf("Loader Transaction: Loaded in postgres table Transactions, Block Number: %d", transaction.BlockNumber)
+			// Check current state
+			for {
+				// Wait for postgres to set state before processing more messages
+
+				checkTransaction, err := GetTransactionModel().SelectOne(newTransaction.Hash)
+				if err != nil {
+					zap.S().Warn("State check error: ", err.Error())
+					zap.S().Warn("Waiting 100ms...")
+					time.Sleep(100 * time.Millisecond)
+					continue
+				}
+
+				// check all fields
+				if checkTransaction.Type == newTransaction.Type &&
+					checkTransaction.Version == newTransaction.Version &&
+					checkTransaction.FromAddress == newTransaction.FromAddress &&
+					checkTransaction.ToAddress == newTransaction.ToAddress &&
+					checkTransaction.Value == newTransaction.Value &&
+					checkTransaction.StepLimit == newTransaction.StepLimit &&
+					checkTransaction.Timestamp == newTransaction.Timestamp &&
+					checkTransaction.BlockTimestamp == newTransaction.BlockTimestamp &&
+					checkTransaction.Nid == newTransaction.Nid &&
+					checkTransaction.Nonce == newTransaction.Nonce &&
+					checkTransaction.Hash == newTransaction.Hash &&
+					checkTransaction.TransactionIndex == newTransaction.TransactionIndex &&
+					checkTransaction.BlockHash == newTransaction.BlockHash &&
+					checkTransaction.BlockNumber == newTransaction.BlockNumber &&
+					checkTransaction.Fee == newTransaction.Fee &&
+					checkTransaction.Signature == newTransaction.Signature &&
+					checkTransaction.DataType == newTransaction.DataType &&
+					checkTransaction.Data == newTransaction.Data &&
+					checkTransaction.ReceiptCumulativeStepUsed == newTransaction.ReceiptCumulativeStepUsed &&
+					checkTransaction.ReceiptStepUsed == newTransaction.ReceiptStepUsed &&
+					checkTransaction.ReceiptScoreAddress == newTransaction.ReceiptScoreAddress &&
+					checkTransaction.ReceiptLogs == newTransaction.ReceiptLogs &&
+					checkTransaction.ReceiptStatus == newTransaction.ReceiptStatus &&
+					checkTransaction.ItemId == newTransaction.ItemId &&
+					checkTransaction.ItemTimestamp == newTransaction.ItemTimestamp {
+					// Success
+					break
+				} else {
+					// Wait
+					zap.S().Warn("Models did not match")
+					zap.S().Warn("Waiting 100ms...")
+					time.Sleep(100 * time.Millisecond)
+					continue
+				}
+			}
+
+			zap.S().Debugf("Loader Transaction: Loaded in postgres table Transactions, Block Number: %d", newTransaction.BlockNumber)
 		}
 	}()
 }
