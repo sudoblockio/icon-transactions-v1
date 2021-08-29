@@ -2,7 +2,7 @@ syntax = "proto3";
 package models;
 option go_package = "./models";
 
-message TransactionAPI {
+message TransactionAPI { // TODO: Lint to TransactionApi
 
   string from_address = 1;
   string to_address = 2;
@@ -11,4 +11,5 @@ message TransactionAPI {
   string hash = 5;
   uint64 block_number = 6;
   uint64 fee = 7;
+  string type = 8;
 }
