@@ -2,10 +2,6 @@ syntax = "proto3";
 package models;
 option go_package = "./models";
 
-message TransactionsRaw {
-  repeated TransactionRaw transactionRaws = 1;
-}
-
 message TransactionRaw {
 
   string type = 1;
@@ -13,22 +9,22 @@ message TransactionRaw {
   string from_address = 3;
   string to_address = 4;
   string value = 5;
-  string step_limit = 6;
+  uint64 step_limit = 6;
   string timestamp = 7;
   uint64 block_timestamp = 8;
-  string nid = 9;
+  uint32 nid = 9;
   string nonce = 10;
   string hash = 11;
-  uint64 transaction_index = 12;
+  uint32 transaction_index = 12;
   string block_hash = 13;
   uint64 block_number = 14;
-  string fee = 15;
+  uint64 fee = 15;
   string signature = 16;
   string data_type = 17;
-  bytes data = 18;
-  string receipt_cumulative_step_used = 19;
-  string receipt_step_used = 20;
-  string receipt_step_price = 21;
+  string data = 18;
+  uint64 receipt_cumulative_step_used = 19;
+  uint64 receipt_step_used = 20;
+  uint64 receipt_step_price = 21;
   string receipt_score_address = 22;
   string receipt_logs = 23;
   uint32 receipt_status = 24;

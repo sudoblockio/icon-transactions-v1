@@ -5,35 +5,42 @@ services:
     image: geometrylabs/iconetl:${ICON_ETL_TAG:-latest}
     command: [
       "stream",
-      "-s", "1",
+      # "-s", "34000000",
       "-o", "kafka:9092",
       "--period-seconds", "1",
-      "--values-as-hex", "True",
+      #"--values-as-hex", "True",
+      "--provider-uri", "http://34.218.244.40:9000/api/v3",
       "-b", "100",
       "-B", "100",
-      "--provider-uri", "https://icon.geometry-dev.net/api/v3",
+      "--kafka-schema-registry-url", "http://schemaregistry:8081",
+      "--kafka-use-schema-registry", "true",
     ]
     restart: on-failure
     depends_on:
       - kafka
+    volumes:
+      - "./volumes/etl/last_synced_block.txt:/icon-etl/last_synced_block.txt"
 
   ############
   # Database #
   ############
-  mongo:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
+  postgres:
+    image: postgres
     environment:
-      MONGO_INITDB_ROOT_USERNAME: "mongo"
-      MONGO_INITDB_ROOT_PASSWORD: "changethis"
-
-  mongo-express:
-    image: mongo-express
-    depends_on:
-      - mongo
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
-      - 8081:8081
+      - "5432:5432"
+    volumes:
+      - "./volumes/postgres:/var/lib/postgresql"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
 
   #########
   # Kafka #
@@ -75,7 +82,6 @@ services:
   schemaregistry:
     image: confluentinc/cp-schema-registry:${CP_SCHEMA_REGISTRY_TAG:-latest}
     hostname: schemaregistry
-    container_name: schemaregistry
     depends_on:
       - zookeeper
       - kafka

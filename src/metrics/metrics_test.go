@@ -1,5 +1,3 @@
-//+build unit
-
 package metrics
 
 import (
@@ -12,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMetricsApiStart(t *testing.T) {
+func TestMetricsAPIStart(t *testing.T) {
 	assert := assert.New(t)
 
 	// Set env
@@ -22,7 +20,7 @@ func TestMetricsApiStart(t *testing.T) {
 	config.ReadEnvironment()
 
 	// Start metrics server
-	MetricsApiStart()
+	MetricsAPIStart()
 
 	Metrics["requests_amount"].Inc()
 	Metrics["kafka_messages_consumed"].Inc()
@@ -33,24 +31,3 @@ func TestMetricsApiStart(t *testing.T) {
 	assert.Equal(nil, err)
 	assert.Equal(200, resp.StatusCode)
 }
-
-// ISSUE #42
-//func TestMetricsWorkerStart(t *testing.T) {
-//	assert := assert.New(t)
-//
-//	// Set env
-//	os.Setenv("METRICS_PORT", "8888")
-//	os.Setenv("METRICS_PREFIX", "/metrics")
-//
-//	GetEnvironment()
-//
-//	// Start metrics server
-//	MetricsWorkerStart()
-//
-//	Metrics["kafka_messages_consumed"].Inc()
-//	Metrics["kafka_messages_produced"].Inc()
-//
-//	resp, err := http.Get(fmt.Sprintf("http://localhost:%s%s", Config.MetricsPort, Config.MetricsPrefix))
-//	assert.Equal(nil, err)
-//	assert.Equal(200, resp.StatusCode)
-//}

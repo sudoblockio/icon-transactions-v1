@@ -15,6 +15,8 @@ x-env: &env
   HEALTH_PREFIX: "/heath"
   METRICS_PREFIX: "/metrics"
 
+  CORS_ALLOW_ORIGINS: "*"
+
   # Monitoring
   HEALTH_POLLING_INTERVAL: "60"
 
@@ -22,27 +24,32 @@ x-env: &env
   LOG_LEVEL: "DEBUG"
   LOG_TO_FILE: "false"
   LOG_FILE_NAME: "transactions.log"
+  LOG_FORMAT: "string"
 
   # Kafka
   KAFKA_BROKER_URL: "kafka:9092"
   SCHEMA_REGISTRY_URL: "schemaregistry:8081"
   KAFKA_GROUP_ID: "transactions-service"
+  CONSUMER_TOPIC_BLOCKS: "blocks"
+  CONSUMER_TOPIC_TRANSACTIONS: "transactions"
+  CONSUMER_TOPIC_LOGS: "logs"
 
   # Topics
-  CONSUMER_TOPICS: "transactions"
-  PRODUCER_TOPICS: "transactions-ws"
   SCHEMA_NAME_TOPICS: "transactions-ws:transactions"
   SCHEMA_FOLDER_PATH: "/app/schemas/"
 
   # DB
-  DB_DRIVER: "mongodb" # mongodb://mongo:27017
-  DB_HOST: "mongo"
-  DB_PORT: "27017"
-  DB_USER: "mongo"
-  DB_PASSWORD: "changethis"
+  DB_DRIVER: "postgres"
+  DB_HOST: "postgres"
+  DB_PORT: "5432"
+  DB_USER: "postgres"
+  DB_PASSWORD: "changeme"
   DB_DBNAME: "postgres"
   DB_SSLMODE: "disable"
   DB_TIMEZONE: "UTC"
+
+  # Endpoints
+  MAX_PAGE_SIZE: 100
 
 services:
   transactions-api:
@@ -60,10 +67,6 @@ services:
       - "seccomp:unconfined"
     cap_add:
       - SYS_PTRACE
-#    depends_on:
-#      - kafka
-#      - schemaregistry
-#      - postgres
     volumes:
       - ${TRANSACTIONS_CONTEXT:-.}/src:/app
     environment:
@@ -83,10 +86,6 @@ services:
       - "seccomp:unconfined"
     cap_add:
       - SYS_PTRACE
-#    depends_on:
-#      - kafka
-#      - schemaregistry
-#      - postgres
     volumes:
       - ${TRANSACTIONS_CONTEXT:-.}/src:/app
     environment:

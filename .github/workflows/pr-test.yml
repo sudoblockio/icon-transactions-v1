@@ -1,4 +1,4 @@
-name: PR Tests
+name: pr-test
 
 on:
   pull_request:
@@ -11,12 +11,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v1
-        with:
-          install: true
 
       - name: Bring up DBs
         run: docker-compose -f docker-compose.db.yml up -d

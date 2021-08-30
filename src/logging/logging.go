@@ -11,20 +11,20 @@ import (
 	"github.com/geometry-labs/icon-transactions/global"
 )
 
-func StartLoggingInit() {
-	go loggingInit()
-}
+// Init - init logging config
+func Init() {
+	go func() {
+		cfg := newLoggerConfig()
 
-func loggingInit() {
-	cfg := newLoggerConfig()
+		logger := newLogger(cfg)
+		defer logger.Sync()
 
-	logger := newLogger(cfg)
-	defer logger.Sync()
+		undo := zap.ReplaceGlobals(logger)
+		defer undo()
 
-	undo := zap.ReplaceGlobals(logger)
-	defer undo()
+    global.WaitShutdownSig()
 
-	<-global.ShutdownChan
+	}()
 }
 
 func newLogger(cfg zap.Config) *zap.Logger {
@@ -38,8 +38,8 @@ func newLogger(cfg zap.Config) *zap.Logger {
 func newLoggerConfig() zap.Config {
 	cfg := zap.Config{
 		Level:            setLoggerConfigLogLevel(),
-		Development:      true,
-		Encoding:         "console",
+		Development:      setDevelopment(),
+		Encoding:         setEncoding(),
 		EncoderConfig:    newLoggerEncoderConfig(),
 		OutputPaths:      setLoggerConfigOutputPaths(),
 		ErrorOutputPaths: setLoggerConfigErrorOutputPaths(),
@@ -62,6 +62,22 @@ func newLoggerEncoderConfig() zapcore.EncoderConfig {
 		EncodeDuration: zapcore.StringDurationEncoder, //zapcore.SecondsDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
+}
+
+func setEncoding() string {
+	encoding := "json"
+	if config.Config.LogFormat == "string" {
+		encoding = "console"
+	}
+	return encoding
+}
+
+func setDevelopment() bool {
+	development := false
+	if config.Config.LogFormat == "string" {
+		development = true
+	}
+	return development
 }
 
 func setLoggerConfigLogLevel() zap.AtomicLevel {

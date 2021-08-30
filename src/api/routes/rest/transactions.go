@@ -2,38 +2,50 @@ package rest
 
 import (
 	"encoding/json"
-	"github.com/geometry-labs/icon-transactions/crud"
+	"regexp"
+	"strconv"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 
 	"github.com/geometry-labs/icon-transactions/config"
+	"github.com/geometry-labs/icon-transactions/crud"
+	"github.com/geometry-labs/icon-transactions/models"
 )
 
 type TransactionsQuery struct {
-	Limit int64 `query:"limit"`
-	Skip  int64 `query:"skip"`
+	Limit int `query:"limit"`
+	Skip  int `query:"skip"`
 
+	Hash string `query:"hash"`
 	From string `query:"from"`
 	To   string `query:"to"`
-	Type string `query:"type"`
 }
 
-func BlocksAddHandlers(app *fiber.App) {
+func TransactionsAddHandlers(app *fiber.App) {
 
 	prefix := config.Config.RestPrefix + "/transactions"
 
-	app.Get(prefix+"/", handlerGetQuery)
+	app.Get(prefix+"/", handlerGetTransactions)
+	app.Get(prefix+"/:hash", handlerGetTransactionDetails)
 }
 
 // Transactions
-// @Summary Get Transactions that match the query
-// @Description Get all blocks in the system.
-// @Tags root
+// @Summary Get Transactions
+// @Description get historical transactions
+// @Tags Transactions
+// @BasePath /api/v1
 // @Accept */*
 // @Produce json
-// @Router /transaction [get]
-func handlerGetQuery(c *fiber.Ctx) error {
+// @Param limit query int false "amount of records"
+// @Param skip query int false "skip to a record"
+// @Param hash query string false "find by hash"
+// @Param from query string false "find by from address"
+// @Param to query string false "find by to address"
+// @Router /api/v1/transactions [get]
+// @Success 200 {object} []models.TransactionAPI
+// @Failure 422 {object} map[string]interface{}
+func handlerGetTransactions(c *fiber.Ctx) error {
 	params := new(TransactionsQuery)
 	if err := c.QueryParser(params); err != nil {
 		zap.S().Warnf("Transactions Get Handler ERROR: %s", err.Error())
@@ -47,16 +59,91 @@ func handlerGetQuery(c *fiber.Ctx) error {
 		params.Limit = 1
 	}
 
+	// Check Params
+	if params.Limit < 1 || params.Limit > config.Config.MaxPageSize {
+		c.Status(422)
+		return c.SendString(`{"error": "limit must be greater than 0 and less than 101"}`)
+	}
+
 	// Get Transactions
-	transactions := crud.GetTransactionModelMongo().Select(params.Limit, params.Skip, params.From, params.To, params.Type)
+	transactions, count, err := crud.GetTransactionModel().SelectMany(
+		params.Limit,
+		params.Skip,
+		params.Hash,
+		params.From,
+		params.To,
+	)
+	if err != nil {
+		zap.S().Warnf("Transactions CRUD ERROR: %s", err.Error())
+		c.Status(500)
+		return c.SendString(`{"error": "could not retrieve transactions"}`)
+	}
+
 	if len(transactions) == 0 {
 		// No Content
 		c.Status(204)
-	} else {
-		// Success
-		c.Status(200)
 	}
 
-	body, _ := json.Marshal(transactions)
+	// Set X-TOTAL-COUNT
+	if count != -1 {
+		// Filters given, count some
+		c.Append("X-TOTAL-COUNT", strconv.FormatInt(count, 10))
+	} else {
+		// No filters given, count all
+		// Total count in the transaction_counts table
+		counter, err := crud.GetTransactionCountModel().Select()
+		if err != nil {
+			counter = models.TransactionCount{
+				Count: 0,
+				Id:    0,
+			}
+			zap.S().Warn("Could not retrieve transaction count: ", err.Error())
+		}
+
+		c.Append("X-TOTAL-COUNT", strconv.FormatUint(counter.Count, 10))
+	}
+
+	body, _ := json.Marshal(&transactions)
 	return c.SendString(string(body))
+}
+
+// Transaction Details
+// @Summary Get Transaction Details
+// @Description get details of a transaction
+// @Tags Transactions
+// @BasePath /api/v1
+// @Accept */*
+// @Produce json
+// @Param hash path string true "transaction hash"
+// @Router /api/v1/transactions/{hash} [get]
+// @Success 200 {object} models.Transaction
+// @Failure 422 {object} map[string]interface{}
+func handlerGetTransactionDetails(c *fiber.Ctx) error {
+	hash := c.Params("hash")
+
+	if hash == "" {
+		c.Status(422)
+		return c.SendString(`{"error": "hash required"}`)
+	}
+
+	// Is hash?
+	isHash, err := regexp.Match("0x([0-9a-fA-F]*)", []byte(hash))
+	if err != nil {
+		c.Status(422)
+		return c.SendString(`{"error": "invalid hash"}`)
+	}
+	if isHash == true {
+		// ID is Hash
+		transaction, err := crud.GetTransactionModel().SelectOne(hash)
+		if err != nil {
+			c.Status(404)
+			return c.SendString(`{"error": "no transaction found"}`)
+		}
+
+		body, _ := json.Marshal(&transaction)
+		return c.SendString(string(body))
+	}
+
+	c.Status(422)
+	return c.SendString(`{"error": "invalid hash"}`)
 }
