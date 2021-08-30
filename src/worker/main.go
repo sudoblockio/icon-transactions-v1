@@ -28,9 +28,6 @@ func main() {
 	// Start kafka consumer
 	kafka.StartWorkerConsumers()
 
-	// Start kafka Producer
-	kafka.StartProducers()
-
 	// Start transformers
 	transformers.StartTransactionsTransformer()
 	transformers.StartLogsTransformer()
