@@ -32,6 +32,7 @@ type TransactionORM struct {
 	Id                        uint64
 	ItemId                    string
 	ItemTimestamp             string
+	LogIndex                  int32
 	Nid                       uint32
 	Nonce                     string
 	ReceiptCumulativeStepUsed uint64
@@ -91,6 +92,7 @@ func (m *Transaction) ToORM(ctx context.Context) (TransactionORM, error) {
 	to.ReceiptStatus = m.ReceiptStatus
 	to.ItemId = m.ItemId
 	to.ItemTimestamp = m.ItemTimestamp
+	to.LogIndex = m.LogIndex
 	to.Id = m.Id
 	if posthook, ok := interface{}(m).(TransactionWithAfterToORM); ok {
 		err = posthook.AfterToORM(ctx, &to)
@@ -134,6 +136,7 @@ func (m *TransactionORM) ToPB(ctx context.Context) (Transaction, error) {
 	to.ReceiptStatus = m.ReceiptStatus
 	to.ItemId = m.ItemId
 	to.ItemTimestamp = m.ItemTimestamp
+	to.LogIndex = m.LogIndex
 	to.Id = m.Id
 	if posthook, ok := interface{}(m).(TransactionWithAfterToPB); ok {
 		err = posthook.AfterToPB(ctx, &to)
@@ -547,6 +550,10 @@ func DefaultApplyFieldMaskTransaction(ctx context.Context, patchee *Transaction,
 		}
 		if f == prefix+"ItemTimestamp" {
 			patchee.ItemTimestamp = patcher.ItemTimestamp
+			continue
+		}
+		if f == prefix+"LogIndex" {
+			patchee.LogIndex = patcher.LogIndex
 			continue
 		}
 		if f == prefix+"Id" {

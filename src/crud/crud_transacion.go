@@ -1,6 +1,7 @@
 package crud
 
 import (
+	"encoding/json"
 	"strings"
 	"sync"
 	"time"
@@ -130,16 +131,15 @@ func (m *TransactionModel) SelectMany(
 // SelectOne - select from transactions table
 func (m *TransactionModel) SelectOne(
 	hash string,
+	logIndex int32, // Used for internal transactions
 ) (models.Transaction, error) {
 	db := m.db
 
 	// Hash
-	if hash != "" {
-		db = db.Where("hash = ?", hash)
-	}
+	db = db.Where("hash = ?", hash)
 
-	// No internal transactions
-	db = db.Where("type = ?", "transaction")
+	// Log Index
+	db = db.Where("log_index = ?", logIndex)
 
 	transaction := models.Transaction{}
 	db = db.First(&transaction)
@@ -163,10 +163,11 @@ func StartTransactionLoader() {
 			for {
 				// Wait for postgres to set state before processing more messages
 
-				checkTransaction, err := GetTransactionModel().SelectOne(newTransaction.Hash)
+				checkTransaction, err := GetTransactionModel().SelectOne(newTransaction.Hash, newTransaction.LogIndex)
 				if err != nil {
 					zap.S().Warn("State check error: ", err.Error())
 					zap.S().Warn("Waiting 100ms...")
+
 					time.Sleep(100 * time.Millisecond)
 					continue
 				}
@@ -201,6 +202,12 @@ func StartTransactionLoader() {
 					break
 				} else {
 					// Wait
+					newTransactionJSON, _ := json.Marshal(newTransaction)
+					checkTransactionJSON, _ := json.Marshal(checkTransaction)
+
+					zap.S().Info("newTransaction: ", string(newTransactionJSON))
+					zap.S().Info("curTransaction: ", string(checkTransactionJSON))
+
 					zap.S().Warn("Models did not match")
 					zap.S().Warn("Waiting 100ms...")
 					time.Sleep(100 * time.Millisecond)

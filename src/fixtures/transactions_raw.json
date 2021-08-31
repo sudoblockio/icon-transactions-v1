@@ -23,7 +23,8 @@
     "receipt_logs": "None",
     "receipt_status": 1,
     "item_id": "transaction_0x18094ca8e7f5cc52511c36a8c85f56c8788b8802025a8cbcd84fb0f5b5ea7d82",
-    "item_timestamp": "2021-05-14T09:46:13Z"
+    "item_timestamp": "2021-05-14T09:46:13Z",
+    "log_index": -1
   },
   {
     "type": "transaction",
@@ -50,6 +51,7 @@
     "receipt_logs": "None",
     "receipt_status": 1,
     "item_id": "transaction_0xcb2f4acf54e9a696001a4fc6f33cde3772a91a126ed36c02f4b89f3a0ec3453f",
-    "item_timestamp": "2021-05-14T15:32:36Z"
+    "item_timestamp": "2021-05-14T15:32:36Z",
+    "log_index": -1
   }
 ]

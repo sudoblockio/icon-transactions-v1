@@ -106,7 +106,7 @@ func TestTransactionModelSelectOne(t *testing.T) {
 	}
 
 	// Test hash
-	transaction, err := transactionModel.SelectOne("0x18094ca8e7f5cc52511c36a8c85f56c8788b8802025a8cbcd84fb0f5b5ea7d82")
+	transaction, err := transactionModel.SelectOne("0x18094ca8e7f5cc52511c36a8c85f56c8788b8802025a8cbcd84fb0f5b5ea7d82", -1)
 	assert.Equal(nil, err)
 	assert.NotEqual(nil, transaction)
 }
