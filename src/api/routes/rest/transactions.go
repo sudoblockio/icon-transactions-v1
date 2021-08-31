@@ -134,7 +134,7 @@ func handlerGetTransactionDetails(c *fiber.Ctx) error {
 	}
 	if isHash == true {
 		// ID is Hash
-		transaction, err := crud.GetTransactionModel().SelectOne(hash)
+		transaction, err := crud.GetTransactionModel().SelectOne(hash, -1)
 		if err != nil {
 			c.Status(404)
 			return c.SendString(`{"error": "no transaction found"}`)

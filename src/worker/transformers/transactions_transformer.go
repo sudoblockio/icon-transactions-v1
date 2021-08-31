@@ -96,5 +96,6 @@ func transformTransactionRaw(txRaw *models.TransactionRaw) *models.Transaction {
 		ReceiptStatus:             txRaw.ReceiptStatus,
 		ItemId:                    txRaw.ItemId,
 		ItemTimestamp:             txRaw.ItemTimestamp,
+		LogIndex:                  -1,
 	}
 }

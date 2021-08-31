@@ -115,5 +115,6 @@ func transformLogRaw(logRaw *models.LogRaw) *models.Transaction {
 		ReceiptStatus:             1,
 		ItemId:                    logRaw.ItemId,
 		ItemTimestamp:             logRaw.ItemTimestamp,
+		LogIndex:                  int32(logRaw.LogIndex),
 	}
 }

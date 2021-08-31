@@ -115,5 +115,6 @@ func parseFixtureToTransaction(m map[string]interface{}) *models.Transaction {
 		ReceiptStatus:             uint32(m["receipt_status"].(float64)),
 		ItemId:                    m["item_id"].(string),
 		ItemTimestamp:             itemTimestamp,
+		LogIndex:                  int32(m["log_index"].(float64)),
 	}
 }
