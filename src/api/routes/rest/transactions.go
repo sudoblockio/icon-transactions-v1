@@ -43,7 +43,7 @@ func TransactionsAddHandlers(app *fiber.App) {
 // @Param from query string false "find by from address"
 // @Param to query string false "find by to address"
 // @Router /api/v1/transactions [get]
-// @Success 200 {object} []models.TransactionAPI
+// @Success 200 {object} []models.TransactionAPIList
 // @Failure 422 {object} map[string]interface{}
 func handlerGetTransactions(c *fiber.Ctx) error {
 	params := new(TransactionsQuery)
@@ -66,7 +66,7 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	}
 
 	// Get Transactions
-	transactions, count, err := crud.GetTransactionModel().SelectMany(
+	transactions, count, err := crud.GetTransactionModel().SelectManyAPI(
 		params.Limit,
 		params.Skip,
 		params.Hash,
@@ -116,7 +116,7 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 // @Produce json
 // @Param hash path string true "transaction hash"
 // @Router /api/v1/transactions/{hash} [get]
-// @Success 200 {object} models.Transaction
+// @Success 200 {object} models.TransactionAPIDetail
 // @Failure 422 {object} map[string]interface{}
 func handlerGetTransactionDetails(c *fiber.Ctx) error {
 	hash := c.Params("hash")
@@ -134,7 +134,7 @@ func handlerGetTransactionDetails(c *fiber.Ctx) error {
 	}
 	if isHash == true {
 		// ID is Hash
-		transaction, err := crud.GetTransactionModel().SelectOne(hash, -1)
+		transaction, err := crud.GetTransactionModel().SelectOneAPI(hash, -1)
 		if err != nil {
 			c.Status(404)
 			return c.SendString(`{"error": "no transaction found"}`)

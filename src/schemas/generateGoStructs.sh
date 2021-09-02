@@ -1,4 +1,6 @@
 #!/bin/sh
+echo "Removing current models..."
+rm ../models/*
 
 echo "Starting proto to struct..."
 

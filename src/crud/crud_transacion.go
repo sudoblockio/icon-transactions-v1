@@ -78,7 +78,7 @@ func (m *TransactionModel) SelectMany(
 	hash string,
 	from string,
 	to string,
-) ([]models.TransactionAPI, int64, error) {
+) ([]models.Transaction, int64, error) {
 	db := m.db
 	computeCount := false
 
@@ -122,7 +122,65 @@ func (m *TransactionModel) SelectMany(
 		db = db.Offset(skip)
 	}
 
-	transactions := []models.TransactionAPI{}
+	transactions := []models.Transaction{}
+	db = db.Find(&transactions)
+
+	return transactions, count, db.Error
+}
+
+// SelectManyAPI - select from transactions table
+// Returns: models, total count (if filters), error (if present)
+func (m *TransactionModel) SelectManyAPI(
+	limit int,
+	skip int,
+	hash string,
+	from string,
+	to string,
+) ([]models.TransactionAPIList, int64, error) {
+	db := m.db
+	computeCount := false
+
+	// Set table
+	db = db.Model(&[]models.Transaction{})
+
+	// Latest transactions first
+	db = db.Order("block_number desc")
+
+	// Hash
+	if hash != "" {
+		computeCount = true
+		db = db.Where("hash = ?", hash)
+	}
+
+	// from
+	if from != "" {
+		computeCount = true
+		db = db.Where("from_address = ?", from)
+	}
+
+	// to
+	if to != "" {
+		computeCount = true
+		db = db.Where("to_address = ?", to)
+	}
+
+	// Count, if needed
+	count := int64(-1)
+	if computeCount {
+		db.Count(&count)
+	}
+
+	// Limit is required and defaulted to 1
+	// Note: Count before setting limit
+	db = db.Limit(limit)
+
+	// Skip
+	// Note: Count before setting skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
+
+	transactions := []models.TransactionAPIList{}
 	db = db.Find(&transactions)
 
 	return transactions, count, db.Error
@@ -135,6 +193,9 @@ func (m *TransactionModel) SelectOne(
 ) (models.Transaction, error) {
 	db := m.db
 
+	// Set table
+	db = db.Model(&[]models.Transaction{})
+
 	// Hash
 	db = db.Where("hash = ?", hash)
 
@@ -142,6 +203,28 @@ func (m *TransactionModel) SelectOne(
 	db = db.Where("log_index = ?", logIndex)
 
 	transaction := models.Transaction{}
+	db = db.First(&transaction)
+
+	return transaction, db.Error
+}
+
+// SelectOne - select from transactions table
+func (m *TransactionModel) SelectOneAPI(
+	hash string,
+	logIndex int32, // Used for internal transactions
+) (models.TransactionAPIDetail, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&[]models.Transaction{})
+
+	// Hash
+	db = db.Where("hash = ?", hash)
+
+	// Log Index
+	db = db.Where("log_index = ?", logIndex)
+
+	transaction := models.TransactionAPIDetail{}
 	db = db.First(&transaction)
 
 	return transaction, db.Error
