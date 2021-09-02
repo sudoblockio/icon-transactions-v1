@@ -1,3 +1,5 @@
+//+build unit
+
 package metrics
 
 import (
@@ -29,4 +31,7 @@ func TestMetricsAPIStart(t *testing.T) {
 	Metrics["websockets_bytes_written"].Inc()
 
 	resp, err := http.Get(fmt.Sprintf("http://localhost:%s%s", config.Config.MetricsPort, config.Config.MetricsPrefix))
+
+	assert.Equal(nil, err)
+	assert.Equal(200, resp.StatusCode)
 }
