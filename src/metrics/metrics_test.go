@@ -1,11 +1,14 @@
+//+build unit
+
 package metrics
 
 import (
 	"fmt"
-	"github.com/geometry-labs/icon-transactions/config"
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/geometry-labs/icon-transactions/config"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -28,6 +31,7 @@ func TestMetricsAPIStart(t *testing.T) {
 	Metrics["websockets_bytes_written"].Inc()
 
 	resp, err := http.Get(fmt.Sprintf("http://localhost:%s%s", config.Config.MetricsPort, config.Config.MetricsPrefix))
+
 	assert.Equal(nil, err)
 	assert.Equal(200, resp.StatusCode)
 }
