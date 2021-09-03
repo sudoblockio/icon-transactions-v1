@@ -10,6 +10,7 @@ import (
 	"github.com/geometry-labs/icon-transactions/logging"
 	"github.com/geometry-labs/icon-transactions/metrics"
 	_ "github.com/geometry-labs/icon-transactions/models" // for swagger docs
+	"github.com/geometry-labs/icon-transactions/redis"
 )
 
 func main() {
@@ -21,6 +22,11 @@ func main() {
 	// Start Prometheus client
 	// Go routine starts in function
 	metrics.MetricsAPIStart()
+
+	// Start Redis Client
+	// NOTE: redis is used for websockets
+	redis.GetBroadcaster().Start()
+	redis.GetRedisClient().StartSubscriber()
 
 	// Start API server
 	// Go routine starts in function
