@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"encoding/hex"
+	"encoding/json"
 
 	"github.com/golang/protobuf/proto"
 	"go.uber.org/zap"
@@ -11,6 +12,7 @@ import (
 	"github.com/geometry-labs/icon-transactions/crud"
 	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/models"
+	"github.com/geometry-labs/icon-transactions/redis"
 )
 
 func StartTransactionsTransformer() {
@@ -26,6 +28,7 @@ func transactionsTransformer() {
 	// Output channels
 	transactionLoaderChan := crud.GetTransactionModel().WriteChan
 	transactionCountLoaderChan := crud.GetTransactionCountModel().WriteChan
+	redisClient := redis.GetRedisClient()
 
 	zap.S().Debug("Transactions Transformer: started working")
 	for {
@@ -42,7 +45,7 @@ func transactionsTransformer() {
 		}
 
 		// Transform logic
-		transaction = transformTransactionRaw(transactionRaw)
+		transaction = transformTransactionRawToTransaction(transactionRaw)
 
 		// Load log counter to Postgres
 		transactionCount := &models.TransactionCount{
@@ -50,6 +53,11 @@ func transactionsTransformer() {
 			Id:    1, // Only one row
 		}
 		transactionCountLoaderChan <- transactionCount
+
+		// Push to redis
+		transactionWebsocket := transformTransactionToTransactionWS(transaction)
+		transactionWebsocketJSON, _ := json.Marshal(transactionWebsocket)
+		redisClient.Publish(transactionWebsocketJSON)
 
 		// Load to Postgres
 		transactionLoaderChan <- transaction
@@ -67,7 +75,7 @@ func convertBytesToTransactionRawProtoBuf(value []byte) (*models.TransactionRaw,
 }
 
 // Business logic goes here
-func transformTransactionRaw(txRaw *models.TransactionRaw) *models.Transaction {
+func transformTransactionRawToTransaction(txRaw *models.TransactionRaw) *models.Transaction {
 
 	return &models.Transaction{
 		Type:                      txRaw.Type,
@@ -97,5 +105,32 @@ func transformTransactionRaw(txRaw *models.TransactionRaw) *models.Transaction {
 		ItemId:                    txRaw.ItemId,
 		ItemTimestamp:             txRaw.ItemTimestamp,
 		LogIndex:                  -1,
+	}
+}
+
+// Business logic goes here
+func transformTransactionToTransactionWS(tx *models.Transaction) *models.TransactionWebsocket {
+
+	return &models.TransactionWebsocket{
+		FromAddress:               tx.FromAddress,
+		ToAddress:                 tx.ToAddress,
+		Value:                     tx.Value,
+		StepLimit:                 tx.StepLimit,
+		BlockTimestamp:            tx.BlockTimestamp,
+		Nonce:                     tx.Nonce,
+		Hash:                      tx.Hash,
+		TransactionIndex:          tx.TransactionIndex,
+		BlockHash:                 tx.BlockHash,
+		BlockNumber:               tx.BlockNumber,
+		Fee:                       tx.Fee,
+		Signature:                 tx.Signature,
+		DataType:                  tx.DataType,
+		Data:                      tx.Data,
+		ReceiptCumulativeStepUsed: tx.ReceiptCumulativeStepUsed,
+		ReceiptStepUsed:           tx.ReceiptStepUsed,
+		ReceiptStepPrice:          tx.ReceiptStepPrice,
+		ReceiptScoreAddress:       tx.ReceiptScoreAddress,
+		ReceiptLogs:               tx.ReceiptLogs,
+		ReceiptStatus:             tx.ReceiptStatus,
 	}
 }

@@ -30,7 +30,7 @@ type configType struct {
 	// Logging
 	LogLevel    string `envconfig:"LOG_LEVEL" required:"false" default:"INFO"`
 	LogToFile   bool   `envconfig:"LOG_TO_FILE" required:"false" default:"false"`
-	LogFileName string `envconfig:"LOG_FILE_NAME" required:"false" default:"blocks-service.log"`
+	LogFileName string `envconfig:"LOG_FILE_NAME" required:"false" default:"transactions-service.log"`
 	LogFormat   string `envconfig:"LOG_FORMAT" required:"false" default:"json"`
 
 	// Kafka
@@ -56,6 +56,14 @@ type configType struct {
 	DbName     string `envconfig:"DB_DBNAME" required:"false" default:"postgres"`
 	DbSslmode  string `envconfig:"DB_SSL_MODE" required:"false" default:"disable"`
 	DbTimezone string `envconfig:"DB_TIMEZONE" required:"false" default:"UTC"`
+
+	// Redis
+	RedisHost                     string `envconfig:"REDIS_HOST" required:"false" default:"redis"`
+	RedisPort                     string `envconfig:"REDIS_PORT" required:"false" default:"6380"`
+	RedisPassword                 string `envconfig:"REDIS_PASSWORD" required:"false" default:""`
+	RedisChannel                  string `envconfig:"REDIS_CHANNEL" required:"false" default:"transactions"`
+	RedisSentinelClientMode       bool   `envconfig:"REDIS_SENTINEL_CLIENT_MODE" required:"false" default:"false"`
+	RedisSentinelClientMasterName string `envconfig:"REDIS_SENTINEL_CLIENT_MASTER_NAME" required:"false" default:"master"`
 
 	// Endpoints
 	MaxPageSize int `envconfig:"MAX_PAGE_SIZE" required:"false" default:"100"`
