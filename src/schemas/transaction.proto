@@ -9,18 +9,18 @@ message Transaction {
 
   string type = 1;
   string version = 2;
-  string from_address = 3 [(gorm.field).tag = {index: "idx_from_address"}];
-  string to_address = 4 [(gorm.field).tag = {index: "idx_to_address"}];
+  string from_address = 3 [(gorm.field).tag = {index: "transaction_idx_from_address"}];
+  string to_address = 4 [(gorm.field).tag = {index: "transaction_idx_to_address"}];
   string value = 5;
   uint64 step_limit = 6;
   string timestamp = 7;
   uint64 block_timestamp = 8;
   uint32 nid = 9;
   string nonce = 10;
-  string hash = 11 [(gorm.field).tag = {index: "idx_hash"}];
+  string hash = 11 [(gorm.field).tag = {index: "transaction_idx_hash"}];
   uint32 transaction_index = 12;
   string block_hash = 13;
-  uint64 block_number = 14 [(gorm.field).tag = {index: "idx_block_number"}];
+  uint64 block_number = 14 [(gorm.field).tag = {index: "transaction_idx_block_number"}];
   uint64 fee = 15;
   string signature = 16;
   string data_type = 17;

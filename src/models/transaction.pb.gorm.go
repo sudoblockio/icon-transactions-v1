@@ -22,13 +22,13 @@ var _ = math.Inf
 
 type TransactionORM struct {
 	BlockHash                 string
-	BlockNumber               uint64 `gorm:"index:idx_block_number"`
+	BlockNumber               uint64 `gorm:"index:transaction_idx_block_number"`
 	BlockTimestamp            uint64
 	Data                      string
 	DataType                  string
 	Fee                       uint64
-	FromAddress               string `gorm:"index:idx_from_address"`
-	Hash                      string `gorm:"index:idx_hash"`
+	FromAddress               string `gorm:"index:transaction_idx_from_address"`
+	Hash                      string `gorm:"index:transaction_idx_hash"`
 	Id                        uint64
 	ItemId                    string
 	ItemTimestamp             string
@@ -44,7 +44,7 @@ type TransactionORM struct {
 	Signature                 string
 	StepLimit                 uint64
 	Timestamp                 string
-	ToAddress                 string `gorm:"index:idx_to_address"`
+	ToAddress                 string `gorm:"index:transaction_idx_to_address"`
 	TransactionIndex          uint32
 	Type                      string
 	Value                     string
