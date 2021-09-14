@@ -43,7 +43,7 @@ func logsTransformer() {
 			zap.S().Fatal("Unable to proceed cannot convert kafka msg value to LogRaw, err: ", err.Error())
 		}
 
-		transaction = transformLogRaw(logRaw)
+		transaction = transformLogRawToTransaction(logRaw)
 
 		// Not and internal transaction
 		if transaction == nil {
@@ -51,10 +51,7 @@ func logsTransformer() {
 		}
 
 		// Load log counter to Postgres
-		transactionCount := &models.TransactionCount{
-			Count: 1, // Adds with current
-			Id:    1, // Only one row
-		}
+		transactionCount := transformTransactionToTransactionCount(transaction)
 		transactionCountLoaderChan <- transactionCount
 
 		// Load to Postgres
@@ -73,7 +70,7 @@ func convertBytesToLogRawProtoBuf(value []byte) (*models.LogRaw, error) {
 }
 
 // Business logic goes here
-func transformLogRaw(logRaw *models.LogRaw) *models.Transaction {
+func transformLogRawToTransaction(logRaw *models.LogRaw) *models.Transaction {
 
 	var indexed []string
 	err := json.Unmarshal([]byte(logRaw.Indexed), &indexed)

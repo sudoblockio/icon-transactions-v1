@@ -47,17 +47,14 @@ func transactionsTransformer() {
 		// Transform logic
 		transaction = transformTransactionRawToTransaction(transactionRaw)
 
-		// Load log counter to Postgres
-		transactionCount := &models.TransactionCount{
-			Count: 1, // Adds with current
-			Id:    1, // Only one row
-		}
-		transactionCountLoaderChan <- transactionCount
-
 		// Push to redis
 		transactionWebsocket := transformTransactionToTransactionWS(transaction)
 		transactionWebsocketJSON, _ := json.Marshal(transactionWebsocket)
 		redisClient.Publish(transactionWebsocketJSON)
+
+		// Load log counter to Postgres
+		transactionCount := transformTransactionToTransactionCount(transaction)
+		transactionCountLoaderChan <- transactionCount
 
 		// Load to Postgres
 		transactionLoaderChan <- transaction
@@ -132,5 +129,13 @@ func transformTransactionToTransactionWS(tx *models.Transaction) *models.Transac
 		ReceiptScoreAddress:       tx.ReceiptScoreAddress,
 		ReceiptLogs:               tx.ReceiptLogs,
 		ReceiptStatus:             tx.ReceiptStatus,
+	}
+}
+
+func transformTransactionToTransactionCount(tx *models.Transaction) *models.TransactionCount {
+
+	return &models.TransactionCount{
+		TransactionHash: tx.Hash,
+		LogIndex:        tx.LogIndex,
 	}
 }
