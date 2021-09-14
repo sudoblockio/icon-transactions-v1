@@ -20,6 +20,7 @@ type TransactionsQuery struct {
 	Hash string `query:"hash"`
 	From string `query:"from"`
 	To   string `query:"to"`
+	Type string `query:"type"`
 }
 
 func TransactionsAddHandlers(app *fiber.App) {
@@ -42,6 +43,7 @@ func TransactionsAddHandlers(app *fiber.App) {
 // @Param hash query string false "find by hash"
 // @Param from query string false "find by from address"
 // @Param to query string false "find by to address"
+// @Param type query string false "find by type"
 // @Router /api/v1/transactions [get]
 // @Success 200 {object} []models.TransactionAPIList
 // @Failure 422 {object} map[string]interface{}
@@ -65,6 +67,13 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 		return c.SendString(`{"error": "limit must be greater than 0 and less than 101"}`)
 	}
 
+	// NOTE: TEMP casting string types for type field
+	if params.Type == "regular" {
+		params.Type = "transaction"
+	} else if params.Type == "internal" {
+		params.Type = "log"
+	}
+
 	// Get Transactions
 	transactions, count, err := crud.GetTransactionModel().SelectManyAPI(
 		params.Limit,
@@ -72,6 +81,7 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 		params.Hash,
 		params.From,
 		params.To,
+		params.Type,
 	)
 	if err != nil {
 		zap.S().Warnf("Transactions CRUD ERROR: %s", err.Error())
