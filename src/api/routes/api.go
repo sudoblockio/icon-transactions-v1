@@ -37,7 +37,7 @@ func Start() {
 	}))
 
 	// Swagger docs
-	app.Get("/docs/*", swagger.Handler)
+	app.Get(config.Config.RestPrefix+"/transactions/docs/*", swagger.Handler)
 
 	// Add version handlers
 	app.Get("/version", handlerVersion)

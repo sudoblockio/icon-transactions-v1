@@ -136,6 +136,7 @@ func (m *TransactionModel) SelectManyAPI(
 	hash string,
 	from string,
 	to string,
+	_type string,
 ) ([]models.TransactionAPIList, int64, error) {
 	db := m.db
 	computeCount := false
@@ -162,6 +163,11 @@ func (m *TransactionModel) SelectManyAPI(
 	if to != "" {
 		computeCount = true
 		db = db.Where("to_address = ?", to)
+	}
+
+	// type
+	if _type != "" {
+		db = db.Where("type = ?", _type)
 	}
 
 	// Count, if needed
@@ -201,6 +207,9 @@ func (m *TransactionModel) SelectOne(
 
 	// Log Index
 	db = db.Where("log_index = ?", logIndex)
+
+	// Type, always transaction
+	db = db.Where("type= ?", "transaction")
 
 	transaction := models.Transaction{}
 	db = db.First(&transaction)

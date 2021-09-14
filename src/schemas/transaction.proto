@@ -7,7 +7,7 @@ import "github.com/infobloxopen/protoc-gen-gorm/options/gorm.proto";
 message Transaction {
   option (gorm.opts) = {ormable: true};
 
-  string type = 1;
+  string type = 1 [(gorm.field).tag = {index: "transaction_idx_type"}];
   string version = 2;
   string from_address = 3 [(gorm.field).tag = {index: "transaction_idx_from_address"}];
   string to_address = 4 [(gorm.field).tag = {index: "transaction_idx_to_address"}];

@@ -46,7 +46,7 @@ type TransactionORM struct {
 	Timestamp                 string
 	ToAddress                 string `gorm:"index:transaction_idx_to_address"`
 	TransactionIndex          uint32
-	Type                      string
+	Type                      string `gorm:"index:transaction_idx_type"`
 	Value                     string
 	Version                   string
 }
