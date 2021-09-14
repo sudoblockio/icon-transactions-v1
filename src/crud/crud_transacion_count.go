@@ -2,18 +2,15 @@ package crud
 
 import (
 	"errors"
-	"strings"
 	"sync"
-	"time"
 
-	"github.com/cenkalti/backoff/v4"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
 	"github.com/geometry-labs/icon-transactions/models"
 )
 
-// TransactionCountModel - type for transaction table model
+// TransactionCountModel - type for log table model
 type TransactionCountModel struct {
 	db        *gorm.DB
 	model     *models.TransactionCount
@@ -24,7 +21,7 @@ type TransactionCountModel struct {
 var transactionCountModel *TransactionCountModel
 var transactionCountModelOnce sync.Once
 
-// GetTransactionModel - create and/or return the transactions table model
+// GetLogModel - create and/or return the logs table model
 func GetTransactionCountModel() *TransactionCountModel {
 	transactionCountModelOnce.Do(func() {
 		dbConn := getPostgresConn()
@@ -56,53 +53,68 @@ func (m *TransactionCountModel) Migrate() error {
 
 // Insert - Insert transactionCount into table
 func (m *TransactionCountModel) Insert(transactionCount *models.TransactionCount) error {
+	db := m.db
 
-	err := backoff.Retry(func() error {
-		query := m.db.Create(transactionCount)
+	// Set table
+	db = db.Model(&models.TransactionCount{})
 
-		if query.Error != nil && !strings.Contains(query.Error.Error(), "duplicate key value violates unique constraint") {
-			zap.S().Warn("POSTGRES Insert Error : ", query.Error.Error())
-			return query.Error
-		}
+	db = db.Create(transactionCount)
 
-		return nil
-	}, backoff.NewExponentialBackOff())
-
-	return err
-}
-
-// Update - Update transactionCount
-func (m *TransactionCountModel) Update(transactionCount *models.TransactionCount) error {
-
-	err := backoff.Retry(func() error {
-		query := m.db.Model(&models.TransactionCount{}).Where("id = ?", transactionCount.Id).Update("count", transactionCount.Count)
-
-		if query.Error != nil && !strings.Contains(query.Error.Error(), "duplicate key value violates unique constraint") {
-			zap.S().Warn("POSTGRES Insert Error : ", query.Error.Error())
-			return query.Error
-		}
-
-		return nil
-	}, backoff.NewExponentialBackOff())
-
-	return err
+	return db.Error
 }
 
 // Select - select from transactionCounts table
-func (m *TransactionCountModel) Select() (models.TransactionCount, error) {
+func (m *TransactionCountModel) SelectOne(transactionHash string, logIndex int32) (models.TransactionCount, error) {
 	db := m.db
 
+	// Set table
+	db = db.Model(&models.TransactionCount{})
+
 	transactionCount := models.TransactionCount{}
+
+	// Transaction Hash
+	db = db.Where("transaction_hash = ?", transactionHash)
+
+	// Log Index
+	db = db.Where("log_index = ?", logIndex)
+
 	db = db.First(&transactionCount)
 
 	return transactionCount, db.Error
 }
 
-// Delete - delete from transactionCounts table
-func (m *TransactionCountModel) Delete(transactionCount models.TransactionCount) error {
-	db := m.db
+func (m *TransactionCountModel) SelectLargestCount() (uint64, error) {
 
-	db = db.Delete(&transactionCount)
+	db := m.db
+	//computeCount := false
+
+	// Set table
+	db = db.Model(&models.TransactionCount{})
+
+	// Get max id
+	count := uint64(0)
+	row := db.Select("max(id)").Row()
+	row.Scan(&count)
+
+	return count, db.Error
+}
+
+func (m *TransactionCountModel) Update(transactionCount *models.TransactionCount) error {
+
+	db := m.db
+	//computeCount := false
+
+	// Set table
+	db = db.Model(&models.TransactionCount{})
+
+	// Transaction Hash
+	db = db.Where("transaction_hash = ?", transactionCount.TransactionHash)
+
+	// Log Index
+	db = db.Where("log_index = ?", transactionCount.LogIndex)
+
+	// Update
+	db = db.Save(transactionCount)
 
 	return db.Error
 }
@@ -110,52 +122,27 @@ func (m *TransactionCountModel) Delete(transactionCount models.TransactionCount)
 // StartTransactionCountLoader starts loader
 func StartTransactionCountLoader() {
 	go func() {
-		var transactionCount *models.TransactionCount
-		postgresLoaderChan := GetTransactionCountModel().WriteChan
 
 		for {
 			// Read transactionCount
-			transactionCount = <-postgresLoaderChan
+			newTransactionCount := <-GetTransactionCountModel().WriteChan
 
-			// Load transactionCount to database
-			curCount, err := GetTransactionCountModel().Select()
+			// Insert
+			_, err := GetTransactionCountModel().SelectOne(
+				newTransactionCount.TransactionHash,
+				newTransactionCount.LogIndex,
+			)
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				// New entry
-				GetTransactionCountModel().Insert(transactionCount)
-			} else if err == nil {
-				// Update existing entry
-				transactionCount.Count = transactionCount.Count + curCount.Count
-				GetTransactionCountModel().Update(transactionCount)
-			} else {
-				// Postgres error
-				zap.S().Fatal(err.Error())
-			}
-
-			// Check current state
-			for {
-				// Wait for postgres to set state before processing more messages
-
-				checkCount, err := GetTransactionCountModel().Select()
+				// Insert
+				err = GetTransactionCountModel().Insert(newTransactionCount)
 				if err != nil {
-					zap.S().Warn("State check error: ", err.Error())
-					zap.S().Warn("Waiting 100ms...")
-					time.Sleep(100 * time.Millisecond)
-					continue
+					zap.S().Fatal(err.Error())
 				}
 
-				// check all fields
-				if checkCount.Count == transactionCount.Count &&
-					checkCount.Id == transactionCount.Id {
-					// Success
-					break
-				} else {
-					// Wait
-
-					zap.S().Warn("Models did not match")
-					zap.S().Warn("Waiting 100ms...")
-					time.Sleep(100 * time.Millisecond)
-					continue
-				}
+				zap.S().Debug("Loader=TransactionCount, TransactionHash=", newTransactionCount.TransactionHash, " LogIndex=", newTransactionCount.LogIndex, " - Insert")
+			} else if err != nil {
+				// Error
+				zap.S().Fatal(err.Error())
 			}
 		}
 	}()

@@ -1,10 +1,9 @@
 package crud
 
 import (
-	"encoding/json"
+	"errors"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/cenkalti/backoff/v4"
 	"go.uber.org/zap"
@@ -70,6 +69,26 @@ func (m *TransactionModel) Insert(transaction *models.Transaction) error {
 	return err
 }
 
+// UpdateOne - select from logs table
+func (m *TransactionModel) UpdateOne(
+	transaction *models.Transaction,
+) error {
+	db := m.db
+
+	// Set table
+	db = db.Model(&models.Transaction{})
+
+	// Hash
+	db = db.Where("hash = ?", transaction.Hash)
+
+	// Log Index
+	db = db.Where("log_index = ?", transaction.LogIndex)
+
+	db = db.Save(transaction)
+
+	return db.Error
+}
+
 // SelectMany - select from transactions table
 // Returns: models, total count (if filters), error (if present)
 func (m *TransactionModel) SelectMany(
@@ -78,7 +97,7 @@ func (m *TransactionModel) SelectMany(
 	hash string,
 	from string,
 	to string,
-) ([]models.Transaction, int64, error) {
+) (*[]models.Transaction, int64, error) {
 	db := m.db
 	computeCount := false
 
@@ -122,8 +141,8 @@ func (m *TransactionModel) SelectMany(
 		db = db.Offset(skip)
 	}
 
-	transactions := []models.Transaction{}
-	db = db.Find(&transactions)
+	transactions := &[]models.Transaction{}
+	db = db.Find(transactions)
 
 	return transactions, count, db.Error
 }
@@ -137,7 +156,7 @@ func (m *TransactionModel) SelectManyAPI(
 	from string,
 	to string,
 	_type string,
-) ([]models.TransactionAPIList, int64, error) {
+) (*[]models.TransactionAPIList, int64, error) {
 	db := m.db
 	computeCount := false
 
@@ -186,8 +205,8 @@ func (m *TransactionModel) SelectManyAPI(
 		db = db.Offset(skip)
 	}
 
-	transactions := []models.TransactionAPIList{}
-	db = db.Find(&transactions)
+	transactions := &[]models.TransactionAPIList{}
+	db = db.Find(transactions)
 
 	return transactions, count, db.Error
 }
@@ -196,7 +215,7 @@ func (m *TransactionModel) SelectManyAPI(
 func (m *TransactionModel) SelectOne(
 	hash string,
 	logIndex int32, // Used for internal transactions
-) (models.Transaction, error) {
+) (*models.Transaction, error) {
 	db := m.db
 
 	// Set table
@@ -211,8 +230,8 @@ func (m *TransactionModel) SelectOne(
 	// Type, always transaction
 	db = db.Where("type= ?", "transaction")
 
-	transaction := models.Transaction{}
-	db = db.First(&transaction)
+	transaction := &models.Transaction{}
+	db = db.First(transaction)
 
 	return transaction, db.Error
 }
@@ -221,7 +240,7 @@ func (m *TransactionModel) SelectOne(
 func (m *TransactionModel) SelectOneAPI(
 	hash string,
 	logIndex int32, // Used for internal transactions
-) (models.TransactionAPIDetail, error) {
+) (*models.TransactionAPIDetail, error) {
 	db := m.db
 
 	// Set table
@@ -233,8 +252,8 @@ func (m *TransactionModel) SelectOneAPI(
 	// Log Index
 	db = db.Where("log_index = ?", logIndex)
 
-	transaction := models.TransactionAPIDetail{}
-	db = db.First(&transaction)
+	transaction := &models.TransactionAPIDetail{}
+	db = db.First(transaction)
 
 	return transaction, db.Error
 }
@@ -248,66 +267,20 @@ func StartTransactionLoader() {
 			// Read transaction
 			newTransaction := <-postgresLoaderChan
 
-			// Load transaction to database
-			GetTransactionModel().Insert(newTransaction)
+			// Update/Insert
+			_, err := GetTransactionModel().SelectOne(newTransaction.Hash, newTransaction.LogIndex)
+			if errors.Is(err, gorm.ErrRecordNotFound) {
 
-			// Check current state
-			for {
-				// Wait for postgres to set state before processing more messages
-
-				checkTransaction, err := GetTransactionModel().SelectOne(newTransaction.Hash, newTransaction.LogIndex)
-				if err != nil {
-					zap.S().Warn("State check error: ", err.Error())
-					zap.S().Warn("Waiting 100ms...")
-
-					time.Sleep(100 * time.Millisecond)
-					continue
-				}
-
-				// check all fields
-				if checkTransaction.Type == newTransaction.Type &&
-					checkTransaction.Version == newTransaction.Version &&
-					checkTransaction.FromAddress == newTransaction.FromAddress &&
-					checkTransaction.ToAddress == newTransaction.ToAddress &&
-					checkTransaction.Value == newTransaction.Value &&
-					checkTransaction.StepLimit == newTransaction.StepLimit &&
-					checkTransaction.Timestamp == newTransaction.Timestamp &&
-					checkTransaction.BlockTimestamp == newTransaction.BlockTimestamp &&
-					checkTransaction.Nid == newTransaction.Nid &&
-					checkTransaction.Nonce == newTransaction.Nonce &&
-					checkTransaction.Hash == newTransaction.Hash &&
-					checkTransaction.TransactionIndex == newTransaction.TransactionIndex &&
-					checkTransaction.BlockHash == newTransaction.BlockHash &&
-					checkTransaction.BlockNumber == newTransaction.BlockNumber &&
-					checkTransaction.Fee == newTransaction.Fee &&
-					checkTransaction.Signature == newTransaction.Signature &&
-					checkTransaction.DataType == newTransaction.DataType &&
-					checkTransaction.Data == newTransaction.Data &&
-					checkTransaction.ReceiptCumulativeStepUsed == newTransaction.ReceiptCumulativeStepUsed &&
-					checkTransaction.ReceiptStepUsed == newTransaction.ReceiptStepUsed &&
-					checkTransaction.ReceiptScoreAddress == newTransaction.ReceiptScoreAddress &&
-					checkTransaction.ReceiptLogs == newTransaction.ReceiptLogs &&
-					checkTransaction.ReceiptStatus == newTransaction.ReceiptStatus &&
-					checkTransaction.ItemId == newTransaction.ItemId &&
-					checkTransaction.ItemTimestamp == newTransaction.ItemTimestamp {
-					// Success
-					break
-				} else {
-					// Wait
-					newTransactionJSON, _ := json.Marshal(newTransaction)
-					checkTransactionJSON, _ := json.Marshal(checkTransaction)
-
-					zap.S().Info("newTransaction: ", string(newTransactionJSON))
-					zap.S().Info("curTransaction: ", string(checkTransactionJSON))
-
-					zap.S().Warn("Models did not match")
-					zap.S().Warn("Waiting 100ms...")
-					time.Sleep(100 * time.Millisecond)
-					continue
-				}
+				// Insert
+				GetTransactionModel().Insert(newTransaction)
+			} else if err == nil {
+				// Update
+				GetTransactionModel().UpdateOne(newTransaction)
+				zap.S().Debug("Loader=Transaction, Hash=", newTransaction.Hash, " LogIndex=", newTransaction.LogIndex, " - Updated")
+			} else {
+				// Postgress error
+				zap.S().Fatal(err.Error())
 			}
-
-			zap.S().Debugf("Loader Transaction: Loaded in postgres table Transactions, Block Number: %d", newTransaction.BlockNumber)
 		}
 	}()
 }

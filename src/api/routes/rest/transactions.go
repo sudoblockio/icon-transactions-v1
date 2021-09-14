@@ -10,7 +10,6 @@ import (
 
 	"github.com/geometry-labs/icon-transactions/config"
 	"github.com/geometry-labs/icon-transactions/crud"
-	"github.com/geometry-labs/icon-transactions/models"
 )
 
 type TransactionsQuery struct {
@@ -89,7 +88,7 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 		return c.SendString(`{"error": "could not retrieve transactions"}`)
 	}
 
-	if len(transactions) == 0 {
+	if len(*transactions) == 0 {
 		// No Content
 		c.Status(204)
 	}
@@ -101,16 +100,13 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	} else {
 		// No filters given, count all
 		// Total count in the transaction_counts table
-		counter, err := crud.GetTransactionCountModel().Select()
+		counter, err := crud.GetTransactionCountModel().SelectLargestCount()
 		if err != nil {
-			counter = models.TransactionCount{
-				Count: 0,
-				Id:    0,
-			}
+			counter = 0
 			zap.S().Warn("Could not retrieve transaction count: ", err.Error())
 		}
 
-		c.Append("X-TOTAL-COUNT", strconv.FormatUint(counter.Count, 10))
+		c.Append("X-TOTAL-COUNT", strconv.FormatUint(counter, 10))
 	}
 
 	body, _ := json.Marshal(&transactions)
