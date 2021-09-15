@@ -52,11 +52,11 @@ func transactionsTransformer() {
 		transactionWebsocketJSON, _ := json.Marshal(transactionWebsocket)
 		redisClient.Publish(transactionWebsocketJSON)
 
-		// Load log counter to Postgres
+		// Loads to: transaction_counts
 		transactionCount := transformTransactionToTransactionCount(transaction)
 		transactionCountLoaderChan <- transactionCount
 
-		// Load to Postgres
+		// Loads to: transactions
 		transactionLoaderChan <- transaction
 	}
 }
