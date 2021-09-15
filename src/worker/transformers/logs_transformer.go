@@ -50,11 +50,11 @@ func logsTransformer() {
 			continue
 		}
 
-		// Load log counter to Postgres
+		// Loads to: transaction_counts
 		transactionCount := transformTransactionToTransactionCount(transaction)
 		transactionCountLoaderChan <- transactionCount
 
-		// Load to Postgres
+		// Loads to: transactions
 		transactionLoaderChan <- transaction
 	}
 }

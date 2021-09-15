@@ -64,13 +64,11 @@ func (m *TransactionCountModel) Insert(transactionCount *models.TransactionCount
 }
 
 // Select - select from transactionCounts table
-func (m *TransactionCountModel) SelectOne(transactionHash string, logIndex int32) (models.TransactionCount, error) {
+func (m *TransactionCountModel) SelectOne(transactionHash string, logIndex int32) (*models.TransactionCount, error) {
 	db := m.db
 
 	// Set table
 	db = db.Model(&models.TransactionCount{})
-
-	transactionCount := models.TransactionCount{}
 
 	// Transaction Hash
 	db = db.Where("transaction_hash = ?", transactionHash)
@@ -78,7 +76,8 @@ func (m *TransactionCountModel) SelectOne(transactionHash string, logIndex int32
 	// Log Index
 	db = db.Where("log_index = ?", logIndex)
 
-	db = db.First(&transactionCount)
+	transactionCount := &models.TransactionCount{}
+	db = db.First(transactionCount)
 
 	return transactionCount, db.Error
 }
@@ -97,26 +96,6 @@ func (m *TransactionCountModel) SelectLargestCount() (uint64, error) {
 	row.Scan(&count)
 
 	return count, db.Error
-}
-
-func (m *TransactionCountModel) Update(transactionCount *models.TransactionCount) error {
-
-	db := m.db
-	//computeCount := false
-
-	// Set table
-	db = db.Model(&models.TransactionCount{})
-
-	// Transaction Hash
-	db = db.Where("transaction_hash = ?", transactionCount.TransactionHash)
-
-	// Log Index
-	db = db.Where("log_index = ?", transactionCount.LogIndex)
-
-	// Update
-	db = db.Save(transactionCount)
-
-	return db.Error
 }
 
 // StartTransactionCountLoader starts loader
