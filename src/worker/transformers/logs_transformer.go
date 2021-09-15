@@ -3,16 +3,19 @@ package transformers
 import (
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"go.uber.org/zap"
 	"gopkg.in/Shopify/sarama.v1"
+	"gorm.io/gorm"
 
 	"github.com/geometry-labs/icon-transactions/config"
 	"github.com/geometry-labs/icon-transactions/crud"
 	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/models"
+	"github.com/geometry-labs/icon-transactions/redis"
 )
 
 func StartLogsTransformer() {
@@ -28,6 +31,7 @@ func logsTransformer() {
 	// Output channels
 	transactionLoaderChan := crud.GetTransactionModel().WriteChan
 	transactionCountLoaderChan := crud.GetTransactionCountModel().WriteChan
+	redisClient := redis.GetRedisClient()
 
 	zap.S().Debug("Logs Transformer: started working")
 	for {
@@ -48,6 +52,16 @@ func logsTransformer() {
 		// Not and internal transaction
 		if transaction == nil {
 			continue
+		}
+
+		// Push to redis
+		// Check if entry transaction is in transactions table
+		_, err = crud.GetTransactionModel().SelectOne(transaction.Hash, transaction.LogIndex)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			transactionWebsocket := transformTransactionToTransactionWS(transaction)
+			transactionWebsocketJSON, _ := json.Marshal(transactionWebsocket)
+
+			redisClient.Publish(transactionWebsocketJSON)
 		}
 
 		// Loads to: transaction_counts

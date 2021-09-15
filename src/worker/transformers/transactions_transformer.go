@@ -3,10 +3,12 @@ package transformers
 import (
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 
 	"github.com/golang/protobuf/proto"
 	"go.uber.org/zap"
 	"gopkg.in/Shopify/sarama.v1"
+	"gorm.io/gorm"
 
 	"github.com/geometry-labs/icon-transactions/config"
 	"github.com/geometry-labs/icon-transactions/crud"
@@ -48,9 +50,14 @@ func transactionsTransformer() {
 		transaction = transformTransactionRawToTransaction(transactionRaw)
 
 		// Push to redis
-		transactionWebsocket := transformTransactionToTransactionWS(transaction)
-		transactionWebsocketJSON, _ := json.Marshal(transactionWebsocket)
-		redisClient.Publish(transactionWebsocketJSON)
+		// Check if entry transaction is in transactions table
+		_, err = crud.GetTransactionModel().SelectOne(transaction.Hash, transaction.LogIndex)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			transactionWebsocket := transformTransactionToTransactionWS(transaction)
+			transactionWebsocketJSON, _ := json.Marshal(transactionWebsocket)
+
+			redisClient.Publish(transactionWebsocketJSON)
+		}
 
 		// Loads to: transaction_counts
 		transactionCount := transformTransactionToTransactionCount(transaction)
