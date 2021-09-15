@@ -41,6 +41,8 @@ func GetTransactionModel() *TransactionModel {
 		if err != nil {
 			zap.S().Fatal("TransactionModel: Unable migrate postgres table: ", err.Error())
 		}
+
+		StartTransactionLoader()
 	})
 
 	return transactionModel

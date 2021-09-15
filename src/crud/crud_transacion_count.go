@@ -39,6 +39,8 @@ func GetTransactionCountModel() *TransactionCountModel {
 		if err != nil {
 			zap.S().Fatal("TransactionCountModel: Unable migrate postgres table: ", err.Error())
 		}
+
+		StartTransactionCountLoader()
 	})
 
 	return transactionCountModel
