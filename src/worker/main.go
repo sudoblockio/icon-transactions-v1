@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/geometry-labs/icon-transactions/config"
-	"github.com/geometry-labs/icon-transactions/crud"
 	"github.com/geometry-labs/icon-transactions/global"
 	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/logging"
@@ -20,10 +19,6 @@ func main() {
 
 	// Start Prometheus client
 	metrics.MetricsWorkerStart()
-
-	// Start Mongodb loaders
-	crud.StartTransactionLoader()
-	crud.StartTransactionCountLoader()
 
 	// Start kafka consumer
 	kafka.StartWorkerConsumers()
