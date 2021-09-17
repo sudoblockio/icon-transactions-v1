@@ -2,6 +2,8 @@ syntax = "proto3";
 package models;
 option go_package = "./models";
 
+import "github.com/infobloxopen/protoc-gen-gorm/options/gorm.proto";
+
 message TransactionWebsocket {
 
   string from_address = 1;
@@ -24,4 +26,10 @@ message TransactionWebsocket {
   string receipt_score_address = 18;
   string receipt_logs = 19;
   uint32 receipt_status = 20;
+}
+
+message TransactionWebsocketIndex {
+  option (gorm.opts) = {ormable: true};
+
+  string hash = 1 [(gorm.field).tag = {primary_key: true}];
 }
