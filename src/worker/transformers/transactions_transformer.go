@@ -2,19 +2,14 @@ package transformers
 
 import (
 	"encoding/hex"
-	"encoding/json"
-	"errors"
 
 	"github.com/golang/protobuf/proto"
 	"go.uber.org/zap"
-	"gopkg.in/Shopify/sarama.v1"
-	"gorm.io/gorm"
 
 	"github.com/geometry-labs/icon-transactions/config"
 	"github.com/geometry-labs/icon-transactions/crud"
 	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/models"
-	"github.com/geometry-labs/icon-transactions/redis"
 )
 
 func StartTransactionsTransformer() {
@@ -29,16 +24,13 @@ func transactionsTransformer() {
 
 	// Output channels
 	transactionLoaderChan := crud.GetTransactionModel().WriteChan
+	transactionWebsocketLoaderChan := crud.GetTransactionWebsocketIndexModel().WriteChan
 	transactionCountLoaderChan := crud.GetTransactionCountModel().WriteChan
-	redisClient := redis.GetRedisClient()
 
 	zap.S().Debug("Transactions Transformer: started working")
 	for {
 		// Read from kafka
-		var consumerTopicMsg *sarama.ConsumerMessage
-		var transaction *models.Transaction
-
-		consumerTopicMsg = <-consumerTopicChanTransactions
+		consumerTopicMsg := <-consumerTopicChanTransactions
 		// Transaction message from ETL
 		transactionRaw, err := convertBytesToTransactionRawProtoBuf(consumerTopicMsg.Value)
 		zap.S().Info("Transactions Transformer: Processing transaction hash=", transactionRaw.Hash)
@@ -46,25 +38,18 @@ func transactionsTransformer() {
 			zap.S().Fatal("Transactions Transformer: Unable to proceed cannot convert kafka msg value to TransactionRaw, err: ", err.Error())
 		}
 
-		// Transform logic
-		transaction = transformTransactionRawToTransaction(transactionRaw)
+		// Loads to: transactions
+		transaction := transformTransactionRawToTransaction(transactionRaw)
+		transactionLoaderChan <- transaction
 
-		// Push to redis
-		// Check if entry transaction is in transactions table
-		_, err = crud.GetTransactionModel().SelectOne(transaction.Hash, transaction.LogIndex)
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			transactionWebsocket := transformTransactionToTransactionWS(transaction)
-			transactionWebsocketJSON, _ := json.Marshal(transactionWebsocket)
-
-			redisClient.Publish(transactionWebsocketJSON)
-		}
+		// Loads to: transaction_websocket_indices
+		transactionWebsocket := transformTransactionToTransactionWS(transaction)
+		transactionWebsocketLoaderChan <- transactionWebsocket
 
 		// Loads to: transaction_counts
 		transactionCount := transformTransactionToTransactionCount(transaction)
 		transactionCountLoaderChan <- transactionCount
 
-		// Loads to: transactions
-		transactionLoaderChan <- transaction
 	}
 }
 
