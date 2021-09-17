@@ -2,6 +2,7 @@ package crud
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/cenkalti/backoff/v4"
 	"go.uber.org/zap"
@@ -57,7 +58,7 @@ func retryGetPostgresSession(dsn string) (*gorm.DB, error) {
 		}
 		return err
 	}
-	neb := backoff.NewExponentialBackOff()
+	neb := backoff.NewConstantBackOff(time.Second * 3)
 	err := backoff.Retry(operation, neb)
 	return session, err
 }

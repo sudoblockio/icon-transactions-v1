@@ -28,6 +28,8 @@ message TransactionWebsocket {
   uint32 receipt_status = 20;
 }
 
+// GORM table to store all seen websocket messages
+// Used to avoid duplicate messages
 message TransactionWebsocketIndex {
   option (gorm.opts) = {ormable: true};
 
