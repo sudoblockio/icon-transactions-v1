@@ -12,10 +12,10 @@ import (
 
 // TransactionCountModel - type for log table model
 type TransactionCountModel struct {
-	db        *gorm.DB
-	model     *models.TransactionCount
-	modelORM  *models.TransactionCountORM
-	WriteChan chan *models.TransactionCount
+	db            *gorm.DB
+	model         *models.TransactionCount
+	modelORM      *models.TransactionCountORM
+	LoaderChannel chan *models.TransactionCount
 }
 
 var transactionCountModel *TransactionCountModel
@@ -30,9 +30,9 @@ func GetTransactionCountModel() *TransactionCountModel {
 		}
 
 		transactionCountModel = &TransactionCountModel{
-			db:        dbConn,
-			model:     &models.TransactionCount{},
-			WriteChan: make(chan *models.TransactionCount, 1),
+			db:            dbConn,
+			model:         &models.TransactionCount{},
+			LoaderChannel: make(chan *models.TransactionCount, 1),
 		}
 
 		err := transactionCountModel.Migrate()
@@ -106,7 +106,7 @@ func StartTransactionCountLoader() {
 
 		for {
 			// Read transactionCount
-			newTransactionCount := <-GetTransactionCountModel().WriteChan
+			newTransactionCount := <-GetTransactionCountModel().LoaderChannel
 
 			// Insert
 			_, err := GetTransactionCountModel().SelectOne(

@@ -14,10 +14,10 @@ import (
 
 // TransactionWebsocketIndexModel - type for transactionWebsocketIndex table model
 type TransactionWebsocketIndexModel struct {
-	db        *gorm.DB
-	model     *models.TransactionWebsocketIndex
-	modelORM  *models.TransactionWebsocketIndexORM
-	WriteChan chan *models.TransactionWebsocket // Write TransactionWebsocket to create a TransactionWebsocketIndex
+	db            *gorm.DB
+	model         *models.TransactionWebsocketIndex
+	modelORM      *models.TransactionWebsocketIndexORM
+	LoaderChannel chan *models.TransactionWebsocket // Write TransactionWebsocket to create a TransactionWebsocketIndex
 }
 
 var transactionWebsocketIndexModel *TransactionWebsocketIndexModel
@@ -32,9 +32,9 @@ func GetTransactionWebsocketIndexModel() *TransactionWebsocketIndexModel {
 		}
 
 		transactionWebsocketIndexModel = &TransactionWebsocketIndexModel{
-			db:        dbConn,
-			model:     &models.TransactionWebsocketIndex{},
-			WriteChan: make(chan *models.TransactionWebsocket, 1),
+			db:            dbConn,
+			model:         &models.TransactionWebsocketIndex{},
+			LoaderChannel: make(chan *models.TransactionWebsocket, 1),
 		}
 
 		err := transactionWebsocketIndexModel.Migrate()
@@ -89,7 +89,7 @@ func StartTransactionWebsocketIndexLoader() {
 
 		for {
 			// Read transaction
-			newTransactionWebsocket := <-GetTransactionWebsocketIndexModel().WriteChan
+			newTransactionWebsocket := <-GetTransactionWebsocketIndexModel().LoaderChannel
 
 			// TransactionWebsocket -> TransactionWebsocketIndex
 			newTransactionWebsocketIndex := &models.TransactionWebsocketIndex{

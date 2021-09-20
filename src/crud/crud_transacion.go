@@ -14,10 +14,10 @@ import (
 
 // TransactionModel - type for transaction table model
 type TransactionModel struct {
-	db        *gorm.DB
-	model     *models.Transaction
-	modelORM  *models.TransactionORM
-	WriteChan chan *models.Transaction
+	db            *gorm.DB
+	model         *models.Transaction
+	modelORM      *models.TransactionORM
+	LoaderChannel chan *models.Transaction
 }
 
 var transactionModel *TransactionModel
@@ -32,9 +32,9 @@ func GetTransactionModel() *TransactionModel {
 		}
 
 		transactionModel = &TransactionModel{
-			db:        dbConn,
-			model:     &models.Transaction{},
-			WriteChan: make(chan *models.Transaction, 1),
+			db:            dbConn,
+			model:         &models.Transaction{},
+			LoaderChannel: make(chan *models.Transaction, 1),
 		}
 
 		err := transactionModel.Migrate()
@@ -263,7 +263,7 @@ func (m *TransactionModel) SelectOneAPI(
 // StartTransactionLoader starts loader
 func StartTransactionLoader() {
 	go func() {
-		postgresLoaderChan := GetTransactionModel().WriteChan
+		postgresLoaderChan := GetTransactionModel().LoaderChannel
 
 		for {
 			// Read transaction

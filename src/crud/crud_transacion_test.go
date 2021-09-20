@@ -128,7 +128,7 @@ func TestTransactionModelLoader(t *testing.T) {
 	// Write to loader channel
 	go func() {
 		for _, fixture := range transactionFixtures {
-			transactionModel.WriteChan <- fixture
+			transactionModel.LoaderChannel <- fixture
 		}
 	}()
 
