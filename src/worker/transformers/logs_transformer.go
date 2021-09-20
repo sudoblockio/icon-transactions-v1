@@ -22,12 +22,12 @@ func logsTransformer() {
 	consumerTopicNameLogs := config.Config.ConsumerTopicLogs
 
 	// Input channels
-	consumerTopicChanLogs := kafka.KafkaTopicConsumers[consumerTopicNameLogs].TopicChan
+	consumerTopicChanLogs := kafka.KafkaTopicConsumers[consumerTopicNameLogs].TopicChannel
 
 	// Output channels
-	transactionLoaderChan := crud.GetTransactionModel().WriteChan
-	transactionWebsocketLoaderChan := crud.GetTransactionWebsocketIndexModel().WriteChan
-	transactionCountLoaderChan := crud.GetTransactionCountModel().WriteChan
+	transactionLoaderChan := crud.GetTransactionModel().LoaderChannel
+	transactionWebsocketLoaderChan := crud.GetTransactionWebsocketIndexModel().LoaderChannel
+	transactionCountLoaderChan := crud.GetTransactionCountModel().LoaderChannel
 
 	zap.S().Debug("Logs Transformer: started working")
 	for {

@@ -132,7 +132,7 @@ func TestTransactionCountModelLoader(t *testing.T) {
 	// Write to loader channel
 	go func() {
 		for {
-			transactionCountModel.WriteChan <- transactionCountFixture
+			transactionCountModel.LoaderChannel <- transactionCountFixture
 			time.Sleep(1)
 		}
 	}()

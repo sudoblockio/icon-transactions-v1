@@ -20,12 +20,12 @@ func transactionsTransformer() {
 	consumerTopicNameTransactions := config.Config.ConsumerTopicTransactions
 
 	// Input channels
-	consumerTopicChanTransactions := kafka.KafkaTopicConsumers[consumerTopicNameTransactions].TopicChan
+	consumerTopicChanTransactions := kafka.KafkaTopicConsumers[consumerTopicNameTransactions].TopicChannel
 
 	// Output channels
-	transactionLoaderChan := crud.GetTransactionModel().WriteChan
-	transactionWebsocketLoaderChan := crud.GetTransactionWebsocketIndexModel().WriteChan
-	transactionCountLoaderChan := crud.GetTransactionCountModel().WriteChan
+	transactionLoaderChan := crud.GetTransactionModel().LoaderChannel
+	transactionWebsocketLoaderChan := crud.GetTransactionWebsocketIndexModel().LoaderChannel
+	transactionCountLoaderChan := crud.GetTransactionCountModel().LoaderChannel
 
 	zap.S().Debug("Transactions Transformer: started working")
 	for {
