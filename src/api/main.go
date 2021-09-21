@@ -21,7 +21,7 @@ func main() {
 
 	// Start Prometheus client
 	// Go routine starts in function
-	metrics.MetricsAPIStart()
+	metrics.Start()
 
 	// Start Redis Client
 	// NOTE: redis is used for websockets

@@ -11,6 +11,7 @@ import (
 	"github.com/geometry-labs/icon-transactions/config"
 	"github.com/geometry-labs/icon-transactions/crud"
 	"github.com/geometry-labs/icon-transactions/kafka"
+	"github.com/geometry-labs/icon-transactions/metrics"
 	"github.com/geometry-labs/icon-transactions/models"
 )
 
@@ -31,32 +32,43 @@ func logsTransformer() {
 
 	zap.S().Debug("Logs Transformer: started working")
 	for {
-		// Read from kafka
+
+		///////////////////
+		// Kafka Message //
+		///////////////////
+
 		consumerTopicMsg := <-consumerTopicChanLogs
-		// Log message from ETL
 		logRaw, err := convertBytesToLogRawProtoBuf(consumerTopicMsg.Value)
 		zap.S().Info("Logs Transformer: Processing log in tx hash=", logRaw.TransactionHash)
 		if err != nil {
 			zap.S().Fatal("Unable to proceed cannot convert kafka msg value to LogRaw, err: ", err.Error())
 		}
 
-		// Loads to: transactions
+		/////////////
+		// Loaders //
+		/////////////
+
 		transaction := transformLogRawToTransaction(logRaw)
 
-		// Not and internal transaction
-		if transaction == nil {
-			continue
+		// Internal transaction
+		if transaction != nil {
+
+			// Loads to: transactions
+			transactionLoaderChan <- transaction
+
+			// Loads to: transaction_websocket_indices
+			transactionWebsocket := transformTransactionToTransactionWS(transaction)
+			transactionWebsocketLoaderChan <- transactionWebsocket
+
+			// Loads to: transaction_counts
+			transactionCount := transformTransactionToTransactionCount(transaction)
+			transactionCountLoaderChan <- transactionCount
 		}
 
-		transactionLoaderChan <- transaction
-
-		// Loads to: transaction_websocket_indices
-		transactionWebsocket := transformTransactionToTransactionWS(transaction)
-		transactionWebsocketLoaderChan <- transactionWebsocket
-
-		// Loads to: transaction_counts
-		transactionCount := transformTransactionToTransactionCount(transaction)
-		transactionCountLoaderChan <- transactionCount
+		/////////////
+		// Metrics //
+		/////////////
+		metrics.MaxBlockNumberLogsRawGauge.Set(float64(logRaw.BlockNumber))
 	}
 }
 

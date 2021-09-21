@@ -4,10 +4,6 @@ x-env: &env
   NAME: "transactions"
   NETWORK_NAME: "mainnet"
 
-  # Ports
-  PORT: "8000"
-  HEALTH_PORT: "8180"
-  METRICS_PORT: "9400"
 
   # Prefix
   REST_PREFIX: "/api/v1"
@@ -79,6 +75,10 @@ services:
       - ${TRANSACTIONS_CONTEXT:-.}/src:/app
     environment:
       <<: *env
+      # Ports
+      PORT: "8000"
+      HEALTH_PORT: "8180"
+      METRICS_PORT: "9400"
 
   transactions-worker:
     build:
@@ -98,3 +98,7 @@ services:
       - ${TRANSACTIONS_CONTEXT:-.}/src:/app
     environment:
       <<: *env
+      # Ports
+      PORT: "8001"
+      HEALTH_PORT: "8181"
+      METRICS_PORT: "9401"
