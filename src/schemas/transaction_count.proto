@@ -10,7 +10,7 @@ message TransactionCount {
   string transaction_hash = 1 [(gorm.field).tag = {index: "transaction_count_idx_transaction_hash"}];
   int32 log_index = 2 [(gorm.field).tag = {index: "transaction_count_idx_log_index"}];
 
-  // Postress primary key
+  // Postres primary key
   // NOTE: also use as count
   uint64 id = 3;
 }

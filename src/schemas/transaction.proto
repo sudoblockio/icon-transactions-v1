@@ -37,4 +37,7 @@ message Transaction {
   // Used to key internal transactions
   // Base transactions have a -1 value
   int32  log_index = 27 [(gorm.field).tag = {primary_key: true}];
+
+  // Parsed from data json field
+  string method = 28 [(gorm.field).tag = {index: "transaction_idx_method"}];
 }

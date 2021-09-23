@@ -28,7 +28,7 @@ type TransactionCount struct {
 
 	TransactionHash string `protobuf:"bytes,1,opt,name=transaction_hash,json=transactionHash,proto3" json:"transaction_hash"`
 	LogIndex        int32  `protobuf:"varint,2,opt,name=log_index,json=logIndex,proto3" json:"log_index"`
-	// Postress primary key
+	// Postres primary key
 	// NOTE: also use as count
 	Id uint64 `protobuf:"varint,3,opt,name=id,proto3" json:"id"`
 }

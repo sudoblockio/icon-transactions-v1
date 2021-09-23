@@ -71,7 +71,7 @@ func (m *TransactionModel) Insert(transaction *models.Transaction) error {
 	return err
 }
 
-// UpdateOne - select from logs table
+// UpdateOne - update one from transactions table
 func (m *TransactionModel) UpdateOne(
 	transaction *models.Transaction,
 ) error {
@@ -133,7 +133,7 @@ func (m *TransactionModel) SelectMany(
 		db.Count(&count)
 	}
 
-	// Limit is required and defaulted to 1
+	// Limit
 	// Note: Count before setting limit
 	db = db.Limit(limit)
 

@@ -26,6 +26,7 @@ message TransactionWebsocket {
   string receipt_score_address = 18;
   string receipt_logs = 19;
   uint32 receipt_status = 20;
+  string method = 21;
 }
 
 // GORM table to store all seen websocket messages

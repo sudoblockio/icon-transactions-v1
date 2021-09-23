@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"encoding/hex"
+	"encoding/json"
 
 	"github.com/golang/protobuf/proto"
 	"go.uber.org/zap"
@@ -78,6 +79,23 @@ func convertBytesToTransactionRawProtoBuf(value []byte) (*models.TransactionRaw,
 // Business logic goes here
 func transformTransactionRawToTransaction(txRaw *models.TransactionRaw) *models.Transaction {
 
+	// Method
+	method := ""
+	if txRaw.Data != "" {
+		dataJSON := map[string]interface{}{}
+		err := json.Unmarshal([]byte(txRaw.Data), &dataJSON)
+		if err == nil {
+			// Parsing successful
+			if methodInterface, ok := dataJSON["method"]; ok {
+				// Method field is in dataJSON
+				method = methodInterface.(string)
+			}
+		} else {
+			// Parsing error
+			zap.S().Warn("Transaction data field parsing error: ", err.Error(), ",Hash=", txRaw.Hash)
+		}
+	}
+
 	return &models.Transaction{
 		Type:                      txRaw.Type,
 		Version:                   txRaw.Version,
@@ -106,6 +124,7 @@ func transformTransactionRawToTransaction(txRaw *models.TransactionRaw) *models.
 		ItemId:                    txRaw.ItemId,
 		ItemTimestamp:             txRaw.ItemTimestamp,
 		LogIndex:                  -1,
+		Method:                    method,
 	}
 }
 
@@ -133,6 +152,7 @@ func transformTransactionToTransactionWS(tx *models.Transaction) *models.Transac
 		ReceiptScoreAddress:       tx.ReceiptScoreAddress,
 		ReceiptLogs:               tx.ReceiptLogs,
 		ReceiptStatus:             tx.ReceiptStatus,
+		Method:                    tx.Method,
 	}
 }
 
