@@ -31,7 +31,8 @@ type TransactionORM struct {
 	Hash                      string `gorm:"primary_key"`
 	ItemId                    string
 	ItemTimestamp             string
-	LogIndex                  int32 `gorm:"primary_key"`
+	LogIndex                  int32  `gorm:"primary_key"`
+	Method                    string `gorm:"index:transaction_idx_method"`
 	Nid                       uint32
 	Nonce                     string
 	ReceiptCumulativeStepUsed uint64
@@ -92,6 +93,7 @@ func (m *Transaction) ToORM(ctx context.Context) (TransactionORM, error) {
 	to.ItemId = m.ItemId
 	to.ItemTimestamp = m.ItemTimestamp
 	to.LogIndex = m.LogIndex
+	to.Method = m.Method
 	if posthook, ok := interface{}(m).(TransactionWithAfterToORM); ok {
 		err = posthook.AfterToORM(ctx, &to)
 	}
@@ -135,6 +137,7 @@ func (m *TransactionORM) ToPB(ctx context.Context) (Transaction, error) {
 	to.ItemId = m.ItemId
 	to.ItemTimestamp = m.ItemTimestamp
 	to.LogIndex = m.LogIndex
+	to.Method = m.Method
 	if posthook, ok := interface{}(m).(TransactionWithAfterToPB); ok {
 		err = posthook.AfterToPB(ctx, &to)
 	}
@@ -312,6 +315,10 @@ func DefaultApplyFieldMaskTransaction(ctx context.Context, patchee *Transaction,
 		}
 		if f == prefix+"LogIndex" {
 			patchee.LogIndex = patcher.LogIndex
+			continue
+		}
+		if f == prefix+"Method" {
+			patchee.Method = patcher.Method
 			continue
 		}
 	}
