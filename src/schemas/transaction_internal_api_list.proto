@@ -1,0 +1,19 @@
+syntax = "proto3";
+package models;
+option go_package = "./models";
+
+
+message TransactionInternalAPIList {
+
+  string type = 1;
+  string from_address = 2;
+  string to_address = 3;
+  string value = 4;
+  uint64 block_timestamp = 5;
+  string hash = 6;
+  uint32 transaction_index = 7;
+  string block_hash = 8;
+  uint64 block_number = 9;
+  string data = 10;
+  uint32 receipt_status = 11;
+}

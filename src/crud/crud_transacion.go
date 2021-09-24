@@ -154,7 +154,6 @@ func (m *TransactionModel) SelectMany(
 func (m *TransactionModel) SelectManyAPI(
 	limit int,
 	skip int,
-	hash string,
 	from string,
 	to string,
 	_type string,
@@ -167,12 +166,6 @@ func (m *TransactionModel) SelectManyAPI(
 
 	// Latest transactions first
 	db = db.Order("block_number desc")
-
-	// Hash
-	if hash != "" {
-		computeCount = true
-		db = db.Where("hash = ?", hash)
-	}
 
 	// from
 	if from != "" {
@@ -211,6 +204,45 @@ func (m *TransactionModel) SelectManyAPI(
 	db = db.Find(transactions)
 
 	return transactions, count, db.Error
+}
+
+// SelectManyInternalAPI- select many internal transaction table
+// Returns: models, total count (if filters), error (if present)
+func (m *TransactionModel) SelectManyInternalAPI(
+	limit int,
+	skip int,
+	hash string,
+) (*[]models.TransactionInternalAPIList, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&[]models.Transaction{})
+
+	// Latest transactions first
+	db = db.Order("block_number desc")
+
+	// Hash
+	if hash != "" {
+		db = db.Where("hash = ?", hash)
+	}
+
+	// internal transactions only
+	db = db.Where("type = ?", "log")
+
+	// Limit is required and defaulted to 1
+	// Note: Count before setting limit
+	db = db.Limit(limit)
+
+	// Skip
+	// Note: Count before setting skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
+
+	transactions := &[]models.TransactionInternalAPIList{}
+	db = db.Find(transactions)
+
+	return transactions, db.Error
 }
 
 // SelectOne - select from transactions table

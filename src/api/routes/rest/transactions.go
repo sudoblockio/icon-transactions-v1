@@ -2,7 +2,6 @@ package rest
 
 import (
 	"encoding/json"
-	"regexp"
 	"strconv"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -13,13 +12,11 @@ import (
 )
 
 type TransactionsQuery struct {
-	Limit int `query:"limit"`
-	Skip  int `query:"skip"`
-
-	Hash string `query:"hash"`
-	From string `query:"from"`
-	To   string `query:"to"`
-	Type string `query:"type"`
+	Limit int    `query:"limit"`
+	Skip  int    `query:"skip"`
+	From  string `query:"from"`
+	To    string `query:"to"`
+	Type  string `query:"type"`
 }
 
 func TransactionsAddHandlers(app *fiber.App) {
@@ -28,6 +25,7 @@ func TransactionsAddHandlers(app *fiber.App) {
 
 	app.Get(prefix+"/", handlerGetTransactions)
 	app.Get(prefix+"/:hash", handlerGetTransactionDetails)
+	app.Get(prefix+"/internal/:hash", handlerGetInternalTransactionsByHash)
 }
 
 // Transactions
@@ -39,7 +37,6 @@ func TransactionsAddHandlers(app *fiber.App) {
 // @Produce json
 // @Param limit query int false "amount of records"
 // @Param skip query int false "skip to a record"
-// @Param hash query string false "find by hash"
 // @Param from query string false "find by from address"
 // @Param to query string false "find by to address"
 // @Param type query string false "find by type"
@@ -77,7 +74,6 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	transactions, count, err := crud.GetTransactionModel().SelectManyAPI(
 		params.Limit,
 		params.Skip,
-		params.Hash,
 		params.From,
 		params.To,
 		params.Type,
@@ -132,24 +128,70 @@ func handlerGetTransactionDetails(c *fiber.Ctx) error {
 		return c.SendString(`{"error": "hash required"}`)
 	}
 
-	// Is hash?
-	isHash, err := regexp.Match("0x([0-9a-fA-F]*)", []byte(hash))
+	transaction, err := crud.GetTransactionModel().SelectOneAPI(hash, -1)
 	if err != nil {
+		c.Status(404)
+		return c.SendString(`{"error": "no transaction found"}`)
+	}
+
+	body, _ := json.Marshal(&transaction)
+	return c.SendString(string(body))
+}
+
+// Internal transactions by hash
+// @Summary Get internal transactions by hash
+// @Description Get internal transactions by hash
+// @Tags Transactions
+// @BasePath /api/v1
+// @Accept */*
+// @Produce json
+// @Param limit query int false "amount of records"
+// @Param skip query int false "skip to a record"
+// @Param hash path string false "find by hash"
+// @Router /api/v1/transactions/internal/{hash} [get]
+// @Success 200 {object} []models.TransactionInternalAPIList
+// @Failure 422 {object} map[string]interface{}
+func handlerGetInternalTransactionsByHash(c *fiber.Ctx) error {
+	params := new(TransactionsQuery)
+	if err := c.QueryParser(params); err != nil {
+		zap.S().Warnf("Transactions Get Handler ERROR: %s", err.Error())
+
 		c.Status(422)
-		return c.SendString(`{"error": "invalid hash"}`)
+		return c.SendString(`{"error": "could not parse query parameters"}`)
 	}
-	if isHash == true {
-		// ID is Hash
-		transaction, err := crud.GetTransactionModel().SelectOneAPI(hash, -1)
-		if err != nil {
-			c.Status(404)
-			return c.SendString(`{"error": "no transaction found"}`)
-		}
+	hash := c.Params("hash")
 
-		body, _ := json.Marshal(&transaction)
-		return c.SendString(string(body))
+	// Default Params
+	if params.Limit <= 0 {
+		params.Limit = 25
 	}
 
-	c.Status(422)
-	return c.SendString(`{"error": "invalid hash"}`)
+	// Check Params
+	if params.Limit < 1 || params.Limit > config.Config.MaxPageSize {
+		c.Status(422)
+		return c.SendString(`{"error": "limit must be greater than 0 and less than 101"}`)
+	}
+
+	if hash == "" {
+		c.Status(422)
+		return c.SendString(`{"error": "hash required"}`)
+	}
+
+	internalTransactions, err := crud.GetTransactionModel().SelectManyInternalAPI(
+		params.Limit,
+		params.Skip,
+		hash,
+	)
+	if err != nil {
+		c.Status(404)
+		return c.SendString(`{"error": "no internal transaction found"}`)
+	}
+
+	if len(*internalTransactions) == 0 {
+		// No Content
+		c.Status(204)
+	}
+
+	body, _ := json.Marshal(&internalTransactions)
+	return c.SendString(string(body))
 }
