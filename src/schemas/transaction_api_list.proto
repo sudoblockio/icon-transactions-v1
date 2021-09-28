@@ -11,4 +11,5 @@ message TransactionAPIList {
   string hash = 5;
   uint64 block_number = 6;
   uint64 fee = 7;
+  uint32 receipt_status = 8;
 }
