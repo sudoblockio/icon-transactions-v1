@@ -38,7 +38,7 @@ func transactionsTransformer() {
 
 		consumerTopicMsg := <-consumerTopicChanTransactions
 		transactionRaw, err := convertBytesToTransactionRawProtoBuf(consumerTopicMsg.Value)
-		zap.S().Info("Transactions Transformer: Processing transaction hash=", transactionRaw.Hash)
+		zap.S().Debug("Transactions Transformer: Processing transaction hash=", transactionRaw.Hash)
 		if err != nil {
 			zap.S().Fatal("Transactions Transformer: Unable to proceed cannot convert kafka msg value to TransactionRaw, err: ", err.Error())
 		}
