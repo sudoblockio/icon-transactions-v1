@@ -2,7 +2,7 @@ ingress:
   enabled: false
 api:
   image:
-    tag: '25'
+    tag: '26'
   annotations: |
     "consul.hashicorp.com/connect-inject": "true"
     "consul.hashicorp.com/transparent-proxy": "false"
@@ -16,7 +16,7 @@ worker:
   annotations: |
     "geometrylabs.io/logging": "true"
   image:
-    tag: '25'
+    tag: '26'
   kafka:
     topics:
       blocks: blocks-raw
@@ -25,7 +25,4 @@ worker:
 db:
   sslMode: require
 redis:
-  host: "10.101.62.32"
-#  sentinel:
-#    clientMasterName: mymaster
-#    clientMode: true
+  host: 10.101.62.32
