@@ -157,6 +157,8 @@ func (m *TransactionModel) SelectManyAPI(
 	from string,
 	to string,
 	_type string,
+	blockNumber int,
+	method string,
 ) (*[]models.TransactionAPIList, int64, error) {
 	db := m.db
 	computeCount := false
@@ -182,6 +184,17 @@ func (m *TransactionModel) SelectManyAPI(
 	// type
 	if _type != "" {
 		db = db.Where("type = ?", _type)
+	}
+
+	// block number
+	if blockNumber != 0 {
+		computeCount = true
+		db = db.Where("block_number = ?", blockNumber)
+	}
+
+	// method
+	if method != "" {
+		db = db.Where("method = ?", method)
 	}
 
 	// Count, if needed

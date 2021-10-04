@@ -12,11 +12,13 @@ import (
 )
 
 type TransactionsQuery struct {
-	Limit int    `query:"limit"`
-	Skip  int    `query:"skip"`
-	From  string `query:"from"`
-	To    string `query:"to"`
-	Type  string `query:"type"`
+	Limit       int    `query:"limit"`
+	Skip        int    `query:"skip"`
+	From        string `query:"from"`
+	To          string `query:"to"`
+	Type        string `query:"type"`
+	BlockNumber int    `query:"block_number"`
+	Method      string `query:"method"`
 }
 
 func TransactionsAddHandlers(app *fiber.App) {
@@ -40,6 +42,8 @@ func TransactionsAddHandlers(app *fiber.App) {
 // @Param from query string false "find by from address"
 // @Param to query string false "find by to address"
 // @Param type query string false "find by type"
+// @Param block_number query int false "find by block number"
+// @Param method query string false "find by method"
 // @Router /api/v1/transactions [get]
 // @Success 200 {object} []models.TransactionAPIList
 // @Failure 422 {object} map[string]interface{}
@@ -77,6 +81,8 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 		params.From,
 		params.To,
 		params.Type,
+		params.BlockNumber,
+		params.Method,
 	)
 	if err != nil {
 		zap.S().Warnf("Transactions CRUD ERROR: %s", err.Error())
