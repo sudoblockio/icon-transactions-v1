@@ -2,7 +2,7 @@ ingress:
   enabled: false
 api:
   image:
-    tag: '33'
+    tag: '34'
   annotations: |
     "consul.hashicorp.com/connect-inject": "true"
     "consul.hashicorp.com/transparent-proxy": "false"
@@ -20,7 +20,7 @@ worker:
     "prometheus.io/scrape": "true"
     "prometheus.io/port": "9400"
   image:
-    tag: '33'
+    tag: '34'
   kafka:
     topics:
       blocks: blocks-raw
@@ -31,5 +31,5 @@ db:
 redis:
   host: 10.101.62.32
 kafka:
-  consumerGroupHead: "transactions-consumer-group-head"
-  consumerGroupTail: "transactions-consumer-group-tail"
+  consumerGroupHead: transactions-consumer-group-head
+  consumerGroupTail: transactions-consumer-group-tail
