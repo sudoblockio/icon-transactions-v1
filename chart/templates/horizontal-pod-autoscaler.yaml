@@ -4,7 +4,7 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: {{ .Release.Name }}-api
   labels:
-  {{ include "labels" . | indent 6 }}
+{{ include "labels" . | indent 6 }}
 
 spec:
   minReplicas: 1
@@ -30,4 +30,4 @@ spec:
         target:
           type: AverageValue
           averageValue: "100"
-  {{- end }}
+{{- end }}
