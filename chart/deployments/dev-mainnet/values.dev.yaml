@@ -32,4 +32,4 @@ redis:
   host: 10.101.62.32
 kafka:
   consumerGroupHead: transactions-consumer-group-head
-  consumerGroupTail: transactions-consumer-group-tail
+  consumerGroupTail: transactions-consumer-group-tail-v0.1
