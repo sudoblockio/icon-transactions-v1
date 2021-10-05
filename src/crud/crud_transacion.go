@@ -1,13 +1,14 @@
 package crud
 
 import (
-	"errors"
+	"reflect"
 	"strings"
 	"sync"
 
 	"github.com/cenkalti/backoff/v4"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/geometry-labs/icon-transactions/models"
 )
@@ -305,6 +306,111 @@ func (m *TransactionModel) SelectOneAPI(
 	return transaction, db.Error
 }
 
+func (m *TransactionModel) UpsertOne(
+	transaction *models.Transaction,
+) error {
+	db := m.db
+
+	// Create map[]interface{} with only non-nil fields
+	updateOnConflictValues := map[string]interface{}{}
+
+	// Loop through struct using reflect package
+	modelValueOf := reflect.ValueOf(*transaction)
+	modelTypeOf := reflect.TypeOf(*transaction)
+	for i := 0; i < modelValueOf.NumField(); i++ {
+		modelField := modelValueOf.Field(i)
+		modelType := modelTypeOf.Field(i)
+
+		modelTypeJSONTag := modelType.Tag.Get("json")
+		if modelTypeJSONTag != "" {
+			// exported field
+
+			// Check if field if filled
+			modelFieldKind := modelField.Kind()
+			isFieldFilled := true
+			switch modelFieldKind {
+			case reflect.String:
+				v := modelField.Interface().(string)
+				if v == "" {
+					isFieldFilled = false
+				}
+			case reflect.Int:
+				v := modelField.Interface().(int)
+				if v == 0 {
+					isFieldFilled = false
+				}
+			case reflect.Int8:
+				v := modelField.Interface().(int8)
+				if v == 0 {
+					isFieldFilled = false
+				}
+			case reflect.Int16:
+				v := modelField.Interface().(int16)
+				if v == 0 {
+					isFieldFilled = false
+				}
+			case reflect.Int32:
+				v := modelField.Interface().(int32)
+				if v == 0 {
+					isFieldFilled = false
+				}
+			case reflect.Int64:
+				v := modelField.Interface().(int64)
+				if v == 0 {
+					isFieldFilled = false
+				}
+			case reflect.Uint:
+				v := modelField.Interface().(uint)
+				if v == 0 {
+					isFieldFilled = false
+				}
+			case reflect.Uint8:
+				v := modelField.Interface().(uint8)
+				if v == 0 {
+					isFieldFilled = false
+				}
+			case reflect.Uint16:
+				v := modelField.Interface().(uint16)
+				if v == 0 {
+					isFieldFilled = false
+				}
+			case reflect.Uint32:
+				v := modelField.Interface().(uint32)
+				if v == 0 {
+					isFieldFilled = false
+				}
+			case reflect.Uint64:
+				v := modelField.Interface().(uint64)
+				if v == 0 {
+					isFieldFilled = false
+				}
+			case reflect.Float32:
+				v := modelField.Interface().(float32)
+				if v == 0 {
+					isFieldFilled = false
+				}
+			case reflect.Float64:
+				v := modelField.Interface().(float64)
+				if v == 0 {
+					isFieldFilled = false
+				}
+			}
+
+			if isFieldFilled == true {
+				updateOnConflictValues[modelTypeJSONTag] = modelField.Interface()
+			}
+		}
+	}
+
+	// Upsert
+	db = db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "hash"}, {Name: "log_index"}}, // NOTE set to primary keys for table
+		DoUpdates: clause.Assignments(updateOnConflictValues),
+	}).Create(transaction)
+
+	return db.Error
+}
+
 // StartTransactionLoader starts loader
 func StartTransactionLoader() {
 	go func() {
@@ -314,18 +420,14 @@ func StartTransactionLoader() {
 			// Read transaction
 			newTransaction := <-postgresLoaderChan
 
-			// Update/Insert
-			_, err := GetTransactionModel().SelectOne(newTransaction.Hash, newTransaction.LogIndex)
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-
-				// Insert
-				GetTransactionModel().Insert(newTransaction)
-			} else if err == nil {
-				// Update
-				GetTransactionModel().UpdateOne(newTransaction)
-				zap.S().Debug("Loader=Transaction, Hash=", newTransaction.Hash, " LogIndex=", newTransaction.LogIndex, " - Updated")
-			} else {
-				// Postgress error
+			//////////////////////
+			// Load to postgres //
+			//////////////////////
+			err := GetTransactionModel().UpsertOne(newTransaction)
+			zap.S().Debug("Loader=Transaction, Hash=", newTransaction.Hash, " LogIndex=", newTransaction.LogIndex, " - Upserted")
+			if err != nil {
+				// Postgres error
+				zap.S().Info("Loader=Transaction, Hash=", newTransaction.Hash, " LogIndex=", newTransaction.LogIndex, " - FATAL")
 				zap.S().Fatal(err.Error())
 			}
 		}
