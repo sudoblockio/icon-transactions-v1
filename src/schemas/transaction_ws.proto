@@ -16,7 +16,7 @@ message TransactionWebsocket {
   uint32 transaction_index = 8;
   string block_hash = 9;
   uint64 block_number = 10;
-  uint64 fee = 11;
+  string transaction_fee = 11;
   string signature = 12;
   string data_type = 13;
   string data = 14;

@@ -3,6 +3,8 @@ package transformers
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"math/big"
 
 	"github.com/golang/protobuf/proto"
 	"go.uber.org/zap"
@@ -96,6 +98,16 @@ func transformTransactionRawToTransaction(txRaw *models.TransactionRaw) *models.
 		}
 	}
 
+	// Transaction fee calculation
+	// Use big int
+	// NOTE: transaction fees, once calculated (price*used) may be too large for postgres
+	receiptStepPriceBig := big.NewInt(int64(txRaw.ReceiptStepPrice))
+	receiptStepUsedBig := big.NewInt(int64(txRaw.ReceiptStepUsed))
+	transactionFeesBig := receiptStepUsedBig.Mul(receiptStepUsedBig, receiptStepPriceBig)
+
+	// to hex
+	transactionFee := fmt.Sprintf("0x%x", transactionFeesBig)
+
 	return &models.Transaction{
 		Type:                      txRaw.Type,
 		Version:                   txRaw.Version,
@@ -111,7 +123,7 @@ func transformTransactionRawToTransaction(txRaw *models.TransactionRaw) *models.
 		TransactionIndex:          txRaw.TransactionIndex,
 		BlockHash:                 txRaw.BlockHash,
 		BlockNumber:               txRaw.BlockNumber,
-		Fee:                       txRaw.Fee,
+		TransactionFee:            transactionFee,
 		Signature:                 txRaw.Signature,
 		DataType:                  txRaw.DataType,
 		Data:                      txRaw.Data,
@@ -142,7 +154,7 @@ func transformTransactionToTransactionWS(tx *models.Transaction) *models.Transac
 		TransactionIndex:          tx.TransactionIndex,
 		BlockHash:                 tx.BlockHash,
 		BlockNumber:               tx.BlockNumber,
-		Fee:                       tx.Fee,
+		TransactionFee:            tx.TransactionFee,
 		Signature:                 tx.Signature,
 		DataType:                  tx.DataType,
 		Data:                      tx.Data,

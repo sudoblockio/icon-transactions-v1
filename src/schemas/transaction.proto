@@ -21,7 +21,7 @@ message Transaction {
   uint32 transaction_index = 12;
   string block_hash = 13;
   uint64 block_number = 14 [(gorm.field).tag = {index: "transaction_idx_block_number"}];
-  uint64 fee = 15;
+  string transaction_fee = 15;
   string signature = 16;
   string data_type = 17;
   string data = 18;
