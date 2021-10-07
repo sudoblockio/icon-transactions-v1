@@ -113,7 +113,7 @@ func transformLogRawToTransaction(logRaw *models.LogRaw) *models.Transaction {
 		TransactionIndex:          logRaw.TransactionIndex,
 		BlockHash:                 logRaw.BlockHash,
 		BlockNumber:               logRaw.BlockNumber,
-		Fee:                       0,
+		TransactionFee:            "",
 		Signature:                 "",
 		DataType:                  "",
 		Data:                      logRaw.Data,
