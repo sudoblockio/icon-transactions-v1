@@ -79,10 +79,6 @@ func parseFixtureToTransaction(m map[string]interface{}) *models.Transaction {
 	if ok == false {
 		nonce = ""
 	}
-	fee, ok := m["fee"].(uint64)
-	if ok == false {
-		fee = 0
-	}
 	itemTimestamp, ok := m["itemtimestamp"].(string)
 	if ok == false {
 		itemTimestamp = ""
@@ -103,7 +99,7 @@ func parseFixtureToTransaction(m map[string]interface{}) *models.Transaction {
 		TransactionIndex:          uint32(m["transaction_index"].(float64)),
 		BlockHash:                 m["block_hash"].(string),
 		BlockNumber:               uint64(m["block_number"].(float64)),
-		Fee:                       fee,
+		TransactionFee:            "0x0",
 		Signature:                 m["signature"].(string),
 		DataType:                  m["data_type"].(string),
 		Data:                      m["data"].(string),

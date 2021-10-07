@@ -10,6 +10,6 @@ message TransactionAPIList {
   string timestamp = 4;
   string hash = 5;
   uint64 block_number = 6;
-  uint64 fee = 7;
+  string transaction_fee = 7;
   uint32 receipt_status = 8;
 }

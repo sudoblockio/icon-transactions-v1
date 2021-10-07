@@ -26,7 +26,6 @@ type TransactionORM struct {
 	BlockTimestamp            uint64
 	Data                      string
 	DataType                  string
-	Fee                       uint64
 	FromAddress               string `gorm:"index:transaction_idx_from_address"`
 	Hash                      string `gorm:"primary_key"`
 	ItemId                    string
@@ -45,6 +44,7 @@ type TransactionORM struct {
 	StepLimit                 uint64
 	Timestamp                 string
 	ToAddress                 string `gorm:"index:transaction_idx_to_address"`
+	TransactionFee            string
 	TransactionIndex          uint32
 	Type                      string `gorm:"index:transaction_idx_type"`
 	Value                     string
@@ -80,7 +80,7 @@ func (m *Transaction) ToORM(ctx context.Context) (TransactionORM, error) {
 	to.TransactionIndex = m.TransactionIndex
 	to.BlockHash = m.BlockHash
 	to.BlockNumber = m.BlockNumber
-	to.Fee = m.Fee
+	to.TransactionFee = m.TransactionFee
 	to.Signature = m.Signature
 	to.DataType = m.DataType
 	to.Data = m.Data
@@ -124,7 +124,7 @@ func (m *TransactionORM) ToPB(ctx context.Context) (Transaction, error) {
 	to.TransactionIndex = m.TransactionIndex
 	to.BlockHash = m.BlockHash
 	to.BlockNumber = m.BlockNumber
-	to.Fee = m.Fee
+	to.TransactionFee = m.TransactionFee
 	to.Signature = m.Signature
 	to.DataType = m.DataType
 	to.Data = m.Data
@@ -265,8 +265,8 @@ func DefaultApplyFieldMaskTransaction(ctx context.Context, patchee *Transaction,
 			patchee.BlockNumber = patcher.BlockNumber
 			continue
 		}
-		if f == prefix+"Fee" {
-			patchee.Fee = patcher.Fee
+		if f == prefix+"TransactionFee" {
+			patchee.TransactionFee = patcher.TransactionFee
 			continue
 		}
 		if f == prefix+"Signature" {
@@ -350,7 +350,7 @@ func DefaultListTransaction(ctx context.Context, db *gorm1.DB) ([]*Transaction, 
 		}
 	}
 	db = db.Where(&ormObj)
-	db = db.Order("log_index")
+	db = db.Order("hash")
 	ormResponse := []TransactionORM{}
 	if err := db.Find(&ormResponse).Error; err != nil {
 		return nil, err
