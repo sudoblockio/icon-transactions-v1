@@ -27,6 +27,7 @@ func logsTransformer() {
 
 	// Output channels
 	transactionLoaderChan := crud.GetTransactionModel().LoaderChannel
+	tokenTransferLoaderChan := crud.GetTokenTransferModel().LoaderChannel
 	transactionWebsocketLoaderChan := crud.GetTransactionWebsocketIndexModel().LoaderChannel
 	transactionCountLoaderChan := crud.GetTransactionCountModel().LoaderChannel
 
@@ -65,6 +66,12 @@ func logsTransformer() {
 			transactionCountLoaderChan <- transactionCount
 		}
 
+		// Loads to: token_transfers
+		tokenTransfer := transformLogRawToTokenTransfer(logRaw)
+		if tokenTransfer != nil {
+			tokenTransferLoaderChan <- tokenTransfer
+		}
+
 		/////////////
 		// Metrics //
 		/////////////
@@ -82,7 +89,6 @@ func convertBytesToLogRawProtoBuf(value []byte) (*models.LogRaw, error) {
 	return &log, err
 }
 
-// Business logic goes here
 func transformLogRawToTransaction(logRaw *models.LogRaw) *models.Transaction {
 
 	var indexed []string
@@ -126,5 +132,29 @@ func transformLogRawToTransaction(logRaw *models.LogRaw) *models.Transaction {
 		ItemId:                    logRaw.ItemId,
 		ItemTimestamp:             logRaw.ItemTimestamp,
 		LogIndex:                  int32(logRaw.LogIndex),
+	}
+}
+
+func transformLogRawToTokenTransfer(logRaw *models.LogRaw) *models.TokenTransfer {
+
+	var indexed []string
+	err := json.Unmarshal([]byte(logRaw.Indexed), &indexed)
+	if err != nil {
+		zap.S().Fatal("Unable to parse indexed field in log; indexed=", logRaw.Indexed, " error: ", err.Error())
+	}
+
+	if indexed[0] != "Transfer(Address,Address,int,bytes)" || len(indexed) != 4 {
+		// Not token transfer
+		return nil
+	}
+
+	return &models.TokenTransfer{
+		TokenContractAddress: logRaw.Address,
+		FromAddress:          indexed[1],
+		ToAddress:            indexed[2],
+		Value:                indexed[3],
+		TransactionHash:      logRaw.TransactionHash,
+		LogIndex:             int32(logRaw.LogIndex),
+		BlockNumber:          logRaw.BlockNumber,
 	}
 }
