@@ -1,0 +1,17 @@
+syntax = "proto3";
+package models;
+option go_package = "./models";
+
+import "github.com/infobloxopen/protoc-gen-gorm/options/gorm.proto";
+
+message TokenTransfer {
+  option (gorm.opts) = {ormable: true};
+
+  string token_contract_address = 1 [(gorm.field).tag = {index: "token_transfer_idx_token_contract_address"}];
+  string from_address = 2 [(gorm.field).tag = {index: "token_transfer_idx_from_address"}];
+  string to_address = 3 [(gorm.field).tag = {index: "token_transfer_idx_to_address"}];
+  string value = 4;
+  string transaction_hash = 5 [(gorm.field).tag = {primary_key: true}];
+  int32  log_index = 6 [(gorm.field).tag = {primary_key: true}];
+  uint64 block_number = 7 [(gorm.field).tag = {index: "token_transfer_idx_block_number"}];
+}
