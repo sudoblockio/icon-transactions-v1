@@ -176,12 +176,11 @@ func handlerGetTokenTransfers(c *fiber.Ctx) error {
 		c.Append("X-TOTAL-COUNT", strconv.FormatInt(count, 10))
 	} else {
 		// No filters given, count all
-		// Total count in the transaction_counts table
-		// TODO
-		counter, err := crud.GetTransactionCountModel().SelectLargestCount()
+		// Total count in the token_transfer_counts table
+		counter, err := crud.GetTokenTransferCountModel().SelectLargestCount()
 		if err != nil {
 			counter = 0
-			zap.S().Warn("Could not retrieve transaction count: ", err.Error())
+			zap.S().Warn("Could not retrieve token transfer count: ", err.Error())
 		}
 
 		c.Append("X-TOTAL-COUNT", strconv.FormatUint(counter, 10))
