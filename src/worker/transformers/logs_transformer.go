@@ -30,6 +30,7 @@ func logsTransformer() {
 	tokenTransferLoaderChan := crud.GetTokenTransferModel().LoaderChannel
 	transactionWebsocketLoaderChan := crud.GetTransactionWebsocketIndexModel().LoaderChannel
 	transactionCountLoaderChan := crud.GetTransactionCountModel().LoaderChannel
+	tokenTransferCountLoaderChan := crud.GetTokenTransferCountModel().LoaderChannel
 
 	zap.S().Debug("Logs Transformer: started working")
 	for {
@@ -70,6 +71,10 @@ func logsTransformer() {
 		tokenTransfer := transformLogRawToTokenTransfer(logRaw)
 		if tokenTransfer != nil {
 			tokenTransferLoaderChan <- tokenTransfer
+
+			// Loads to: token_transfers_count
+			tokenTransferCount := transformTokenTransferToTokenTransferCount(tokenTransfer)
+			tokenTransferCountLoaderChan <- tokenTransferCount
 		}
 
 		/////////////
@@ -156,5 +161,13 @@ func transformLogRawToTokenTransfer(logRaw *models.LogRaw) *models.TokenTransfer
 		TransactionHash:      logRaw.TransactionHash,
 		LogIndex:             int32(logRaw.LogIndex),
 		BlockNumber:          logRaw.BlockNumber,
+	}
+}
+
+func transformTokenTransferToTokenTransferCount(tokenTransfer *models.TokenTransfer) *models.TokenTransferCount {
+
+	return &models.TokenTransferCount{
+		TransactionHash: tokenTransfer.TransactionHash,
+		LogIndex:        tokenTransfer.LogIndex,
 	}
 }
