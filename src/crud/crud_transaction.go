@@ -220,6 +220,47 @@ func (m *TransactionModel) SelectManyAPI(
 	return transactions, count, db.Error
 }
 
+// SelectManyByAddressAPI - select from transactions table
+// Returns: models, total count (if filters), error (if present)
+func (m *TransactionModel) SelectManyByAddressAPI(
+	limit int,
+	skip int,
+	address string,
+) (*[]models.TransactionAPIList, int64, error) {
+	db := m.db
+	computeCount := true
+
+	// Set table
+	db = db.Model(&[]models.Transaction{})
+
+	// Latest transactions first
+	db = db.Order("block_number desc")
+
+	// From address or to address
+	db = db.Where("from_address = ? OR to_address = ?", address, address)
+
+	// Count, if needed
+	count := int64(-1)
+	if computeCount {
+		db.Count(&count)
+	}
+
+	// Limit is required and defaulted to 1
+	// Note: Count before setting limit
+	db = db.Limit(limit)
+
+	// Skip
+	// Note: Count before setting skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
+
+	transactions := &[]models.TransactionAPIList{}
+	db = db.Find(transactions)
+
+	return transactions, count, db.Error
+}
+
 // SelectManyInternalAPI- select many internal transaction table
 // Returns: models, total count (if filters), error (if present)
 func (m *TransactionModel) SelectManyInternalAPI(

@@ -28,6 +28,7 @@ func TransactionsAddHandlers(app *fiber.App) {
 	app.Get(prefix+"/", handlerGetTransactions)
 	app.Get(prefix+"/token-transfers", handlerGetTokenTransfers)
 	app.Get(prefix+"/details/:hash", handlerGetTransactionDetails)
+	app.Get(prefix+"/address/:address", handlerGetTransactionAddress)
 	app.Get(prefix+"/internal/:hash", handlerGetInternalTransactionsByHash)
 }
 
@@ -190,6 +191,65 @@ func handlerGetTokenTransfers(c *fiber.Ctx) error {
 	return c.SendString(string(body))
 }
 
+// Transactions by Address
+// @Summary Get Transactions by address
+// @Description get transactions by address
+// @Tags Transactions
+// @BasePath /api/v1
+// @Accept */*
+// @Produce json
+// @Param limit query int false "amount of records"
+// @Param skip query int false "skip to a record"
+// @Param address path string true "address"
+// @Router /api/v1/transactions/address/{address} [get]
+// @Success 200 {object} models.TransactionAPIList
+// @Failure 422 {object} map[string]interface{}
+func handlerGetTransactionAddress(c *fiber.Ctx) error {
+	address := c.Params("address")
+	if address == "" {
+		c.Status(422)
+		return c.SendString(`{"error": "address required"}`)
+	}
+
+	params := new(TransactionsQuery)
+	if err := c.QueryParser(params); err != nil {
+		zap.S().Warnf("Transactions Get Handler ERROR: %s", err.Error())
+
+		c.Status(422)
+		return c.SendString(`{"error": "could not parse query parameters"}`)
+	}
+
+	// Default Params
+	if params.Limit <= 0 {
+		params.Limit = 25
+	}
+
+	// Check Params
+	if params.Limit < 1 || params.Limit > config.Config.MaxPageSize {
+		c.Status(422)
+		return c.SendString(`{"error": "limit must be greater than 0 and less than 101"}`)
+	}
+
+	transactions, count, err := crud.GetTransactionModel().SelectManyByAddressAPI(
+		params.Limit,
+		params.Skip,
+		address,
+	)
+	if err != nil {
+		c.Status(500)
+		return c.SendString(`{"error": "no transactions found"}`)
+	}
+
+	// Set X-TOTAL-COUNT
+	if count != -1 {
+		// Filters given, count some
+		c.Append("X-TOTAL-COUNT", strconv.FormatInt(count, 10))
+	}
+
+	body, _ := json.Marshal(&transactions)
+	return c.SendString(string(body))
+}
+
 // Transaction Details
 // @Summary Get Transaction Details
 // @Description get details of a transaction
@@ -211,7 +271,7 @@ func handlerGetTransactionDetails(c *fiber.Ctx) error {
 
 	transaction, err := crud.GetTransactionModel().SelectOneAPI(hash, -1)
 	if err != nil {
-		c.Status(404)
+		c.Status(500)
 		return c.SendString(`{"error": "no transaction found"}`)
 	}
 
@@ -264,7 +324,7 @@ func handlerGetInternalTransactionsByHash(c *fiber.Ctx) error {
 		hash,
 	)
 	if err != nil {
-		c.Status(404)
+		c.Status(500)
 		return c.SendString(`{"error": "no internal transaction found"}`)
 	}
 
