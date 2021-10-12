@@ -1,0 +1,14 @@
+syntax = "proto3";
+package models;
+option go_package = "./models";
+
+import "github.com/infobloxopen/protoc-gen-gorm/options/gorm.proto";
+
+message TransactionInternalCountByAddress {
+  option (gorm.opts) = {ormable: true};
+
+  string transaction_hash = 1 [(gorm.field).tag = {primary_key: true}];
+  uint64 log_index = 2 [(gorm.field).tag = {primary_key: true}];
+  string address = 3 [(gorm.field).tag = {primary_key: true}];
+  uint64 count = 4 [(gorm.field).tag = {index: "transaction_internal_count_by_address_idx_count"}];
+}

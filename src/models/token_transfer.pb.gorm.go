@@ -203,7 +203,7 @@ func DefaultListTokenTransfer(ctx context.Context, db *gorm1.DB) ([]*TokenTransf
 		}
 	}
 	db = db.Where(&ormObj)
-	db = db.Order("log_index")
+	db = db.Order("transaction_hash")
 	ormResponse := []TokenTransferORM{}
 	if err := db.Find(&ormResponse).Error; err != nil {
 		return nil, err
