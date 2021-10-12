@@ -226,9 +226,8 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 	limit int,
 	skip int,
 	address string,
-) (*[]models.TransactionAPIList, int64, error) {
+) (*[]models.TransactionAPIList, error) {
 	db := m.db
-	computeCount := true
 
 	// Set table
 	db = db.Model(&[]models.Transaction{})
@@ -238,12 +237,6 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 
 	// From address or to address
 	db = db.Where("from_address = ? OR to_address = ?", address, address)
-
-	// Count, if needed
-	count := int64(-1)
-	if computeCount {
-		db.Count(&count)
-	}
 
 	// Limit is required and defaulted to 1
 	// Note: Count before setting limit
@@ -258,7 +251,7 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 	transactions := &[]models.TransactionAPIList{}
 	db = db.Find(transactions)
 
-	return transactions, count, db.Error
+	return transactions, db.Error
 }
 
 // SelectManyInternalAPI- select many internal transaction table
