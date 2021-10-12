@@ -230,7 +230,7 @@ func handlerGetTransactionAddress(c *fiber.Ctx) error {
 		return c.SendString(`{"error": "limit must be greater than 0 and less than 101"}`)
 	}
 
-	transactions, count, err := crud.GetTransactionModel().SelectManyByAddressAPI(
+	transactions, err := crud.GetTransactionModel().SelectManyByAddressAPI(
 		params.Limit,
 		params.Skip,
 		address,
@@ -240,11 +240,9 @@ func handlerGetTransactionAddress(c *fiber.Ctx) error {
 		return c.SendString(`{"error": "no transactions found"}`)
 	}
 
+	// TODO
 	// Set X-TOTAL-COUNT
-	if count != -1 {
-		// Filters given, count some
-		c.Append("X-TOTAL-COUNT", strconv.FormatInt(count, 10))
-	}
+	c.Append("X-TOTAL-COUNT", strconv.FormatInt(int64(0), 10))
 
 	body, _ := json.Marshal(&transactions)
 	return c.SendString(string(body))
