@@ -235,6 +235,9 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 	// Latest transactions first
 	db = db.Order("block_number desc")
 
+	// Only regular transactions
+	db = db.Where("type = ?", "transaction")
+
 	// From address or to address
 	db = db.Where("from_address = ? OR to_address = ?", address, address)
 
@@ -274,8 +277,45 @@ func (m *TransactionModel) SelectManyInternalAPI(
 		db = db.Where("hash = ?", hash)
 	}
 
-	// internal transactions only
+	// Internal transactions only
 	db = db.Where("type = ?", "log")
+
+	// Limit is required and defaulted to 1
+	// Note: Count before setting limit
+	db = db.Limit(limit)
+
+	// Skip
+	// Note: Count before setting skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
+
+	transactions := &[]models.TransactionInternalAPIList{}
+	db = db.Find(transactions)
+
+	return transactions, db.Error
+}
+
+// SelectManyInternalByAddressAPI - select from internal transactions table
+// Returns: models, total count (if filters), error (if present)
+func (m *TransactionModel) SelectManyInternalByAddressAPI(
+	limit int,
+	skip int,
+	address string,
+) (*[]models.TransactionInternalAPIList, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&[]models.Transaction{})
+
+	// Latest transactions first
+	db = db.Order("block_number desc")
+
+	// Internal transactions only
+	db = db.Where("type = ?", "log")
+
+	// From address or to address
+	db = db.Where("from_address = ? OR to_address = ?", address, address)
 
 	// Limit is required and defaulted to 1
 	// Note: Count before setting limit
