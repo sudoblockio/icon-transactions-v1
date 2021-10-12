@@ -30,6 +30,7 @@ func transactionsTransformer() {
 	transactionLoaderChan := crud.GetTransactionModel().LoaderChannel
 	transactionWebsocketLoaderChan := crud.GetTransactionWebsocketIndexModel().LoaderChannel
 	transactionCountLoaderChan := crud.GetTransactionCountModel().LoaderChannel
+	transactionCountByAddressLoaderChan := crud.GetTransactionCountByAddressModel().LoaderChannel
 
 	zap.S().Debug("Transactions Transformer: started working")
 	for {
@@ -60,6 +61,18 @@ func transactionsTransformer() {
 		// Loads to: transaction_counts
 		transactionCount := transformTransactionToTransactionCount(transaction)
 		transactionCountLoaderChan <- transactionCount
+
+		// Loads to: transaction_count_by_addresses (from address)
+		transactionCountByFromAddress := transformTransactionToTransactionCountByAddress(transaction, true)
+		if transactionCountByFromAddress != nil {
+			transactionCountByAddressLoaderChan <- transactionCountByFromAddress
+		}
+
+		// Loads to: transaction_count_by_addresses (to address)
+		transactionCountByToAddress := transformTransactionToTransactionCountByAddress(transaction, false)
+		if transactionCountByToAddress != nil {
+			transactionCountByAddressLoaderChan <- transactionCountByToAddress
+		}
 
 		/////////////
 		// Metrics //
@@ -173,5 +186,26 @@ func transformTransactionToTransactionCount(tx *models.Transaction) *models.Tran
 	return &models.TransactionCount{
 		TransactionHash: tx.Hash,
 		LogIndex:        tx.LogIndex,
+	}
+}
+
+func transformTransactionToTransactionCountByAddress(tx *models.Transaction, isFromAddress bool) *models.TransactionCountByAddress {
+
+	// Address
+	address := ""
+
+	if isFromAddress == true {
+		address = tx.FromAddress
+	} else {
+		address = tx.ToAddress
+	}
+	if address == "None" {
+		return nil
+	}
+
+	return &models.TransactionCountByAddress{
+		TransactionHash: tx.Hash,
+		Address:         address,
+		Count:           0, // Adds in loader
 	}
 }

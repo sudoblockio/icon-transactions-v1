@@ -30,6 +30,7 @@ func logsTransformer() {
 	tokenTransferLoaderChan := crud.GetTokenTransferModel().LoaderChannel
 	transactionWebsocketLoaderChan := crud.GetTransactionWebsocketIndexModel().LoaderChannel
 	transactionCountLoaderChan := crud.GetTransactionCountModel().LoaderChannel
+	transactionInternalCountByAddressLoaderChan := crud.GetTransactionInternalCountByAddressModel().LoaderChannel
 	tokenTransferCountLoaderChan := crud.GetTokenTransferCountModel().LoaderChannel
 
 	zap.S().Debug("Logs Transformer: started working")
@@ -65,6 +66,14 @@ func logsTransformer() {
 			// Loads to: transaction_counts
 			transactionCount := transformTransactionToTransactionCount(transaction)
 			transactionCountLoaderChan <- transactionCount
+
+			// Loads to: transaction_internal_count_by_addresses (from address)
+			transactionInternalCountByFromAddress := transformTransactionToTransactionInternalCountByAddress(transaction, true)
+			transactionInternalCountByAddressLoaderChan <- transactionInternalCountByFromAddress
+
+			// Loads to: transaction_internal_count_by_addresses (to address)
+			transactionInternalCountByToAddress := transformTransactionToTransactionInternalCountByAddress(transaction, false)
+			transactionInternalCountByAddressLoaderChan <- transactionInternalCountByToAddress
 		}
 
 		// Loads to: token_transfers
@@ -137,6 +146,25 @@ func transformLogRawToTransaction(logRaw *models.LogRaw) *models.Transaction {
 		ItemId:                    logRaw.ItemId,
 		ItemTimestamp:             logRaw.ItemTimestamp,
 		LogIndex:                  int32(logRaw.LogIndex),
+	}
+}
+
+func transformTransactionToTransactionInternalCountByAddress(tx *models.Transaction, isFromAddress bool) *models.TransactionInternalCountByAddress {
+
+	// Address
+	address := ""
+
+	if isFromAddress == true {
+		address = tx.FromAddress
+	} else {
+		address = tx.ToAddress
+	}
+
+	return &models.TransactionInternalCountByAddress{
+		TransactionHash: tx.Hash,
+		LogIndex:        uint64(tx.LogIndex),
+		Address:         address,
+		Count:           0, // Adds in loader
 	}
 }
 
