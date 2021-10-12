@@ -54,7 +54,7 @@ func (m *TokenTransferModel) Migrate() error {
 	return err
 }
 
-// SelectManyAPI - select from token_transfers table
+// SelectMany - select from token_transfers table
 // Returns: models, total count (if filters), error (if present)
 func (m *TokenTransferModel) SelectMany(
 	limit int,
@@ -110,6 +110,70 @@ func (m *TokenTransferModel) SelectMany(
 	db = db.Find(tokenTransfers)
 
 	return tokenTransfers, count, db.Error
+}
+
+// SelectManyByAddress - select from token_transfers table by address
+// Returns: models, total count (if filters), error (if present)
+func (m *TokenTransferModel) SelectManyByAddress(
+	limit int,
+	skip int,
+	address string,
+) (*[]models.TokenTransfer, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&[]models.TokenTransfer{})
+
+	// Latest transactions first
+	db = db.Order("block_number desc")
+
+	// address
+	db = db.Where("from_address = ? OR to_address = ?", address, address)
+
+	// Limit is required and defaulted to 1
+	db = db.Limit(limit)
+
+	// Skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
+
+	tokenTransfers := &[]models.TokenTransfer{}
+	db = db.Find(tokenTransfers)
+
+	return tokenTransfers, db.Error
+}
+
+// SelectManyByTokenContracAddress - select from token_transfers table by token contract address
+// Returns: models, total count (if filters), error (if present)
+func (m *TokenTransferModel) SelectManyByTokenContractAddress(
+	limit int,
+	skip int,
+	tokenContractAddress string,
+) (*[]models.TokenTransfer, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&[]models.TokenTransfer{})
+
+	// Latest transactions first
+	db = db.Order("block_number desc")
+
+	// address
+	db = db.Where("token_contract_address = ?", tokenContractAddress)
+
+	// Limit is required and defaulted to 1
+	db = db.Limit(limit)
+
+	// Skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
+
+	tokenTransfers := &[]models.TokenTransfer{}
+	db = db.Find(tokenTransfers)
+
+	return tokenTransfers, db.Error
 }
 
 func (m *TokenTransferModel) UpsertOne(
