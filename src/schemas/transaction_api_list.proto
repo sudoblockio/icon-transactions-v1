@@ -12,4 +12,5 @@ message TransactionAPIList {
   uint64 block_number = 6;
   string transaction_fee = 7;
   uint32 receipt_status = 8;
+  string type = 9;
 }
