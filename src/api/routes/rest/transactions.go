@@ -169,9 +169,14 @@ func handlerGetTransactionAddress(c *fiber.Ctx) error {
 		return c.SendString(`{"error": "no transactions found"}`)
 	}
 
-	// TODO
-	// Set X-TOTAL-COUNT
-	c.Append("X-TOTAL-COUNT", strconv.FormatInt(int64(0), 10))
+	// X-TOTAL-COUNT
+	count, err := crud.GetTransactionCountByAddressModel().SelectLargestCountByAddress(address)
+	if err != nil {
+		count = 0
+		zap.S().Warn("Could not retrieve transaction count: ", err.Error())
+	}
+
+	c.Append("X-TOTAL-COUNT", strconv.FormatUint(count, 10))
 
 	body, _ := json.Marshal(&transactions)
 	return c.SendString(string(body))
@@ -467,14 +472,14 @@ func handlerGetTokenTransfersAddress(c *fiber.Ctx) error {
 	}
 
 	// Set X-TOTAL-COUNT
-	// TODO token transfer by address
-	counter, err := crud.GetTokenTransferCountModel().SelectLargestCount()
+	// Token transfer by address
+	count, err := crud.GetTokenTransferCountByAddressModel().SelectLargestCountByAddress(address)
 	if err != nil {
-		counter = 0
+		count = 0
 		zap.S().Warn("Could not retrieve token transfer count: ", err.Error())
 	}
 
-	c.Append("X-TOTAL-COUNT", strconv.FormatUint(counter, 10))
+	c.Append("X-TOTAL-COUNT", strconv.FormatUint(count, 10))
 
 	body, _ := json.Marshal(&tokenTransfers)
 	return c.SendString(string(body))
@@ -536,16 +541,14 @@ func handlerGetTokenTransfersTokenContract(c *fiber.Ctx) error {
 		c.Status(204)
 	}
 
-	// No filters given, count all
-	// Total count in the token_transfer_counts table
-	// TODO token transfers count by token contract address
-	counter, err := crud.GetTokenTransferCountModel().SelectLargestCount()
+	// X-TOTAL-COUNT
+	count, err := crud.GetTokenTransferCountByTokenContractModel().SelectLargestCountByTokenContract(tokenContractAddress)
 	if err != nil {
-		counter = 0
+		count = 0
 		zap.S().Warn("Could not retrieve token transfer count: ", err.Error())
 	}
 
-	c.Append("X-TOTAL-COUNT", strconv.FormatUint(counter, 10))
+	c.Append("X-TOTAL-COUNT", strconv.FormatUint(count, 10))
 
 	body, _ := json.Marshal(&tokenTransfers)
 	return c.SendString(string(body))

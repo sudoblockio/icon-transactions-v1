@@ -117,7 +117,7 @@ func StartTransactionCountLoader() {
 				// Insert
 				err = GetTransactionCountModel().Insert(newTransactionCount)
 				if err != nil {
-					zap.S().Fatal(err.Error())
+					zap.S().Warn(err.Error())
 				}
 
 				zap.S().Debug("Loader=TransactionCount, TransactionHash=", newTransactionCount.TransactionHash, " LogIndex=", newTransactionCount.LogIndex, " - Insert")
