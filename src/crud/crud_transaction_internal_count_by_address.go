@@ -130,7 +130,7 @@ func StartTransactionInternalCountByAddressLoader() {
 				// Insert
 				err = GetTransactionInternalCountByAddressModel().Insert(newTransactionInternalCountByAddress)
 				if err != nil {
-					zap.S().Fatal(err.Error())
+					zap.S().Warn(err.Error())
 				}
 
 				zap.S().Debug("Loader=TransactionInternalCountByAddress, Address=", newTransactionInternalCountByAddress.Address, " - Insert")

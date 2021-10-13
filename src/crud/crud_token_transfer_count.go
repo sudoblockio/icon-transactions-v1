@@ -117,7 +117,7 @@ func StartTokenTransferCountLoader() {
 				// Insert
 				err = GetTokenTransferCountModel().Insert(newTokenTransferCount)
 				if err != nil {
-					zap.S().Fatal(err.Error())
+					zap.S().Warn(err.Error())
 				}
 
 				zap.S().Debug("Loader=TokenTransferCount, TokenTransferHash=", newTokenTransferCount.TransactionHash, " LogIndex=", newTokenTransferCount.LogIndex, " - Insert")

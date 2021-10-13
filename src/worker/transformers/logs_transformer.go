@@ -32,6 +32,8 @@ func logsTransformer() {
 	transactionCountLoaderChan := crud.GetTransactionCountModel().LoaderChannel
 	transactionInternalCountByAddressLoaderChan := crud.GetTransactionInternalCountByAddressModel().LoaderChannel
 	tokenTransferCountLoaderChan := crud.GetTokenTransferCountModel().LoaderChannel
+	tokenTransferCountByAddressLoaderChan := crud.GetTokenTransferCountByAddressModel().LoaderChannel
+	tokenTransferCountByTokenContractLoaderChan := crud.GetTokenTransferCountByTokenContractModel().LoaderChannel
 
 	zap.S().Debug("Logs Transformer: started working")
 	for {
@@ -84,6 +86,18 @@ func logsTransformer() {
 			// Loads to: token_transfers_count
 			tokenTransferCount := transformTokenTransferToTokenTransferCount(tokenTransfer)
 			tokenTransferCountLoaderChan <- tokenTransferCount
+
+			// Loads to: token_transfer_by_addresses (from address)
+			tokenTransferCountByFromAddress := transformTokenTransferToTokenTransferCountByAddress(tokenTransfer, true)
+			tokenTransferCountByAddressLoaderChan <- tokenTransferCountByFromAddress
+
+			// Loads to: token_transfer_by_addresses (to address)
+			tokenTransferCountByToAddress := transformTokenTransferToTokenTransferCountByAddress(tokenTransfer, false)
+			tokenTransferCountByAddressLoaderChan <- tokenTransferCountByToAddress
+
+			// Loads to: token_transfer_by_token_contract
+			tokenTransferCountByTokenContract := transformTokenTransferToTokenTransferCountByTokenContract(tokenTransfer)
+			tokenTransferCountByTokenContractLoaderChan <- tokenTransferCountByTokenContract
 		}
 
 		/////////////
@@ -197,5 +211,34 @@ func transformTokenTransferToTokenTransferCount(tokenTransfer *models.TokenTrans
 	return &models.TokenTransferCount{
 		TransactionHash: tokenTransfer.TransactionHash,
 		LogIndex:        tokenTransfer.LogIndex,
+	}
+}
+
+func transformTokenTransferToTokenTransferCountByAddress(tokenTransfer *models.TokenTransfer, isFromAddress bool) *models.TokenTransferCountByAddress {
+
+	// Address
+	address := ""
+
+	if isFromAddress == true {
+		address = tokenTransfer.FromAddress
+	} else {
+		address = tokenTransfer.ToAddress
+	}
+
+	return &models.TokenTransferCountByAddress{
+		TransactionHash: tokenTransfer.TransactionHash,
+		LogIndex:        uint64(tokenTransfer.LogIndex),
+		Address:         address,
+		Count:           0, // Adds in loader
+	}
+}
+
+func transformTokenTransferToTokenTransferCountByTokenContract(tokenTransfer *models.TokenTransfer) *models.TokenTransferCountByTokenContract {
+
+	return &models.TokenTransferCountByTokenContract{
+		TransactionHash:      tokenTransfer.TransactionHash,
+		LogIndex:             uint64(tokenTransfer.LogIndex),
+		TokenContractAddress: tokenTransfer.TokenContractAddress,
+		Count:                0, // Adds in loader
 	}
 }
