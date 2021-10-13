@@ -22,8 +22,9 @@ type configType struct {
 	MetricsPrefix   string `envconfig:"METRICS_PREFIX" required:"false" default:"/metrics"`
 
 	// CORS
-	CORSAllowOrigins string `envconfig:"CORS_ALLOW_ORIGINS" required:"false" default:"*"`
-	CORSAllowHeaders string `envconfig:"CORS_ALLOW_HEADERS" required:"false" default:"*"`
+	CORSAllowOrigins  string `envconfig:"CORS_ALLOW_ORIGINS" required:"false" default:"*"`
+	CORSAllowHeaders  string `envconfig:"CORS_ALLOW_HEADERS" required:"false" default:"*"`
+	CORSExposeHeaders string `envconfig:"CORS_EXPOSE_HEADERS" required:"false" default:"*"`
 
 	// Monitoring
 	HealthPollingInterval int `envconfig:"HEALTH_POLLING_INTERVAL" required:"false" default:"10"`
@@ -51,14 +52,16 @@ type configType struct {
 	SchemaFolderPath             string            `envconfig:"SCHEMA_FOLDER_PATH" required:"false" default:"schemas/"`
 
 	// DB
-	DbDriver   string `envconfig:"DB_DRIVER" required:"false" default:"postgres"`
-	DbHost     string `envconfig:"DB_HOST" required:"false" default:"localhost"`
-	DbPort     string `envconfig:"DB_PORT" required:"false" default:"5432"`
-	DbUser     string `envconfig:"DB_USER" required:"false" default:"postgres"`
-	DbPassword string `envconfig:"DB_PASSWORD" required:"false" default:"changeme"`
-	DbName     string `envconfig:"DB_DBNAME" required:"false" default:"postgres"`
-	DbSslmode  string `envconfig:"DB_SSL_MODE" required:"false" default:"disable"`
-	DbTimezone string `envconfig:"DB_TIMEZONE" required:"false" default:"UTC"`
+	DbDriver             string `envconfig:"DB_DRIVER" required:"false" default:"postgres"`
+	DbHost               string `envconfig:"DB_HOST" required:"false" default:"localhost"`
+	DbPort               string `envconfig:"DB_PORT" required:"false" default:"5432"`
+	DbUser               string `envconfig:"DB_USER" required:"false" default:"postgres"`
+	DbPassword           string `envconfig:"DB_PASSWORD" required:"false" default:"changeme"`
+	DbName               string `envconfig:"DB_DBNAME" required:"false" default:"postgres"`
+	DbSslmode            string `envconfig:"DB_SSL_MODE" required:"false" default:"disable"`
+	DbTimezone           string `envconfig:"DB_TIMEZONE" required:"false" default:"UTC"`
+	DbMaxIdleConnections int    `envconfig:"DB_MAX_IDLE_CONNECTIONS" required:"false" default:"2"`
+	DbMaxOpenConnections int    `envconfig:"DB_MAX_OPEN_CONNECTIONS" required:"false" default:"10"`
 
 	// Redis
 	RedisHost                     string `envconfig:"REDIS_HOST" required:"false" default:"redis"`
