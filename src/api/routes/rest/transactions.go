@@ -203,7 +203,9 @@ func handlerGetTransactionDetails(c *fiber.Ctx) error {
 
 	transaction, err := crud.GetTransactionModel().SelectOneAPI(hash, -1)
 	if err != nil {
-		c.Status(500)
+		c.Status(404)
+
+		zap.S().Warn(err.Error())
 		return c.SendString(`{"error": "no transaction found"}`)
 	}
 
