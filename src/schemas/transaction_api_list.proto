@@ -7,7 +7,7 @@ message TransactionAPIList {
   string from_address = 1;
   string to_address = 2;
   string value = 3;
-  string timestamp = 4;
+  uint64 block_timestamp = 4;
   string hash = 5;
   uint64 block_number = 6;
   string transaction_fee = 7;
