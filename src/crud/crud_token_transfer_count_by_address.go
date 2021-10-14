@@ -88,6 +88,7 @@ func (m *TokenTransferCountByAddressModel) SelectOne(transactionHash string, log
 }
 
 func (m *TokenTransferCountByAddressModel) SelectLargestCountByAddress(address string) (uint64, error) {
+	return 0, nil
 	db := m.db
 
 	// Set table
