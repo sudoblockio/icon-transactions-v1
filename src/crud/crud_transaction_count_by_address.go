@@ -85,6 +85,8 @@ func (m *TransactionCountByAddressModel) SelectOne(transactionHash string, addre
 }
 
 func (m *TransactionCountByAddressModel) SelectLargestCountByAddress(address string) (uint64, error) {
+	// TODO
+	return 0, nil
 	db := m.db
 
 	// Set table
@@ -115,17 +117,13 @@ func StartTransactionCountByAddressLoader() {
 			)
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				// Last count
-				// TODO
-				/*
-					lastCount, err := GetTransactionCountByAddressModel().SelectLargestCountByAddress(
-						newTransactionCountByAddress.Address,
-					)
-					if err != nil {
-						zap.S().Fatal(err.Error())
-					}
-					newTransactionCountByAddress.Count = lastCount + 1
-				*/
-				newTransactionCountByAddress.Count = 0
+				lastCount, err := GetTransactionCountByAddressModel().SelectLargestCountByAddress(
+					newTransactionCountByAddress.Address,
+				)
+				if err != nil {
+					zap.S().Fatal(err.Error())
+				}
+				newTransactionCountByAddress.Count = lastCount + 1
 
 				// Insert
 				err = GetTransactionCountByAddressModel().Insert(newTransactionCountByAddress)
