@@ -21,6 +21,9 @@ type configType struct {
 	HealthPrefix    string `envconfig:"HEALTH_PREFIX" required:"false" default:"/health"`
 	MetricsPrefix   string `envconfig:"METRICS_PREFIX" required:"false" default:"/metrics"`
 
+	// Endpoints
+	MaxPageSize int `envconfig:"MAX_PAGE_SIZE" required:"false" default:"100"`
+
 	// CORS
 	CORSAllowOrigins  string `envconfig:"CORS_ALLOW_ORIGINS" required:"false" default:"*"`
 	CORSAllowHeaders  string `envconfig:"CORS_ALLOW_HEADERS" required:"false" default:"*"`
@@ -72,8 +75,8 @@ type configType struct {
 	RedisSentinelClientMode       bool   `envconfig:"REDIS_SENTINEL_CLIENT_MODE" required:"false" default:"false"`
 	RedisSentinelClientMasterName string `envconfig:"REDIS_SENTINEL_CLIENT_MASTER_NAME" required:"false" default:"master"`
 
-	// Endpoints
-	MaxPageSize int `envconfig:"MAX_PAGE_SIZE" required:"false" default:"100"`
+	// GORM
+	GormLoggingThresholdMilli int `envconfig:"GORM_LOGGING_THRESHOLD_MILLI" required:"false" default:"100"`
 }
 
 var Config configType
