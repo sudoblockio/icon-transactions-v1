@@ -3,7 +3,7 @@ ingress:
 networkName: sejong
 api:
   image:
-    tag: '54'
+    tag: '55'
   annotations: |
     "consul.hashicorp.com/connect-inject": "true"
     "consul.hashicorp.com/transparent-proxy": "false"
@@ -14,7 +14,7 @@ api:
       logs: logs-raw
 worker:
   image:
-    tag: '54'
+    tag: '55'
   kafka:
     topics:
       blocks: blocks-raw
