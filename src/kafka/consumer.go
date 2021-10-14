@@ -166,6 +166,9 @@ func (c *ClaimConsumer) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sar
 		case <-time.After(5 * time.Second):
 			zap.S().Info("GROUP=", c.group, ",TOPIC=", c.topicName, " - No new kafka messages, waited 5 secs...")
 			continue
+		case <-sess.Context().Done():
+			zap.S().Warn("GROUP=", c.group, ",TOPIC=", c.topicName, " - Session is done, exiting ConsumeClaim loop...")
+			return nil
 		}
 
 		zap.S().Info("GROUP=", c.group, ",TOPIC=", c.topicName, ",PARTITION=", topicMsg.Partition, ",OFFSET=", topicMsg.Offset, " - New message")
