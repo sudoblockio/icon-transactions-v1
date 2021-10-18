@@ -101,7 +101,10 @@ func StartTransactionWebsocketIndexLoader() {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 
 				// Insert
-				GetTransactionWebsocketIndexModel().Insert(newTransactionWebsocketIndex)
+				err = GetTransactionWebsocketIndexModel().Insert(newTransactionWebsocketIndex)
+				if err != nil {
+					zap.S().Warn(err.Error())
+				}
 
 				// Publish to redis
 				newTransactionWebsocketJSON, _ := json.Marshal(newTransactionWebsocket)
