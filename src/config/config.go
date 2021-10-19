@@ -45,8 +45,9 @@ type configType struct {
 	KafkaGroupID      string `envconfig:"KAFKA_GROUP_ID" required:"false" default:"transactions-service"`
 
 	// Topics
-	ConsumerGroupHead            string            `envconfig:"CONSUMER_GROUP_HEAD" required:"false" default:"transactions-consumer-group-head"`
-	ConsumerGroupTail            string            `envconfig:"CONSUMER_GROUP_TAIL" required:"false" default:"transactions-consumer-group-tail"`
+	ConsumerGroup                string            `envconfig:"CONSUMER_GROUP" required:"false" default:"transactions-consumer-group"`
+	ConsumerIsTail               bool              `envconfig:"CONSUMER_IS_TAIL" required:"false" default:"false"`
+	ConsumerJobID                string            `envconfig:"CONSUMER_JOB_ID" required:"false" default:""`
 	ConsumerGroupBalanceStrategy string            `envconfig:"CONSUMER_GROUP_BALANCE_STRATEGY" required:"false" default:"BalanceStrategySticky"`
 	ConsumerTopicBlocks          string            `envconfig:"CONSUMER_TOPIC_BLOCKS" required:"false" default:"blocks"`
 	ConsumerTopicTransactions    string            `envconfig:"CONSUMER_TOPIC_TRANSACTIONS" required:"false" default:"transactions"`
