@@ -53,6 +53,12 @@ func (tb *Broadcaster) Start() {
 		for {
 			msg := <-tb.InputChannel
 
+			if len(tb.OutputChannels) == 0 {
+				// No output channels
+				// Do not block input channel
+				continue
+			}
+
 			for _, channel := range tb.OutputChannels {
 				channel <- msg
 			}
