@@ -1,0 +1,13 @@
+syntax = "proto3";
+package models;
+option go_package = "./models";
+
+import "github.com/infobloxopen/protoc-gen-gorm/options/gorm.proto";
+
+// Used by transaction_count_by_addresses to ensure no double counts
+message TransactionCountByAddressIndex {
+  option (gorm.opts) = {ormable: true};
+
+  string transaction_hash = 1 [(gorm.field).tag = {primary_key: true}];
+  string address = 2 [(gorm.field).tag = {primary_key: true}];
+}

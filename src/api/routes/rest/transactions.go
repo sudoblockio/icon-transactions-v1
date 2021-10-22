@@ -170,7 +170,7 @@ func handlerGetTransactionAddress(c *fiber.Ctx) error {
 	}
 
 	// X-TOTAL-COUNT
-	count, err := crud.GetTransactionCountByAddressModel().SelectLargestCountByAddress(address)
+	count, err := crud.GetTransactionCountByAddressModel().SelectCount(address)
 	if err != nil {
 		count = 0
 		zap.S().Warn("Could not retrieve transaction count: ", err.Error())
