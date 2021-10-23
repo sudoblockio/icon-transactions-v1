@@ -2,12 +2,15 @@ package crud
 
 import (
 	"errors"
+	"reflect"
 	"sync"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/geometry-labs/icon-transactions/models"
+	"github.com/geometry-labs/icon-transactions/redis"
 )
 
 // TokenTransferCountByAddressModel - type for address table model
@@ -53,91 +56,135 @@ func (m *TokenTransferCountByAddressModel) Migrate() error {
 	return err
 }
 
-// Insert - Insert tokenTransferCountByAddress into table
-func (m *TokenTransferCountByAddressModel) Insert(tokenTransferCountByAddress *models.TokenTransferCountByAddress) error {
-	db := m.db
-
-	// Set table
-	db = db.Model(&models.TokenTransferCountByAddress{})
-
-	db = db.Create(tokenTransferCountByAddress)
-
-	return db.Error
-}
-
 // Select - select from tokenTransferCountByAddresss table
-func (m *TokenTransferCountByAddressModel) SelectOne(transactionHash string, logIndex uint64, address string) (models.TokenTransferCountByAddress, error) {
+func (m *TokenTransferCountByAddressModel) SelectOne(address string) (*models.TokenTransferCountByAddress, error) {
 	db := m.db
 
 	// Set table
 	db = db.Model(&models.TokenTransferCountByAddress{})
-
-	// Transaction Hash
-	db = db.Where("transaction_hash = ?", transactionHash)
-
-	// Log Index
-	db = db.Where("log_index = ?", logIndex)
 
 	// Address
 	db = db.Where("address = ?", address)
 
-	tokenTransferCountByAddress := models.TokenTransferCountByAddress{}
-	db = db.First(&tokenTransferCountByAddress)
+	tokenTransferCountByAddress := &models.TokenTransferCountByAddress{}
+	db = db.First(tokenTransferCountByAddress)
 
 	return tokenTransferCountByAddress, db.Error
 }
 
-func (m *TokenTransferCountByAddressModel) SelectLargestCountByAddress(address string) (uint64, error) {
-	return 0, nil
+// Select - select from tokenTransferCountByAddresss table
+func (m *TokenTransferCountByAddressModel) SelectCount(address string) (uint64, error) {
 	db := m.db
 
 	// Set table
 	db = db.Model(&models.TokenTransferCountByAddress{})
 
+	// Address
 	db = db.Where("address = ?", address)
 
-	// Get max id
+	tokenTransferCountByAddress := &models.TokenTransferCountByAddress{}
+	db = db.First(tokenTransferCountByAddress)
+
 	count := uint64(0)
-	row := db.Select("max(count)").Row()
-	row.Scan(&count)
+	if tokenTransferCountByAddress != nil {
+		count = tokenTransferCountByAddress.Count
+	}
 
 	return count, db.Error
+}
+
+func (m *TokenTransferCountByAddressModel) UpsertOne(
+	tokenTransferCountByAddress *models.TokenTransferCountByAddress,
+) error {
+	db := m.db
+
+	// map[string]interface{}
+	updateOnConflictValues := extractFilledFieldsFromModel(
+		reflect.ValueOf(*tokenTransferCountByAddress),
+		reflect.TypeOf(*tokenTransferCountByAddress),
+	)
+
+	// Upsert
+	db = db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "address"}}, // NOTE set to primary keys for table
+		DoUpdates: clause.Assignments(updateOnConflictValues),
+	}).Create(tokenTransferCountByAddress)
+
+	return db.Error
 }
 
 // StartTokenTransferCountByAddressLoader starts loader
 func StartTokenTransferCountByAddressLoader() {
 	go func() {
+		postgresLoaderChan := GetTokenTransferCountByAddressModel().LoaderChannel
 
 		for {
-			// Read tokenTransferCountByAddress
-			newTokenTransferCountByAddress := <-GetTokenTransferCountByAddressModel().LoaderChannel
+			// Read transaction
+			newTokenTransferCountByAddress := <-postgresLoaderChan
 
-			// Insert
-			_, err := GetTokenTransferCountByAddressModel().SelectOne(
-				newTokenTransferCountByAddress.TransactionHash,
-				newTokenTransferCountByAddress.LogIndex,
-				newTokenTransferCountByAddress.Address,
-			)
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				// Last count
-				lastCount, err := GetTokenTransferCountByAddressModel().SelectLargestCountByAddress(
-					newTokenTransferCountByAddress.Address,
-				)
-				if err != nil {
-					zap.S().Fatal(err.Error())
+			//////////////////////////
+			// Get count from redis //
+			//////////////////////////
+			countKey := "token_transfer_count_by_address_" + newTokenTransferCountByAddress.Address
+
+			count, err := redis.GetRedisClient().GetCount(countKey)
+			if err != nil {
+				zap.S().Fatal("Loader=Transaction, Hash=", newTokenTransferCountByAddress.TransactionHash, " Address=", newTokenTransferCountByAddress.Address, " - Error: ", err.Error())
+			}
+
+			// No count set yet
+			// Get from database
+			if count == -1 {
+				curTokenTransferCountByAddress, err := GetTokenTransferCountByAddressModel().SelectOne(newTokenTransferCountByAddress.Address)
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					count = 0
+				} else if err != nil {
+					zap.S().Fatal(
+						"Loader=Transaction,",
+						"Hash=", newTokenTransferCountByAddress.TransactionHash,
+						" Address=", newTokenTransferCountByAddress.Address,
+						" - Error: ", err.Error())
+				} else {
+					count = int64(curTokenTransferCountByAddress.Count)
 				}
-				newTokenTransferCountByAddress.Count = lastCount + 1
 
-				// Insert
-				err = GetTokenTransferCountByAddressModel().Insert(newTokenTransferCountByAddress)
+				// Set count
+				err = redis.GetRedisClient().SetCount(countKey, int64(count))
 				if err != nil {
-					zap.S().Warn(err.Error())
+					// Redis error
+					zap.S().Fatal("Loader=Transaction, Hash=", newTokenTransferCountByAddress.TransactionHash, " Address=", newTokenTransferCountByAddress.Address, " - Error: ", err.Error())
 				}
+			}
 
-				zap.S().Debug("Loader=TokenTransferCountByAddress, Address=", newTokenTransferCountByAddress.Address, " - Insert")
-			} else if err != nil {
-				// Error
-				zap.S().Fatal(err.Error())
+			//////////////////////
+			// Load to postgres //
+			//////////////////////
+
+			// Add transaction to indexed
+			newTokenTransferCountByAddressIndex := &models.TokenTransferCountByAddressIndex{
+				TransactionHash: newTokenTransferCountByAddress.TransactionHash,
+				LogIndex:        newTokenTransferCountByAddress.LogIndex,
+				Address:         newTokenTransferCountByAddress.Address,
+			}
+			err = GetTokenTransferCountByAddressIndexModel().Insert(newTokenTransferCountByAddressIndex)
+			if err != nil {
+				// Record already exists, continue
+				continue
+			}
+
+			// Increment records
+			count, err = redis.GetRedisClient().IncCount(countKey)
+			if err != nil {
+				// Redis error
+				zap.S().Fatal("Loader=Transaction, Hash=", newTokenTransferCountByAddress.TransactionHash, " Address=", newTokenTransferCountByAddress.Address, " - Error: ", err.Error())
+			}
+			newTokenTransferCountByAddress.Count = uint64(count)
+
+			err = GetTokenTransferCountByAddressModel().UpsertOne(newTokenTransferCountByAddress)
+			zap.S().Debug("Loader=Transaction, Hash=", newTokenTransferCountByAddress.TransactionHash, " Address=", newTokenTransferCountByAddress.Address, " - Upserted")
+			if err != nil {
+				// Postgres error
+				zap.S().Fatal("Loader=Transaction, Hash=", newTokenTransferCountByAddress.TransactionHash, " Address=", newTokenTransferCountByAddress.Address, " - Error: ", err.Error())
 			}
 		}
 	}()

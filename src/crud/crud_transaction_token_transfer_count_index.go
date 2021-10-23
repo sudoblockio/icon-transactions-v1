@@ -61,19 +61,3 @@ func (m *TransactionTokenTransferCountIndexModel) Insert(transactionTokenTransaf
 
 	return db.Error
 }
-
-// Select - select from transactionTokenTransaferCountIndexs table
-func (m *TransactionTokenTransferCountIndexModel) SelectOne(transactionHash string) (*models.TransactionTokenTransferCountIndex, error) {
-	db := m.db
-
-	// Set table
-	db = db.Model(&models.TransactionTokenTransferCountIndex{})
-
-	// Address
-	db = db.Where("transaction_hash = ?", transactionHash)
-
-	transactionTokenTransaferCountIndex := &models.TransactionTokenTransferCountIndex{}
-	db = db.First(transactionTokenTransaferCountIndex)
-
-	return transactionTokenTransaferCountIndex, db.Error
-}

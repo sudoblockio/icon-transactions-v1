@@ -475,7 +475,7 @@ func handlerGetTokenTransfersAddress(c *fiber.Ctx) error {
 
 	// Set X-TOTAL-COUNT
 	// Token transfer by address
-	count, err := crud.GetTokenTransferCountByAddressModel().SelectLargestCountByAddress(address)
+	count, err := crud.GetTokenTransferCountByAddressModel().SelectCount(address)
 	if err != nil {
 		count = 0
 		zap.S().Warn("Could not retrieve token transfer count: ", err.Error())

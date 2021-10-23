@@ -61,19 +61,3 @@ func (m *TransactionCountByAddressIndexModel) Insert(transactionCountByAddressIn
 
 	return db.Error
 }
-
-// Select - select from transactionCountByAddressIndexs table
-func (m *TransactionCountByAddressIndexModel) SelectOne(transactionHash string) (*models.TransactionCountByAddressIndex, error) {
-	db := m.db
-
-	// Set table
-	db = db.Model(&models.TransactionCountByAddressIndex{})
-
-	// Address
-	db = db.Where("transaction_hash = ?", transactionHash)
-
-	transactionCountByAddressIndex := &models.TransactionCountByAddressIndex{}
-	db = db.First(transactionCountByAddressIndex)
-
-	return transactionCountByAddressIndex, db.Error
-}
