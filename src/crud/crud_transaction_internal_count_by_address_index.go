@@ -1,0 +1,63 @@
+package crud
+
+import (
+	"sync"
+
+	"go.uber.org/zap"
+	"gorm.io/gorm"
+
+	"github.com/geometry-labs/icon-transactions/models"
+)
+
+// TransactionInternalCountByAddressIndexModel - type for address table model
+type TransactionInternalCountByAddressIndexModel struct {
+	db            *gorm.DB
+	model         *models.TransactionInternalCountByAddressIndex
+	modelORM      *models.TransactionInternalCountByAddressIndexORM
+	LoaderChannel chan *models.TransactionInternalCountByAddressIndex
+}
+
+var transactionInternalCountByAddressIndexModel *TransactionInternalCountByAddressIndexModel
+var transactionInternalCountByAddressIndexModelOnce sync.Once
+
+// GetAddressModel - create and/or return the addresss table model
+func GetTransactionInternalCountByAddressIndexModel() *TransactionInternalCountByAddressIndexModel {
+	transactionInternalCountByAddressIndexModelOnce.Do(func() {
+		dbConn := getPostgresConn()
+		if dbConn == nil {
+			zap.S().Fatal("Cannot connect to postgres database")
+		}
+
+		transactionInternalCountByAddressIndexModel = &TransactionInternalCountByAddressIndexModel{
+			db:            dbConn,
+			model:         &models.TransactionInternalCountByAddressIndex{},
+			LoaderChannel: make(chan *models.TransactionInternalCountByAddressIndex, 1),
+		}
+
+		err := transactionInternalCountByAddressIndexModel.Migrate()
+		if err != nil {
+			zap.S().Fatal("TransactionInternalCountByAddressIndexModel: Unable migrate postgres table: ", err.Error())
+		}
+	})
+
+	return transactionInternalCountByAddressIndexModel
+}
+
+// Migrate - migrate transactionInternalCountByAddressIndexs table
+func (m *TransactionInternalCountByAddressIndexModel) Migrate() error {
+	// Only using TransactionInternalCountByAddressIndexRawORM (ORM version of the proto generated struct) to create the TABLE
+	err := m.db.AutoMigrate(m.modelORM) // Migration and Index creation
+	return err
+}
+
+// Insert - Insert transactionCountByIndex into table
+func (m *TransactionInternalCountByAddressIndexModel) Insert(transactionInternalCountByAddressIndex *models.TransactionInternalCountByAddressIndex) error {
+	db := m.db
+
+	// Set table
+	db = db.Model(&models.TransactionInternalCountByAddressIndex{})
+
+	db = db.Create(transactionInternalCountByAddressIndex)
+
+	return db.Error
+}

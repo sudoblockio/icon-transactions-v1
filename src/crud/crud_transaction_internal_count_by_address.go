@@ -2,12 +2,15 @@ package crud
 
 import (
 	"errors"
+	"reflect"
 	"sync"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/geometry-labs/icon-transactions/models"
+	"github.com/geometry-labs/icon-transactions/redis"
 )
 
 // TransactionInternalCountByAddressModel - type for address table model
@@ -53,90 +56,135 @@ func (m *TransactionInternalCountByAddressModel) Migrate() error {
 	return err
 }
 
-// Insert - Insert transactionInternalCountByAddress into table
-func (m *TransactionInternalCountByAddressModel) Insert(transactionInternalCountByAddress *models.TransactionInternalCountByAddress) error {
-	db := m.db
-
-	// Set table
-	db = db.Model(&models.TransactionInternalCountByAddress{})
-
-	db = db.Create(transactionInternalCountByAddress)
-
-	return db.Error
-}
-
 // Select - select from transactionInternalCountByAddresss table
-func (m *TransactionInternalCountByAddressModel) SelectOne(transactionHash string, logIndex uint64, address string) (models.TransactionInternalCountByAddress, error) {
+func (m *TransactionInternalCountByAddressModel) SelectOne(address string) (*models.TransactionInternalCountByAddress, error) {
 	db := m.db
 
 	// Set table
 	db = db.Model(&models.TransactionInternalCountByAddress{})
-
-	// Transaction Hash
-	db = db.Where("transaction_hash = ?", transactionHash)
-
-	// Log Index
-	db = db.Where("log_index = ?", logIndex)
 
 	// Address
 	db = db.Where("address = ?", address)
 
-	transactionInternalCountByAddress := models.TransactionInternalCountByAddress{}
-	db = db.First(&transactionInternalCountByAddress)
+	transactionInternalCountByAddress := &models.TransactionInternalCountByAddress{}
+	db = db.First(transactionInternalCountByAddress)
 
 	return transactionInternalCountByAddress, db.Error
 }
 
-func (m *TransactionInternalCountByAddressModel) SelectLargestCountByAddress(address string) (uint64, error) {
+// Select - select from transactionInternalCountByAddresss table
+func (m *TransactionInternalCountByAddressModel) SelectCount(address string) (uint64, error) {
 	db := m.db
 
 	// Set table
 	db = db.Model(&models.TransactionInternalCountByAddress{})
 
+	// Address
 	db = db.Where("address = ?", address)
 
-	// Get max id
+	transactionInternalCountByAddress := &models.TransactionInternalCountByAddress{}
+	db = db.First(transactionInternalCountByAddress)
+
 	count := uint64(0)
-	row := db.Select("max(count)").Row()
-	row.Scan(&count)
+	if transactionInternalCountByAddress != nil {
+		count = transactionInternalCountByAddress.Count
+	}
 
 	return count, db.Error
+}
+
+func (m *TransactionInternalCountByAddressModel) UpsertOne(
+	transactionInternalCountByAddress *models.TransactionInternalCountByAddress,
+) error {
+	db := m.db
+
+	// map[string]interface{}
+	updateOnConflictValues := extractFilledFieldsFromModel(
+		reflect.ValueOf(*transactionInternalCountByAddress),
+		reflect.TypeOf(*transactionInternalCountByAddress),
+	)
+
+	// Upsert
+	db = db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "address"}}, // NOTE set to primary keys for table
+		DoUpdates: clause.Assignments(updateOnConflictValues),
+	}).Create(transactionInternalCountByAddress)
+
+	return db.Error
 }
 
 // StartTransactionInternalCountByAddressLoader starts loader
 func StartTransactionInternalCountByAddressLoader() {
 	go func() {
+		postgresLoaderChan := GetTransactionInternalCountByAddressModel().LoaderChannel
 
 		for {
-			// Read transactionInternalCountByAddress
-			newTransactionInternalCountByAddress := <-GetTransactionInternalCountByAddressModel().LoaderChannel
+			// Read transaction
+			newTransactionInternalCountByAddress := <-postgresLoaderChan
 
-			// Insert
-			_, err := GetTransactionInternalCountByAddressModel().SelectOne(
-				newTransactionInternalCountByAddress.TransactionHash,
-				newTransactionInternalCountByAddress.LogIndex,
-				newTransactionInternalCountByAddress.Address,
-			)
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				// Last count
-				lastCount, err := GetTransactionInternalCountByAddressModel().SelectLargestCountByAddress(
-					newTransactionInternalCountByAddress.Address,
-				)
-				if err != nil {
-					zap.S().Fatal(err.Error())
+			//////////////////////////
+			// Get count from redis //
+			//////////////////////////
+			countKey := "transaction_internal_count_by_address_" + newTransactionInternalCountByAddress.Address
+
+			count, err := redis.GetRedisClient().GetCount(countKey)
+			if err != nil {
+				zap.S().Fatal("Loader=Transaction, Hash=", newTransactionInternalCountByAddress.TransactionHash, " Address=", newTransactionInternalCountByAddress.Address, " - Error: ", err.Error())
+			}
+
+			// No count set yet
+			// Get from database
+			if count == -1 {
+				curTransactionInternalCountByAddress, err := GetTransactionInternalCountByAddressModel().SelectOne(newTransactionInternalCountByAddress.Address)
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					count = 0
+				} else if err != nil {
+					zap.S().Fatal(
+						"Loader=Transaction,",
+						"Hash=", newTransactionInternalCountByAddress.TransactionHash,
+						" Address=", newTransactionInternalCountByAddress.Address,
+						" - Error: ", err.Error())
+				} else {
+					count = int64(curTransactionInternalCountByAddress.Count)
 				}
-				newTransactionInternalCountByAddress.Count = lastCount + 1
 
-				// Insert
-				err = GetTransactionInternalCountByAddressModel().Insert(newTransactionInternalCountByAddress)
+				// Set count
+				err = redis.GetRedisClient().SetCount(countKey, int64(count))
 				if err != nil {
-					zap.S().Warn(err.Error())
+					// Redis error
+					zap.S().Fatal("Loader=Transaction, Hash=", newTransactionInternalCountByAddress.TransactionHash, " Address=", newTransactionInternalCountByAddress.Address, " - Error: ", err.Error())
 				}
+			}
 
-				zap.S().Debug("Loader=TransactionInternalCountByAddress, Address=", newTransactionInternalCountByAddress.Address, " - Insert")
-			} else if err != nil {
-				// Error
-				zap.S().Fatal(err.Error())
+			//////////////////////
+			// Load to postgres //
+			//////////////////////
+
+			// Add transaction to indexed
+			newTransactionInternalCountByAddressIndex := &models.TransactionInternalCountByAddressIndex{
+				TransactionHash: newTransactionInternalCountByAddress.TransactionHash,
+				LogIndex:        newTransactionInternalCountByAddress.LogIndex,
+				Address:         newTransactionInternalCountByAddress.Address,
+			}
+			err = GetTransactionInternalCountByAddressIndexModel().Insert(newTransactionInternalCountByAddressIndex)
+			if err != nil {
+				// Record already exists, continue
+				continue
+			}
+
+			// Increment records
+			count, err = redis.GetRedisClient().IncCount(countKey)
+			if err != nil {
+				// Redis error
+				zap.S().Fatal("Loader=Transaction, Hash=", newTransactionInternalCountByAddress.TransactionHash, " Address=", newTransactionInternalCountByAddress.Address, " - Error: ", err.Error())
+			}
+			newTransactionInternalCountByAddress.Count = uint64(count)
+
+			err = GetTransactionInternalCountByAddressModel().UpsertOne(newTransactionInternalCountByAddress)
+			zap.S().Debug("Loader=Transaction, Hash=", newTransactionInternalCountByAddress.TransactionHash, " Address=", newTransactionInternalCountByAddress.Address, " - Upserted")
+			if err != nil {
+				// Postgres error
+				zap.S().Fatal("Loader=Transaction, Hash=", newTransactionInternalCountByAddress.TransactionHash, " Address=", newTransactionInternalCountByAddress.Address, " - Error: ", err.Error())
 			}
 		}
 	}()

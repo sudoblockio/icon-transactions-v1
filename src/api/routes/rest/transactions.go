@@ -331,7 +331,7 @@ func handlerGetInternalTransactionsAddress(c *fiber.Ctx) error {
 	}
 
 	// X-TOTAL-COUNT
-	count, err := crud.GetTransactionInternalCountByAddressModel().SelectLargestCountByAddress(address)
+	count, err := crud.GetTransactionInternalCountByAddressModel().SelectCount(address)
 	if err != nil {
 		count = 0
 		zap.S().Warn("Could not retrieve transaction count: ", err.Error())
