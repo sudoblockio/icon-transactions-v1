@@ -2,15 +2,18 @@ package crud
 
 import (
 	"errors"
+	"reflect"
 	"sync"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/geometry-labs/icon-transactions/models"
+	"github.com/geometry-labs/icon-transactions/redis"
 )
 
-// TokenTransferCountByTokenContractModel - type for address table model
+// TokenTransferCountByTokenContractModel - type for token_contract table model
 type TokenTransferCountByTokenContractModel struct {
 	db            *gorm.DB
 	model         *models.TokenTransferCountByTokenContract
@@ -21,7 +24,7 @@ type TokenTransferCountByTokenContractModel struct {
 var tokenTransferCountByTokenContractModel *TokenTransferCountByTokenContractModel
 var tokenTransferCountByTokenContractModelOnce sync.Once
 
-// GetAddressModel - create and/or return the addresss table model
+// GetTokenContractModel - create and/or return the token_contract table model
 func GetTokenTransferCountByTokenContractModel() *TokenTransferCountByTokenContractModel {
 	tokenTransferCountByTokenContractModelOnce.Do(func() {
 		dbConn := getPostgresConn()
@@ -53,90 +56,134 @@ func (m *TokenTransferCountByTokenContractModel) Migrate() error {
 	return err
 }
 
-// Insert - Insert tokenTransferCountByTokenContract into table
-func (m *TokenTransferCountByTokenContractModel) Insert(tokenTransferCountByTokenContract *models.TokenTransferCountByTokenContract) error {
-	db := m.db
-
-	// Set table
-	db = db.Model(&models.TokenTransferCountByTokenContract{})
-
-	db = db.Create(tokenTransferCountByTokenContract)
-
-	return db.Error
-}
-
 // Select - select from tokenTransferCountByTokenContracts table
-func (m *TokenTransferCountByTokenContractModel) SelectOne(transactionHash string, logIndex uint64, tokenContractAddress string) (models.TokenTransferCountByTokenContract, error) {
+func (m *TokenTransferCountByTokenContractModel) SelectOne(tokenContract string) (*models.TokenTransferCountByTokenContract, error) {
 	db := m.db
 
 	// Set table
 	db = db.Model(&models.TokenTransferCountByTokenContract{})
 
-	// Transaction Hash
-	db = db.Where("transaction_hash = ?", transactionHash)
+	// TokenContract
+	db = db.Where("token_contract = ?", tokenContract)
 
-	// Log Index
-	db = db.Where("log_index = ?", logIndex)
-
-	// Token contract address
-	db = db.Where("token_contract_address = ?", tokenContractAddress)
-
-	tokenTransferCountByTokenContract := models.TokenTransferCountByTokenContract{}
-	db = db.First(&tokenTransferCountByTokenContract)
+	tokenTransferCountByTokenContract := &models.TokenTransferCountByTokenContract{}
+	db = db.First(tokenTransferCountByTokenContract)
 
 	return tokenTransferCountByTokenContract, db.Error
 }
 
-func (m *TokenTransferCountByTokenContractModel) SelectLargestCountByTokenContract(tokenContractAddress string) (uint64, error) {
+// Select - select from tokenTransferCountByTokenContracts table
+func (m *TokenTransferCountByTokenContractModel) SelectCount(tokenContract string) (uint64, error) {
 	db := m.db
 
 	// Set table
 	db = db.Model(&models.TokenTransferCountByTokenContract{})
 
-	db = db.Where("token_contract_address = ?", tokenContractAddress)
+	// TokenContract
+	db = db.Where("token_contract = ?", tokenContract)
 
-	// Get max id
+	tokenTransferCountByTokenContract := &models.TokenTransferCountByTokenContract{}
+	db = db.First(tokenTransferCountByTokenContract)
+
 	count := uint64(0)
-	row := db.Select("max(count)").Row()
-	row.Scan(&count)
+	if tokenTransferCountByTokenContract != nil {
+		count = tokenTransferCountByTokenContract.Count
+	}
 
 	return count, db.Error
+}
+
+func (m *TokenTransferCountByTokenContractModel) UpsertOne(
+	tokenTransferCountByTokenContract *models.TokenTransferCountByTokenContract,
+) error {
+	db := m.db
+
+	// map[string]interface{}
+	updateOnConflictValues := extractFilledFieldsFromModel(
+		reflect.ValueOf(*tokenTransferCountByTokenContract),
+		reflect.TypeOf(*tokenTransferCountByTokenContract),
+	)
+
+	// Upsert
+	db = db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "token_contract"}}, // NOTE set to primary keys for table
+		DoUpdates: clause.Assignments(updateOnConflictValues),
+	}).Create(tokenTransferCountByTokenContract)
+
+	return db.Error
 }
 
 // StartTokenTransferCountByTokenContractLoader starts loader
 func StartTokenTransferCountByTokenContractLoader() {
 	go func() {
+		postgresLoaderChan := GetTokenTransferCountByTokenContractModel().LoaderChannel
 
 		for {
-			// Read tokenTransferCountByTokenContract
-			newTokenTransferCountByTokenContract := <-GetTokenTransferCountByTokenContractModel().LoaderChannel
+			// Read transaction
+			newTokenTransferCountByTokenContract := <-postgresLoaderChan
 
-			// Insert
-			_, err := GetTokenTransferCountByTokenContractModel().SelectOne(
-				newTokenTransferCountByTokenContract.TransactionHash,
-				newTokenTransferCountByTokenContract.LogIndex,
-				newTokenTransferCountByTokenContract.TokenContractAddress,
-			)
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				// Last count
-				lastCount, err := GetTokenTransferCountByTokenContractModel().SelectLargestCountByTokenContract(
-					newTokenTransferCountByTokenContract.TokenContractAddress,
-				)
-				if err != nil {
-					zap.S().Fatal(err.Error())
+			//////////////////////////
+			// Get count from redis //
+			//////////////////////////
+			countKey := "token_transfer_count_by_token_contract_" + newTokenTransferCountByTokenContract.TokenContract
+
+			count, err := redis.GetRedisClient().GetCount(countKey)
+			if err != nil {
+				zap.S().Fatal("Loader=Transaction, Hash=", newTokenTransferCountByTokenContract.TransactionHash, " TokenContract=", newTokenTransferCountByTokenContract.TokenContract, " - Error: ", err.Error())
+			}
+
+			// No count set yet
+			// Get from database
+			if count == -1 {
+				curTokenTransferCountByTokenContract, err := GetTokenTransferCountByTokenContractModel().SelectOne(newTokenTransferCountByTokenContract.TokenContract)
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					count = 0
+				} else if err != nil {
+					zap.S().Fatal(
+						"Loader=Transaction,",
+						"Hash=", newTokenTransferCountByTokenContract.TransactionHash,
+						" TokenContract=", newTokenTransferCountByTokenContract.TokenContract,
+						" - Error: ", err.Error())
+				} else {
+					count = int64(curTokenTransferCountByTokenContract.Count)
 				}
-				newTokenTransferCountByTokenContract.Count = lastCount + 1
 
-				// Insert
-				err = GetTokenTransferCountByTokenContractModel().Insert(newTokenTransferCountByTokenContract)
+				// Set count
+				err = redis.GetRedisClient().SetCount(countKey, int64(count))
 				if err != nil {
-					zap.S().Warn(err.Error())
+					// Redis error
+					zap.S().Fatal("Loader=Transaction, Hash=", newTokenTransferCountByTokenContract.TransactionHash, " TokenContract=", newTokenTransferCountByTokenContract.TokenContract, " - Error: ", err.Error())
 				}
+			}
 
-				zap.S().Debug("Loader=TokenTransferCountByTokenContract, TokenContractAddress=", newTokenTransferCountByTokenContract.TokenContractAddress, " - Insert")
-			} else if err != nil {
-				// Error
-				zap.S().Fatal(err.Error())
+			//////////////////////
+			// Load to postgres //
+			//////////////////////
+
+			// Add transaction to indexed
+			newTokenTransferCountByTokenContractIndex := &models.TokenTransferCountByTokenContractIndex{
+				TransactionHash: newTokenTransferCountByTokenContract.TransactionHash,
+				LogIndex:        newTokenTransferCountByTokenContract.LogIndex,
+			}
+			err = GetTokenTransferCountByTokenContractIndexModel().Insert(newTokenTransferCountByTokenContractIndex)
+			if err != nil {
+				// Record already exists, continue
+				continue
+			}
+
+			// Increment records
+			count, err = redis.GetRedisClient().IncCount(countKey)
+			if err != nil {
+				// Redis error
+				zap.S().Fatal("Loader=Transaction, Hash=", newTokenTransferCountByTokenContract.TransactionHash, " TokenContract=", newTokenTransferCountByTokenContract.TokenContract, " - Error: ", err.Error())
+			}
+			newTokenTransferCountByTokenContract.Count = uint64(count)
+
+			err = GetTokenTransferCountByTokenContractModel().UpsertOne(newTokenTransferCountByTokenContract)
+			zap.S().Debug("Loader=Transaction, Hash=", newTokenTransferCountByTokenContract.TransactionHash, " TokenContract=", newTokenTransferCountByTokenContract.TokenContract, " - Upserted")
+			if err != nil {
+				// Postgres error
+				zap.S().Fatal("Loader=Transaction, Hash=", newTokenTransferCountByTokenContract.TransactionHash, " TokenContract=", newTokenTransferCountByTokenContract.TokenContract, " - Error: ", err.Error())
 			}
 		}
 	}()

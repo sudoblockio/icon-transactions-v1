@@ -245,9 +245,9 @@ func transformTokenTransferToTokenTransferCountByAddress(tokenTransfer *models.T
 func transformTokenTransferToTokenTransferCountByTokenContract(tokenTransfer *models.TokenTransfer) *models.TokenTransferCountByTokenContract {
 
 	return &models.TokenTransferCountByTokenContract{
-		TransactionHash:      tokenTransfer.TransactionHash,
-		LogIndex:             uint64(tokenTransfer.LogIndex),
-		TokenContractAddress: tokenTransfer.TokenContractAddress,
-		Count:                0, // Adds in loader
+		TransactionHash: tokenTransfer.TransactionHash,
+		LogIndex:        uint64(tokenTransfer.LogIndex),
+		TokenContract:   tokenTransfer.TokenContractAddress,
+		Count:           0, // Adds in loader
 	}
 }

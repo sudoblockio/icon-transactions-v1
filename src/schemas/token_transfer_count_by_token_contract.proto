@@ -7,8 +7,8 @@ import "github.com/infobloxopen/protoc-gen-gorm/options/gorm.proto";
 message TokenTransferCountByTokenContract {
   option (gorm.opts) = {ormable: true};
 
-  string transaction_hash = 1 [(gorm.field).tag = {primary_key: true}];
-  uint64 log_index = 2 [(gorm.field).tag = {primary_key: true}];
-  string token_contract_address = 3 [(gorm.field).tag = {primary_key: true}];
-  uint64 count = 4 [(gorm.field).tag = {index: "token_transfer_count_by_token_contract_idx_count"}];
+  string transaction_hash = 1;
+  uint64 log_index = 2;
+  string token_contract = 3 [(gorm.field).tag = {primary_key: true}];
+  uint64 count = 4;
 }
