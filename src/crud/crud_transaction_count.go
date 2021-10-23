@@ -2,15 +2,18 @@ package crud
 
 import (
 	"errors"
+	"reflect"
 	"sync"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/geometry-labs/icon-transactions/models"
+	"github.com/geometry-labs/icon-transactions/redis"
 )
 
-// TransactionCountModel - type for log table model
+// TransactionCountModel - type for address table model
 type TransactionCountModel struct {
 	db            *gorm.DB
 	model         *models.TransactionCount
@@ -21,7 +24,7 @@ type TransactionCountModel struct {
 var transactionCountModel *TransactionCountModel
 var transactionCountModelOnce sync.Once
 
-// GetLogModel - create and/or return the logs table model
+// GetAddressModel - create and/or return the addresss table model
 func GetTransactionCountModel() *TransactionCountModel {
 	transactionCountModelOnce.Do(func() {
 		dbConn := getPostgresConn()
@@ -53,30 +56,15 @@ func (m *TransactionCountModel) Migrate() error {
 	return err
 }
 
-// Insert - Insert transactionCount into table
-func (m *TransactionCountModel) Insert(transactionCount *models.TransactionCount) error {
-	db := m.db
-
-	// Set table
-	db = db.Model(&models.TransactionCount{})
-
-	db = db.Create(transactionCount)
-
-	return db.Error
-}
-
 // Select - select from transactionCounts table
-func (m *TransactionCountModel) SelectOne(transactionHash string, logIndex int32) (*models.TransactionCount, error) {
+func (m *TransactionCountModel) SelectOne(_type string) (*models.TransactionCount, error) {
 	db := m.db
 
 	// Set table
 	db = db.Model(&models.TransactionCount{})
 
-	// Transaction Hash
-	db = db.Where("transaction_hash = ?", transactionHash)
-
-	// Log Index
-	db = db.Where("log_index = ?", logIndex)
+	// Address
+	db = db.Where("type = ?", _type)
 
 	transactionCount := &models.TransactionCount{}
 	db = db.First(transactionCount)
@@ -84,46 +72,159 @@ func (m *TransactionCountModel) SelectOne(transactionHash string, logIndex int32
 	return transactionCount, db.Error
 }
 
-func (m *TransactionCountModel) SelectLargestCount() (uint64, error) {
-
+// Select - select from transactionCounts table
+func (m *TransactionCountModel) SelectCount(_type string) (uint64, error) {
 	db := m.db
-	//computeCount := false
 
 	// Set table
 	db = db.Model(&models.TransactionCount{})
 
-	// Get max id
+	// Address
+	db = db.Where("type = ?", _type)
+
+	transactionCount := &models.TransactionCount{}
+	db = db.First(transactionCount)
+
 	count := uint64(0)
-	row := db.Select("max(id)").Row()
-	row.Scan(&count)
+	if transactionCount != nil {
+		count = transactionCount.Count
+	}
 
 	return count, db.Error
+}
+
+func (m *TransactionCountModel) UpsertOne(
+	transactionCount *models.TransactionCount,
+) error {
+	db := m.db
+
+	// map[string]interface{}
+	updateOnConflictValues := extractFilledFieldsFromModel(
+		reflect.ValueOf(*transactionCount),
+		reflect.TypeOf(*transactionCount),
+	)
+
+	// Upsert
+	db = db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "type"}}, // NOTE set to primary keys for table
+		DoUpdates: clause.Assignments(updateOnConflictValues),
+	}).Create(transactionCount)
+
+	return db.Error
 }
 
 // StartTransactionCountLoader starts loader
 func StartTransactionCountLoader() {
 	go func() {
+		postgresLoaderChan := GetTransactionCountModel().LoaderChannel
 
 		for {
-			// Read transactionCount
-			newTransactionCount := <-GetTransactionCountModel().LoaderChannel
+			// Read transaction
+			newTransactionCount := <-postgresLoaderChan
 
-			// Insert
-			_, err := GetTransactionCountModel().SelectOne(
-				newTransactionCount.TransactionHash,
-				newTransactionCount.LogIndex,
-			)
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				// Insert
-				err = GetTransactionCountModel().Insert(newTransactionCount)
-				if err != nil {
-					zap.S().Warn(err.Error())
+			//////////////////////////
+			// Get count from redis //
+			//////////////////////////
+			countKey := "transaction_count_" + newTransactionCount.Type
+
+			count, err := redis.GetRedisClient().GetCount(countKey)
+			if err != nil {
+				zap.S().Fatal(
+					"Loader=Transaction,",
+					"Hash=", newTransactionCount.TransactionHash,
+					" Type=", newTransactionCount.Type,
+					" - Error: ", err.Error())
+			}
+
+			// No count set yet
+			// Get from database
+			if count == -1 {
+				curTransactionCount, err := GetTransactionCountModel().SelectOne(newTransactionCount.Type)
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					count = 0
+				} else if err != nil {
+					zap.S().Fatal(
+						"Loader=Transaction,",
+						"Hash=", newTransactionCount.TransactionHash,
+						" Type=", newTransactionCount.Type,
+						" - Error: ", err.Error())
+				} else {
+					count = int64(curTransactionCount.Count)
 				}
 
-				zap.S().Debug("Loader=TransactionCount, TransactionHash=", newTransactionCount.TransactionHash, " LogIndex=", newTransactionCount.LogIndex, " - Insert")
-			} else if err != nil {
-				// Error
-				zap.S().Fatal(err.Error())
+				// Set count
+				err = redis.GetRedisClient().SetCount(countKey, int64(count))
+				if err != nil {
+					// Redis error
+					zap.S().Fatal(
+						"Loader=Transaction,",
+						"Hash=", newTransactionCount.TransactionHash,
+						" Type=", newTransactionCount.Type,
+						" - Error: ", err.Error())
+				}
+			}
+
+			//////////////////////
+			// Load to postgres //
+			//////////////////////
+
+			// Add transaction to indexed
+			if newTransactionCount.Type == "regular" {
+				newTransactionCountIndex := &models.TransactionCountIndex{
+					TransactionHash: newTransactionCount.TransactionHash,
+				}
+				err = GetTransactionCountIndexModel().Insert(newTransactionCountIndex)
+				if err != nil {
+					// Record already exists, continue
+					continue
+				}
+			} else if newTransactionCount.Type == "internal" {
+				newTransactionInternalCountIndex := &models.TransactionInternalCountIndex{
+					TransactionHash: newTransactionCount.TransactionHash,
+					LogIndex:        newTransactionCount.LogIndex,
+				}
+				err = GetTransactionInternalCountIndexModel().Insert(newTransactionInternalCountIndex)
+				if err != nil {
+					// Record already exists, continue
+					continue
+				}
+			} else if newTransactionCount.Type == "token_transfer" {
+				newTransactionTokenTransferCountIndex := &models.TransactionTokenTransferCountIndex{
+					TransactionHash: newTransactionCount.TransactionHash,
+					LogIndex:        newTransactionCount.LogIndex,
+				}
+				err = GetTransactionTokenTransferCountIndexModel().Insert(newTransactionTokenTransferCountIndex)
+				if err != nil {
+					// Record already exists, continue
+					continue
+				}
+			}
+
+			// Increment records
+			count, err = redis.GetRedisClient().IncCount(countKey)
+			if err != nil {
+				// Redis error
+				zap.S().Fatal(
+					"Loader=Transaction,",
+					"Hash=", newTransactionCount.TransactionHash,
+					" Type=", newTransactionCount.Type,
+					" - Error: ", err.Error())
+			}
+			newTransactionCount.Count = uint64(count)
+
+			err = GetTransactionCountModel().UpsertOne(newTransactionCount)
+			zap.S().Debug(
+				"Loader=Transaction,",
+				"Hash=", newTransactionCount.TransactionHash,
+				" Type=", newTransactionCount.Type,
+				" - Upsert")
+			if err != nil {
+				// Postgres error
+				zap.S().Fatal(
+					"Loader=Transaction,",
+					"Hash=", newTransactionCount.TransactionHash,
+					" Type=", newTransactionCount.Type,
+					" - Error: ", err.Error())
 			}
 		}
 	}()

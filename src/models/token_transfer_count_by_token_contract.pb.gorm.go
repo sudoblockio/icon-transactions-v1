@@ -182,7 +182,7 @@ func DefaultListTokenTransferCountByTokenContract(ctx context.Context, db *gorm1
 		}
 	}
 	db = db.Where(&ormObj)
-	db = db.Order("transaction_hash")
+	db = db.Order("token_contract_address")
 	ormResponse := []TokenTransferCountByTokenContractORM{}
 	if err := db.Find(&ormResponse).Error; err != nil {
 		return nil, err

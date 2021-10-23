@@ -31,7 +31,6 @@ func logsTransformer() {
 	transactionWebsocketLoaderChan := crud.GetTransactionWebsocketIndexModel().LoaderChannel
 	transactionCountLoaderChan := crud.GetTransactionCountModel().LoaderChannel
 	transactionInternalCountByAddressLoaderChan := crud.GetTransactionInternalCountByAddressModel().LoaderChannel
-	tokenTransferCountLoaderChan := crud.GetTokenTransferCountModel().LoaderChannel
 	tokenTransferCountByAddressLoaderChan := crud.GetTokenTransferCountByAddressModel().LoaderChannel
 	tokenTransferCountByTokenContractLoaderChan := crud.GetTokenTransferCountByTokenContractModel().LoaderChannel
 
@@ -66,8 +65,8 @@ func logsTransformer() {
 			transactionWebsocketLoaderChan <- transactionWebsocket
 
 			// Loads to: transaction_counts
-			transactionCount := transformTransactionToTransactionCount(transaction)
-			transactionCountLoaderChan <- transactionCount
+			transactionCountInternal := transformTransactionToTransactionCountInternal(transaction)
+			transactionCountLoaderChan <- transactionCountInternal
 
 			// Loads to: transaction_internal_count_by_addresses (from address)
 			transactionInternalCountByFromAddress := transformTransactionToTransactionInternalCountByAddress(transaction, true)
@@ -84,8 +83,8 @@ func logsTransformer() {
 			tokenTransferLoaderChan <- tokenTransfer
 
 			// Loads to: token_transfers_count
-			tokenTransferCount := transformTokenTransferToTokenTransferCount(tokenTransfer)
-			tokenTransferCountLoaderChan <- tokenTransferCount
+			transactionCountTokenTransfer := transformTokenTransferToTransactionCountTokenTransfer(tokenTransfer)
+			transactionCountLoaderChan <- transactionCountTokenTransfer
 
 			// Loads to: token_transfer_by_addresses (from address)
 			tokenTransferCountByFromAddress := transformTokenTransferToTokenTransferCountByAddress(tokenTransfer, true)
@@ -206,11 +205,21 @@ func transformLogRawToTokenTransfer(logRaw *models.LogRaw) *models.TokenTransfer
 	}
 }
 
-func transformTokenTransferToTokenTransferCount(tokenTransfer *models.TokenTransfer) *models.TokenTransferCount {
+func transformTransactionToTransactionCountInternal(transaction *models.Transaction) *models.TransactionCount {
 
-	return &models.TokenTransferCount{
+	return &models.TransactionCount{
+		TransactionHash: transaction.Hash,
+		LogIndex:        transaction.LogIndex,
+		Type:            "internal",
+	}
+}
+
+func transformTokenTransferToTransactionCountTokenTransfer(tokenTransfer *models.TokenTransfer) *models.TransactionCount {
+
+	return &models.TransactionCount{
 		TransactionHash: tokenTransfer.TransactionHash,
 		LogIndex:        tokenTransfer.LogIndex,
+		Type:            "token_transfer",
 	}
 }
 

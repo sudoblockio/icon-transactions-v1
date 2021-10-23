@@ -186,6 +186,7 @@ func transformTransactionToTransactionCount(tx *models.Transaction) *models.Tran
 	return &models.TransactionCount{
 		TransactionHash: tx.Hash,
 		LogIndex:        tx.LogIndex,
+		Type:            "regular",
 	}
 }
 

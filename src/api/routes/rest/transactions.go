@@ -107,7 +107,7 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	} else {
 		// No filters given, count all
 		// Total count in the transaction_counts table
-		counter, err := crud.GetTransactionCountModel().SelectLargestCount()
+		counter, err := crud.GetTransactionCountModel().SelectCount("regular")
 		if err != nil {
 			counter = 0
 			zap.S().Warn("Could not retrieve transaction count: ", err.Error())
@@ -404,7 +404,7 @@ func handlerGetTokenTransfers(c *fiber.Ctx) error {
 	} else {
 		// No filters given, count all
 		// Total count in the token_transfer_counts table
-		counter, err := crud.GetTokenTransferCountModel().SelectLargestCount()
+		counter, err := crud.GetTransactionCountModel().SelectCount("token_transfer")
 		if err != nil {
 			counter = 0
 			zap.S().Warn("Could not retrieve token transfer count: ", err.Error())

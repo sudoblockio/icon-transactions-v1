@@ -7,10 +7,8 @@ import "github.com/infobloxopen/protoc-gen-gorm/options/gorm.proto";
 message TransactionCount {
   option (gorm.opts) = {ormable: true};
 
-  string transaction_hash = 1 [(gorm.field).tag = {index: "transaction_count_idx_transaction_hash"}];
-  int32 log_index = 2 [(gorm.field).tag = {index: "transaction_count_idx_log_index"}];
-
-  // Postres primary key
-  // NOTE: also use as count
-  uint64 id = 3;
+  uint64 count = 1;
+  string type = 2 [(gorm.field).tag = {primary_key: true}]; // regular, internal, token_transfer
+  string transaction_hash = 3;
+  int32 log_index = 4;
 }
