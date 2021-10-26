@@ -125,7 +125,7 @@ func StartTokenTransferCountByTokenContractLoader() {
 			//////////////////////////
 			// Get count from redis //
 			//////////////////////////
-			countKey := "token_transfer_count_by_token_contract_" + newTokenTransferCountByTokenContract.TokenContract
+			countKey := "icon_transactions_token_transfer_count_by_token_contract_" + newTokenTransferCountByTokenContract.TokenContract
 
 			count, err := redis.GetRedisClient().GetCount(countKey)
 			if err != nil {

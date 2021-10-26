@@ -125,7 +125,7 @@ func StartTransactionCountLoader() {
 			//////////////////////////
 			// Get count from redis //
 			//////////////////////////
-			countKey := "transaction_count_" + newTransactionCount.Type
+			countKey := "icon_transactions_transaction_count_" + newTransactionCount.Type
 
 			count, err := redis.GetRedisClient().GetCount(countKey)
 			if err != nil {

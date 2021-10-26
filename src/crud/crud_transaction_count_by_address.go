@@ -125,7 +125,7 @@ func StartTransactionCountByAddressLoader() {
 			//////////////////////////
 			// Get count from redis //
 			//////////////////////////
-			countKey := "transaction_count_by_address_" + newTransactionCountByAddress.Address
+			countKey := "icon_transactions_transaction_count_by_address_" + newTransactionCountByAddress.Address
 
 			count, err := redis.GetRedisClient().GetCount(countKey)
 			if err != nil {
