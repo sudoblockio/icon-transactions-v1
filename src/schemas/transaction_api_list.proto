@@ -13,4 +13,5 @@ message TransactionAPIList {
   string transaction_fee = 7;
   uint32 receipt_status = 8;
   string type = 9;
+  string method = 10;
 }

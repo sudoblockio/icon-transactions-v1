@@ -175,7 +175,7 @@ func DefaultListTransactionInternalCountByAddressIndex(ctx context.Context, db *
 		}
 	}
 	db = db.Where(&ormObj)
-	db = db.Order("transaction_hash")
+	db = db.Order("log_index")
 	ormResponse := []TransactionInternalCountByAddressIndexORM{}
 	if err := db.Find(&ormResponse).Error; err != nil {
 		return nil, err

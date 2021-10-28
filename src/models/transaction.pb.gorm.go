@@ -350,7 +350,7 @@ func DefaultListTransaction(ctx context.Context, db *gorm1.DB) ([]*Transaction, 
 		}
 	}
 	db = db.Where(&ormObj)
-	db = db.Order("log_index")
+	db = db.Order("hash")
 	ormResponse := []TransactionORM{}
 	if err := db.Find(&ormResponse).Error; err != nil {
 		return nil, err
