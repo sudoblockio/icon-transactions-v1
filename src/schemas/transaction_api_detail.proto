@@ -30,4 +30,5 @@ message TransactionAPIDetail {
   string receipt_logs = 23;
   uint32 receipt_status = 24;
   string method = 25;
+  double value_decimal = 26;
 }

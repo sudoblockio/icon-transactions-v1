@@ -48,6 +48,7 @@ type TransactionORM struct {
 	TransactionIndex          uint32
 	Type                      string `gorm:"index:transaction_idx_type"`
 	Value                     string
+	ValueDecimal              float64 `gorm:"index:transaction_idx_value_decimal"`
 	Version                   string
 }
 
@@ -94,6 +95,7 @@ func (m *Transaction) ToORM(ctx context.Context) (TransactionORM, error) {
 	to.ItemTimestamp = m.ItemTimestamp
 	to.LogIndex = m.LogIndex
 	to.Method = m.Method
+	to.ValueDecimal = m.ValueDecimal
 	if posthook, ok := interface{}(m).(TransactionWithAfterToORM); ok {
 		err = posthook.AfterToORM(ctx, &to)
 	}
@@ -138,6 +140,7 @@ func (m *TransactionORM) ToPB(ctx context.Context) (Transaction, error) {
 	to.ItemTimestamp = m.ItemTimestamp
 	to.LogIndex = m.LogIndex
 	to.Method = m.Method
+	to.ValueDecimal = m.ValueDecimal
 	if posthook, ok := interface{}(m).(TransactionWithAfterToPB); ok {
 		err = posthook.AfterToPB(ctx, &to)
 	}
@@ -321,6 +324,10 @@ func DefaultApplyFieldMaskTransaction(ctx context.Context, patchee *Transaction,
 			patchee.Method = patcher.Method
 			continue
 		}
+		if f == prefix+"ValueDecimal" {
+			patchee.ValueDecimal = patcher.ValueDecimal
+			continue
+		}
 	}
 	if err != nil {
 		return nil, err
@@ -350,7 +357,7 @@ func DefaultListTransaction(ctx context.Context, db *gorm1.DB) ([]*Transaction, 
 		}
 	}
 	db = db.Where(&ormObj)
-	db = db.Order("hash")
+	db = db.Order("log_index")
 	ormResponse := []TransactionORM{}
 	if err := db.Find(&ormResponse).Error; err != nil {
 		return nil, err

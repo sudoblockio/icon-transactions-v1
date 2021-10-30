@@ -13,6 +13,7 @@ import (
 	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/metrics"
 	"github.com/geometry-labs/icon-transactions/models"
+	"github.com/geometry-labs/icon-transactions/worker/utils"
 )
 
 func StartLogsTransformer() {
@@ -124,19 +125,32 @@ func transformLogRawToTransaction(logRaw *models.LogRaw) *models.Transaction {
 		zap.S().Fatal("Unable to parse indexed field in log; indexed=", logRaw.Indexed, " error: ", err.Error())
 	}
 
+	// Method
 	method := strings.Split(indexed[0], "(")[0]
-
 	if method != "ICXTransfer" {
 		// Not internal transaction
 		return nil
 	}
 
+	// From Address
+	fromAddress := indexed[1]
+
+	// To Address
+	toAddress := indexed[2]
+
+	// Value
+	value := indexed[3]
+
+	// Transaction Decimal Value
+	// Hex -> float64
+	valueDecimal := utils.StringHexBase18ToFloat64(value)
+
 	return &models.Transaction{
 		Type:                      logRaw.Type,
 		Version:                   "",
-		FromAddress:               indexed[1],
-		ToAddress:                 indexed[2],
-		Value:                     indexed[3],
+		FromAddress:               fromAddress,
+		ToAddress:                 toAddress,
+		Value:                     value,
 		StepLimit:                 0,
 		Timestamp:                 "",
 		BlockTimestamp:            logRaw.BlockTimestamp,
@@ -159,6 +173,8 @@ func transformLogRawToTransaction(logRaw *models.LogRaw) *models.Transaction {
 		ItemId:                    logRaw.ItemId,
 		ItemTimestamp:             logRaw.ItemTimestamp,
 		LogIndex:                  int32(logRaw.LogIndex),
+		Method:                    method,
+		ValueDecimal:              valueDecimal,
 	}
 }
 
@@ -194,14 +210,28 @@ func transformLogRawToTokenTransfer(logRaw *models.LogRaw) *models.TokenTransfer
 		return nil
 	}
 
+	// From Address
+	fromAddress := indexed[1]
+
+	// To Address
+	toAddress := indexed[2]
+
+	// Value
+	value := indexed[3]
+
+	// Transaction Decimal Value
+	// Hex -> float64
+	valueDecimal := utils.StringHexBase18ToFloat64(value)
+
 	return &models.TokenTransfer{
 		TokenContractAddress: logRaw.Address,
-		FromAddress:          indexed[1],
-		ToAddress:            indexed[2],
-		Value:                indexed[3],
+		FromAddress:          fromAddress,
+		ToAddress:            toAddress,
+		Value:                value,
 		TransactionHash:      logRaw.TransactionHash,
 		LogIndex:             int32(logRaw.LogIndex),
 		BlockNumber:          logRaw.BlockNumber,
+		ValueDecimal:         valueDecimal,
 	}
 }
 

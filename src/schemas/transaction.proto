@@ -40,4 +40,7 @@ message Transaction {
 
   // Parsed from data json field
   string method = 28 [(gorm.field).tag = {index: "transaction_idx_method"}];
+
+  // Decimal of value field
+  double value_decimal = 29 [(gorm.field).tag = {index: "transaction_idx_value_decimal"}];
 }

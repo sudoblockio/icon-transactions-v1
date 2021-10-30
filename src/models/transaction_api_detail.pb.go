@@ -25,31 +25,32 @@ type TransactionAPIDetail struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Type                      string `protobuf:"bytes,1,opt,name=type,proto3" json:"type"`
-	Version                   string `protobuf:"bytes,2,opt,name=version,proto3" json:"version"`
-	FromAddress               string `protobuf:"bytes,3,opt,name=from_address,json=fromAddress,proto3" json:"from_address"`
-	ToAddress                 string `protobuf:"bytes,4,opt,name=to_address,json=toAddress,proto3" json:"to_address"`
-	Value                     string `protobuf:"bytes,5,opt,name=value,proto3" json:"value"`
-	StepLimit                 uint64 `protobuf:"varint,6,opt,name=step_limit,json=stepLimit,proto3" json:"step_limit"`
-	Timestamp                 string `protobuf:"bytes,7,opt,name=timestamp,proto3" json:"timestamp"`
-	BlockTimestamp            uint64 `protobuf:"varint,8,opt,name=block_timestamp,json=blockTimestamp,proto3" json:"block_timestamp"`
-	Nid                       uint32 `protobuf:"varint,9,opt,name=nid,proto3" json:"nid"`
-	Nonce                     string `protobuf:"bytes,10,opt,name=nonce,proto3" json:"nonce"`
-	Hash                      string `protobuf:"bytes,11,opt,name=hash,proto3" json:"hash"`
-	TransactionIndex          uint32 `protobuf:"varint,12,opt,name=transaction_index,json=transactionIndex,proto3" json:"transaction_index"`
-	BlockHash                 string `protobuf:"bytes,13,opt,name=block_hash,json=blockHash,proto3" json:"block_hash"`
-	BlockNumber               uint64 `protobuf:"varint,14,opt,name=block_number,json=blockNumber,proto3" json:"block_number"`
-	TransactionFee            string `protobuf:"bytes,15,opt,name=transaction_fee,json=transactionFee,proto3" json:"transaction_fee"`
-	Signature                 string `protobuf:"bytes,16,opt,name=signature,proto3" json:"signature"`
-	DataType                  string `protobuf:"bytes,17,opt,name=data_type,json=dataType,proto3" json:"data_type"`
-	Data                      string `protobuf:"bytes,18,opt,name=data,proto3" json:"data"`
-	ReceiptCumulativeStepUsed uint64 `protobuf:"varint,19,opt,name=receipt_cumulative_step_used,json=receiptCumulativeStepUsed,proto3" json:"receipt_cumulative_step_used"`
-	ReceiptStepUsed           uint64 `protobuf:"varint,20,opt,name=receipt_step_used,json=receiptStepUsed,proto3" json:"receipt_step_used"`
-	ReceiptStepPrice          uint64 `protobuf:"varint,21,opt,name=receipt_step_price,json=receiptStepPrice,proto3" json:"receipt_step_price"`
-	ReceiptScoreAddress       string `protobuf:"bytes,22,opt,name=receipt_score_address,json=receiptScoreAddress,proto3" json:"receipt_score_address"`
-	ReceiptLogs               string `protobuf:"bytes,23,opt,name=receipt_logs,json=receiptLogs,proto3" json:"receipt_logs"`
-	ReceiptStatus             uint32 `protobuf:"varint,24,opt,name=receipt_status,json=receiptStatus,proto3" json:"receipt_status"`
-	Method                    string `protobuf:"bytes,25,opt,name=method,proto3" json:"method"`
+	Type                      string  `protobuf:"bytes,1,opt,name=type,proto3" json:"type"`
+	Version                   string  `protobuf:"bytes,2,opt,name=version,proto3" json:"version"`
+	FromAddress               string  `protobuf:"bytes,3,opt,name=from_address,json=fromAddress,proto3" json:"from_address"`
+	ToAddress                 string  `protobuf:"bytes,4,opt,name=to_address,json=toAddress,proto3" json:"to_address"`
+	Value                     string  `protobuf:"bytes,5,opt,name=value,proto3" json:"value"`
+	StepLimit                 uint64  `protobuf:"varint,6,opt,name=step_limit,json=stepLimit,proto3" json:"step_limit"`
+	Timestamp                 string  `protobuf:"bytes,7,opt,name=timestamp,proto3" json:"timestamp"`
+	BlockTimestamp            uint64  `protobuf:"varint,8,opt,name=block_timestamp,json=blockTimestamp,proto3" json:"block_timestamp"`
+	Nid                       uint32  `protobuf:"varint,9,opt,name=nid,proto3" json:"nid"`
+	Nonce                     string  `protobuf:"bytes,10,opt,name=nonce,proto3" json:"nonce"`
+	Hash                      string  `protobuf:"bytes,11,opt,name=hash,proto3" json:"hash"`
+	TransactionIndex          uint32  `protobuf:"varint,12,opt,name=transaction_index,json=transactionIndex,proto3" json:"transaction_index"`
+	BlockHash                 string  `protobuf:"bytes,13,opt,name=block_hash,json=blockHash,proto3" json:"block_hash"`
+	BlockNumber               uint64  `protobuf:"varint,14,opt,name=block_number,json=blockNumber,proto3" json:"block_number"`
+	TransactionFee            string  `protobuf:"bytes,15,opt,name=transaction_fee,json=transactionFee,proto3" json:"transaction_fee"`
+	Signature                 string  `protobuf:"bytes,16,opt,name=signature,proto3" json:"signature"`
+	DataType                  string  `protobuf:"bytes,17,opt,name=data_type,json=dataType,proto3" json:"data_type"`
+	Data                      string  `protobuf:"bytes,18,opt,name=data,proto3" json:"data"`
+	ReceiptCumulativeStepUsed uint64  `protobuf:"varint,19,opt,name=receipt_cumulative_step_used,json=receiptCumulativeStepUsed,proto3" json:"receipt_cumulative_step_used"`
+	ReceiptStepUsed           uint64  `protobuf:"varint,20,opt,name=receipt_step_used,json=receiptStepUsed,proto3" json:"receipt_step_used"`
+	ReceiptStepPrice          uint64  `protobuf:"varint,21,opt,name=receipt_step_price,json=receiptStepPrice,proto3" json:"receipt_step_price"`
+	ReceiptScoreAddress       string  `protobuf:"bytes,22,opt,name=receipt_score_address,json=receiptScoreAddress,proto3" json:"receipt_score_address"`
+	ReceiptLogs               string  `protobuf:"bytes,23,opt,name=receipt_logs,json=receiptLogs,proto3" json:"receipt_logs"`
+	ReceiptStatus             uint32  `protobuf:"varint,24,opt,name=receipt_status,json=receiptStatus,proto3" json:"receipt_status"`
+	Method                    string  `protobuf:"bytes,25,opt,name=method,proto3" json:"method"`
+	ValueDecimal              float64 `protobuf:"fixed64,26,opt,name=value_decimal,json=valueDecimal,proto3" json:"value_decimal"`
 }
 
 func (x *TransactionAPIDetail) Reset() {
@@ -259,12 +260,19 @@ func (x *TransactionAPIDetail) GetMethod() string {
 	return ""
 }
 
+func (x *TransactionAPIDetail) GetValueDecimal() float64 {
+	if x != nil {
+		return x.ValueDecimal
+	}
+	return 0
+}
+
 var File_transaction_api_detail_proto protoreflect.FileDescriptor
 
 var file_transaction_api_detail_proto_rawDesc = []byte{
 	0x0a, 0x1c, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x61, 0x70,
 	0x69, 0x5f, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x06,
-	0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x73, 0x22, 0xd6, 0x06, 0x0a, 0x14, 0x54, 0x72, 0x61, 0x6e, 0x73,
+	0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x73, 0x22, 0xfb, 0x06, 0x0a, 0x14, 0x54, 0x72, 0x61, 0x6e, 0x73,
 	0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x41, 0x50, 0x49, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x12,
 	0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74,
 	0x79, 0x70, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x02,
@@ -317,9 +325,11 @@ var file_transaction_api_detail_proto_rawDesc = []byte{
 	0x12, 0x25, 0x0a, 0x0e, 0x72, 0x65, 0x63, 0x65, 0x69, 0x70, 0x74, 0x5f, 0x73, 0x74, 0x61, 0x74,
 	0x75, 0x73, 0x18, 0x18, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0d, 0x72, 0x65, 0x63, 0x65, 0x69, 0x70,
 	0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x6d, 0x65, 0x74, 0x68, 0x6f,
-	0x64, 0x18, 0x19, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x6d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x42,
-	0x0a, 0x5a, 0x08, 0x2e, 0x2f, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x33,
+	0x64, 0x18, 0x19, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x6d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x12,
+	0x23, 0x0a, 0x0d, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x5f, 0x64, 0x65, 0x63, 0x69, 0x6d, 0x61, 0x6c,
+	0x18, 0x1a, 0x20, 0x01, 0x28, 0x01, 0x52, 0x0c, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x44, 0x65, 0x63,
+	0x69, 0x6d, 0x61, 0x6c, 0x42, 0x0a, 0x5a, 0x08, 0x2e, 0x2f, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x73,
+	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (

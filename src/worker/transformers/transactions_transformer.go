@@ -14,6 +14,7 @@ import (
 	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/metrics"
 	"github.com/geometry-labs/icon-transactions/models"
+	"github.com/geometry-labs/icon-transactions/worker/utils"
 )
 
 func StartTransactionsTransformer() {
@@ -121,6 +122,10 @@ func transformTransactionRawToTransaction(txRaw *models.TransactionRaw) *models.
 	// to hex
 	transactionFee := fmt.Sprintf("0x%x", transactionFeesBig)
 
+	// Transaction Decimal Value
+	// Hex -> float64
+	valueDecimal := utils.StringHexBase18ToFloat64(txRaw.Value)
+
 	return &models.Transaction{
 		Type:                      txRaw.Type,
 		Version:                   txRaw.Version,
@@ -150,6 +155,7 @@ func transformTransactionRawToTransaction(txRaw *models.TransactionRaw) *models.
 		ItemTimestamp:             txRaw.ItemTimestamp,
 		LogIndex:                  -1,
 		Method:                    method,
+		ValueDecimal:              valueDecimal,
 	}
 }
 
