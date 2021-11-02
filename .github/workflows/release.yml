@@ -17,25 +17,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Install deps
-        run: |
-          pip3 install -r requirements_api.txt -r requirements_worker.txt -r requirements_dev.txt
-          pip3 install --upgrade protobuf
+      - name: Bring up DBs
+        run: docker-compose -f docker-compose.db.yml up -d && sleep 30
 
-      - name: Bring up stack
-        run: make up-dbs && sleep 30
-
-      - name: Check stack
+      - name: Check DBs
         run: make ps
 
-      - name: Run tests with coverage
-        run: make test-coverage
+      - name: Run unit tests
+        run: cd src && go test -v -covermode=atomic -coverprofile=coverage.out ./...
 
       - uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
+          files: ./src/coverage.out
+          flags: unit
           fail_ci_if_error: true
+
+      - name: Bring up stack
+        run: make up && sleep 30
+
+      - name: Check stack
+        run: make ps
+
+      - name: Check ETL logs
+        run: docker-compose -f docker-compose.yml -f docker-compose.db.yml logs --tail=100 etl
+
+      - name: Check worker logs
+        run: docker-compose -f docker-compose.yml -f docker-compose.db.yml logs --tail=100 transactions-worker
+
+      - name: Check api logs
+        run: docker-compose -f docker-compose.yml -f docker-compose.db.yml logs --tail=100 transactions-api
+
+      - name: Run integration tests
+        run: cd tests && go test -v -covermode=atomic -coverprofile=coverage.out ./...
 
       - name: Tag name
         id: source
