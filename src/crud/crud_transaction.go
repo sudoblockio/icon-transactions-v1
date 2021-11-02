@@ -239,14 +239,14 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 	// Order By Clause
 	orderByClause := "ORDER BY a.block_number DESC"
 
-	db.Raw(extractMatrializedViewWithWhereClauseRaw(
-		m.modelORM.TableName(),                       // tableName
+	db.Raw(formatSelectStatementForceCTE(
 		reflect.ValueOf(models.TransactionAPIList{}), // modelValueOf
 		reflect.TypeOf(models.TransactionAPIList{}),  // modelTypeOf
-		whereClause,
-		orderByClause,
-		limit,
-		skip,
+		m.modelORM.TableName(),                       // tableName
+		whereClause,                                  // whereClause
+		orderByClause,                                // orderByClause
+		limit,                                        // limit
+		skip,                                         // skip
 	))
 
 	transactions := &[]models.TransactionAPIList{}

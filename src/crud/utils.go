@@ -97,10 +97,10 @@ func extractFilledFieldsFromModel(modelValueOf reflect.Value, modelTypeOf reflec
 	return fields
 }
 
-func extractMaterializedViewWithWhereClauseRaw(
-	tableName string,
+func formatSelectStatementForceCTE(
 	modelValueOf reflect.Value,
 	modelTypeOf reflect.Type,
+	tableName string,
 	whereClause string,
 	orderByClause string,
 	limit int,
