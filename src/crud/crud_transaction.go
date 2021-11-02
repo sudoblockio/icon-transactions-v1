@@ -248,7 +248,7 @@ func (m *TransactionModel) SelectManyByAddressAPI(
         "transactions"."value_decimal"
     FROM "transactions"
     WHERE type = 'transaction'
-    AND (from_address = '?' OR to_address = '?')
+    AND (from_address = ? OR to_address = ?)
 	) SELECT * FROM a ORDER BY a.block_number desc LIMIT ? OFFSET ?;
 	`, address, address, limit, skip)
 
