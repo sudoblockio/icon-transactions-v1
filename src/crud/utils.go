@@ -97,7 +97,7 @@ func extractFilledFieldsFromModel(modelValueOf reflect.Value, modelTypeOf reflec
 	return fields
 }
 
-func extractMatrializedViewWithWhereClauseRaw(
+func extractMaterializedViewWithWhereClauseRaw(
 	tableName string,
 	modelValueOf reflect.Value,
 	modelTypeOf reflect.Type,
