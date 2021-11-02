@@ -2,6 +2,7 @@ package crud
 
 import (
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -101,54 +102,65 @@ func (m *TransactionModel) SelectMany(
 	hash string,
 	from string,
 	to string,
-) (*[]models.Transaction, int64, error) {
+) (*[]models.Transaction, error) {
 	db := m.db
-	computeCount := false
 
 	// Set table
 	db = db.Model(&[]models.Transaction{})
 
-	// Latest transactions first
-	db = db.Order("block_number desc")
+	// Where clause
+	whereClause := ""
 
 	// Hash
 	if hash != "" {
-		computeCount = true
-		db = db.Where("hash = ?", hash)
+		if whereClause == "" {
+			whereClause += "WHERE "
+		} else {
+			whereClause += " AND "
+		}
+
+		whereClause += "hash = '" + hash + "'"
 	}
 
 	// from
 	if from != "" {
-		computeCount = true
-		db = db.Where("from_address = ?", from)
+		if whereClause == "" {
+			whereClause += "WHERE "
+		} else {
+			whereClause += " AND "
+		}
+
+		whereClause += "from_address = '" + from + "'"
 	}
 
 	// to
 	if to != "" {
-		computeCount = true
-		db = db.Where("to_address = ?", to)
+		if whereClause == "" {
+			whereClause += "WHERE "
+		} else {
+			whereClause += " AND "
+		}
+
+		whereClause += "to_address = '" + to + "'"
 	}
 
-	// Count, if needed
-	count := int64(-1)
-	if computeCount {
-		db.Count(&count)
-	}
+	// Order By Clause
+	orderByClause := "ORDER BY a.block_number DESC"
 
-	// Limit
-	// Note: Count before setting limit
-	db = db.Limit(limit)
-
-	// Skip
-	// Note: Count before setting skip
-	if skip != 0 {
-		db = db.Offset(skip)
-	}
+	db.Raw(formatSelectStatementForceCTE(
+		reflect.ValueOf(models.Transaction{}), // modelValueOf
+		reflect.TypeOf(models.Transaction{}),  // modelTypeOf
+		m.modelORM.TableName(),                // tableName
+		whereClause,                           // whereClause
+		orderByClause,                         // orderByClause
+		limit,                                 // limit
+		skip,                                  // skip
+	))
 
 	transactions := &[]models.Transaction{}
 	db = db.Find(transactions)
 
-	return transactions, count, db.Error
+	return transactions, db.Error
 }
 
 // SelectManyAPI - select from transactions table
@@ -161,9 +173,8 @@ func (m *TransactionModel) SelectManyAPI(
 	_type string,
 	blockNumber int,
 	method string,
-) (*[]models.TransactionAPIList, int64, error) {
+) (*[]models.TransactionAPIList, error) {
 	db := m.db
-	computeCount := false
 
 	// Set table
 	db = db.Model(&[]models.Transaction{})
@@ -171,54 +182,81 @@ func (m *TransactionModel) SelectManyAPI(
 	// Latest transactions first
 	db = db.Order("block_number desc")
 
+	// Where clause
+	whereClause := ""
+
 	// from
 	if from != "" {
-		computeCount = true
-		db = db.Where("from_address = ?", from)
+		if whereClause == "" {
+			whereClause += "WHERE "
+		} else {
+			whereClause += " AND "
+		}
+
+		whereClause += "from_address = '" + from + "'"
 	}
 
 	// to
 	if to != "" {
-		computeCount = true
-		db = db.Where("to_address = ?", to)
-	}
+		if whereClause == "" {
+			whereClause += "WHERE "
+		} else {
+			whereClause += " AND "
+		}
 
-	// type
-	if _type != "" {
-		db = db.Where("type = ?", _type)
-	}
-
-	// block number
-	if blockNumber != 0 {
-		computeCount = true
-		db = db.Where("block_number = ?", blockNumber)
+		whereClause += "to_address = '" + to + "'"
 	}
 
 	// method
 	if method != "" {
-		db = db.Where("method = ?", method)
+		if whereClause == "" {
+			whereClause += "WHERE "
+		} else {
+			whereClause += " AND "
+		}
+
+		whereClause += "method = '" + method + "'"
 	}
 
-	// Count, if needed
-	count := int64(-1)
-	if computeCount {
-		db.Count(&count)
+	// type
+	if _type != "" {
+		if whereClause == "" {
+			whereClause += "WHERE "
+		} else {
+			whereClause += " AND "
+		}
+
+		whereClause += "type = '" + _type + "'"
 	}
 
-	// Limit is required and defaulted to 1
-	// Note: Count before setting limit
-	db = db.Limit(limit)
+	// block number
+	if blockNumber != 0 {
+		if whereClause == "" {
+			whereClause += "WHERE "
+		} else {
+			whereClause += " AND "
+		}
 
-	// Skip
-	// Note: Count before setting skip
-	if skip != 0 {
-		db = db.Offset(skip)
+		whereClause += "block_number = " + strconv.Itoa(blockNumber)
 	}
+
+	// Order By Clause
+	orderByClause := "ORDER BY a.block_number DESC"
+
+	db.Raw(formatSelectStatementForceCTE(
+		reflect.ValueOf(models.TransactionAPIList{}), // modelValueOf
+		reflect.TypeOf(models.TransactionAPIList{}),  // modelTypeOf
+		m.modelORM.TableName(),                       // tableName
+		whereClause,                                  // whereClause
+		orderByClause,                                // orderByClause
+		limit,                                        // limit
+		skip,                                         // skip
+	))
 
 	transactions := &[]models.TransactionAPIList{}
 	db = db.Find(transactions)
 
-	return transactions, count, db.Error
+	return transactions, db.Error
 }
 
 // SelectManyByAddressAPI - select from transactions table

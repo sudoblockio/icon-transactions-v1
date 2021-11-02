@@ -80,7 +80,7 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	}
 
 	// Get Transactions
-	transactions, count, err := crud.GetTransactionModel().SelectManyAPI(
+	transactions, err := crud.GetTransactionModel().SelectManyAPI(
 		params.Limit,
 		params.Skip,
 		params.From,
@@ -101,20 +101,12 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	}
 
 	// Set X-TOTAL-COUNT
-	if count != -1 {
-		// Filters given, count some
-		c.Append("X-TOTAL-COUNT", strconv.FormatInt(count, 10))
-	} else {
-		// No filters given, count all
-		// Total count in the transaction_counts table
-		counter, err := crud.GetTransactionCountModel().SelectCount("regular")
-		if err != nil {
-			counter = 0
-			zap.S().Warn("Could not retrieve transaction count: ", err.Error())
-		}
-
-		c.Append("X-TOTAL-COUNT", strconv.FormatUint(counter, 10))
+	counter, err := crud.GetTransactionCountModel().SelectCount("regular")
+	if err != nil {
+		counter = 0
+		zap.S().Warn("Could not retrieve transaction count: ", err.Error())
 	}
+	c.Append("X-TOTAL-COUNT", strconv.FormatUint(counter, 10))
 
 	body, _ := json.Marshal(&transactions)
 	return c.SendString(string(body))

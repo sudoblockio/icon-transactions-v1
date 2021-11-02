@@ -125,8 +125,7 @@ func formatSelectStatementForceCTE(
 		        "transactions"."method",
 		        "transactions"."value_decimal"
 		    FROM "transactions"
-		    WHERE type = 'transaction'
-		    AND (from_address = ? OR to_address = ?)
+		    WHERE type = 'transaction' AND (from_address = ? OR to_address = ?)
 			) SELECT * FROM a ORDER BY a.block_number desc LIMIT ? OFFSET ?;																																						// Select Clause
 	*/
 
@@ -168,7 +167,7 @@ func formatSelectStatementForceCTE(
 		if i != (modelValueOf.NumField() - 1) {
 			rawSQL += ", "
 		} else {
-			rawSQL += "FROM \"" + tableName + "\" " + whereClause + ") "
+			rawSQL += " FROM \"" + tableName + "\" " + whereClause + ") "
 		}
 	}
 
@@ -176,6 +175,8 @@ func formatSelectStatementForceCTE(
 	// Select Clause //
 	///////////////////
 	rawSQL += "SELECT * from a " + orderByClause + " LIMIT " + strconv.Itoa(limit) + " OFFSET " + strconv.Itoa(skip) + ";"
+
+	// zap.S().Info(rawSQL)
 
 	return rawSQL
 }
