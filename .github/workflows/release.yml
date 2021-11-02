@@ -1,7 +1,12 @@
 name: release
 
+# 1. Run unit and integration tests
+# 2. Push containers to AWS ECR and dockerhub tagged with release
+# 3. Recommit an update to the chart's deployments with the updated build number in the `deployment` branch
+
 on:
   release:
+    types: [created]
     tags:
       - "v*.*.*"
 
@@ -12,22 +17,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Install deps
+        run: |
+          pip3 install -r requirements_api.txt -r requirements_worker.txt -r requirements_dev.txt
+          pip3 install --upgrade protobuf
+
+      - name: Bring up stack
+        run: make up-dbs && sleep 30
+
+      - name: Check stack
+        run: make ps
+
+      - name: Run tests with coverage
+        run: make test-coverage
+
+      - uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: true
+
       - name: Tag name
         id: source
         run: |
           echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
-
-      - name: Bring up DBs
-        run: docker-compose -f docker-compose.db.yml up -d
-
-      - name: Run unit tests
-        run: cd src && go test ./... -v
-
-      - name: Bring up stack
-        run: make up
-
-      - name: Run integration tests
-        run: cd tests && go test ./... -v
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -39,11 +52,6 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr-worker
         uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Tag name
-        id: source
-        run: |
-          echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
 
       - name: Worker - Build, tag, and push image to Amazon ECR
         env:
@@ -71,7 +79,7 @@ jobs:
           ECR_REPOSITORY: icon-transactions-api
           IMAGE_TAG: ${{ steps.source.outputs.TAG }}
         run: |
-          docker build --target prod --build-arg SERVICE_NAME=api -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build --target prod  --build-arg SERVICE_NAME=api -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Login to DockerHub
@@ -80,31 +88,49 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build and push
+      - name: Build and push (API) - latest
         uses: docker/build-push-action@v2
         with:
           context: .
-          build-args:
-            - SERVICE_NAME=api
+          build-args: |
+            SERVICE_NAME=api
           file: ./Dockerfile
           target: prod
           push: true
-          tags: |
-            geometrylabs/icon-transactions-api:latest
-            geometrylabs/icon-transactions-api:${{ steps.source.outputs.TAG }}
+          tags: geometrylabs/icon-transactions-api:latest
 
-      - name: Build and push
+      - name: Build and push (API)
         uses: docker/build-push-action@v2
         with:
           context: .
-          build-args:
-            - SERVICE_NAME=worker
+          build-args: |
+            SERVICE_NAME=api
           file: ./Dockerfile
           target: prod
           push: true
-          tags: |
-            geometrylabs/icon-transactions-worker:latest
-            geometrylabs/icon-transactions-worker:${{ steps.source.outputs.TAG }}
+          tags: geometrylabs/icon-transactions-api:${{ steps.source.outputs.TAG }}
+
+      - name: Build and push (WORKER) - latest
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          build-args: |
+            SERVICE_NAME=api
+          file: ./Dockerfile
+          target: prod
+          push: true
+          tags: geometrylabs/icon-transactions-api:latest
+
+      - name: Build and push (WORKER)
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          build-args: |
+            SERVICE_NAME=api
+          file: ./Dockerfile
+          target: prod
+          push: true
+          tags: geometrylabs/icon-transactions-api:${{ steps.source.outputs.TAG }}
 
       - name: Checkout charts repo
         uses: actions/checkout@v2
@@ -119,9 +145,9 @@ jobs:
         with:
           workDir: charts
           repository: geometry-labs/icon-charts
-          valueFile: 'deployments/prod/mainnet/transactions/values.yaml'
+          valueFile: 'deployments/prod-us-west-2/mainnet/transactions/values.yaml'
           propertyPath: 'api.image.tag'
-          value: ${{ github.run_number }}
+          value: ${{ steps.source.outputs.TAG }}
           branch: main
           createPR: 'false'
           updateFile: true
@@ -132,11 +158,18 @@ jobs:
         with:
           workDir: charts
           repository: geometry-labs/icon-charts
-          valueFile: 'deployments/prod/mainnet/transactions/values.yaml'
+          valueFile: 'deployments/prod-us-west-2/mainnet/transactions/values.yaml'
           propertyPath: 'worker.image.tag'
-          value: ${{ github.run_number }}
+          value: ${{ steps.source.outputs.TAG }}
           branch: main
           createPR: 'false'
-          message: 'transactions prod deployment (mainnet) image versions to ${{ github.run_number }}'
+          message: 'transactions prod deployment (mainnet) image versions to ${{ steps.source.outputs.TAG }}'
           token: ${{ secrets.ICON_CHARTS_PAT }}
           updateFile: true
+
+      - name: Push tags
+        run: |
+          git tag -f transactions-prod-uswest2
+          git tag -f transactions-prod-euwest2
+          git push -f origin --tags
+        working-directory: charts
