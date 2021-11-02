@@ -35,6 +35,7 @@ func GetTransactionModel() *TransactionModel {
 		transactionModel = &TransactionModel{
 			db:            dbConn,
 			model:         &models.Transaction{},
+			modelORM:      &models.TransactionORM{},
 			LoaderChannel: make(chan *models.Transaction, 1),
 		}
 
@@ -232,25 +233,21 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 	// Set table
 	db = db.Model(&[]models.Transaction{})
 
-	db.Raw(`
-	WITH a (from_address, to_address, value, block_timestamp, hash, block_number, transaction_fee, receipt_status, type, method, value_decimal) AS MATERIALIZED (
-    SELECT
-        "transactions"."from_address",
-        "transactions"."to_address",
-        "transactions"."value",
-        "transactions"."block_timestamp",
-        "transactions"."hash",
-        "transactions"."block_number",
-        "transactions"."transaction_fee",
-        "transactions"."receipt_status",
-        "transactions"."type",
-        "transactions"."method",
-        "transactions"."value_decimal"
-    FROM "transactions"
-    WHERE type = 'transaction'
-    AND (from_address = ? OR to_address = ?)
-	) SELECT * FROM a ORDER BY a.block_number desc LIMIT ? OFFSET ?;
-	`, address, address, limit, skip)
+	// Where clause
+	whereClause := `WHERE type='transaction' AND (from_address = '` + address + `' OR to_address = '` + address + `'` + `)`
+
+	// Order By Clause
+	orderByClause := "ORDER BY a.block_number DESC"
+
+	db.Raw(extractMatrializedViewWithWhereClauseRaw(
+		m.modelORM.TableName(),                       // tableName
+		reflect.ValueOf(models.TransactionAPIList{}), // modelValueOf
+		reflect.TypeOf(models.TransactionAPIList{}),  // modelTypeOf
+		whereClause,
+		orderByClause,
+		limit,
+		skip,
+	))
 
 	transactions := &[]models.TransactionAPIList{}
 	db = db.Find(transactions)
