@@ -90,6 +90,7 @@ services:
       SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_ORIGIN: '*'
       SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_METHODS: 'GET,POST,PUT,OPTIONS'
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
+    restart: on-failure
 
   rest-proxy:
     image: confluentinc/cp-kafka-rest:${CP_KAFKA_REST_TAG:-latest}
