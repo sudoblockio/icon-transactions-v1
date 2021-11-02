@@ -46,6 +46,12 @@ jobs:
       - name: Check ETL logs
         run: docker-compose -f docker-compose.yml -f docker-compose.db.yml logs --tail=100 etl
 
+      - name: Check kafka logs
+        run: docker-compose -f docker-compose.yml -f docker-compose.db.yml logs --tail=100 kafka
+
+      - name: Check schemaregistry logs
+        run: docker-compose -f docker-compose.yml -f docker-compose.db.yml logs --tail=100 schemaregistry
+
       - name: Check worker logs
         run: docker-compose -f docker-compose.yml -f docker-compose.db.yml logs --tail=100 transactions-worker
 
