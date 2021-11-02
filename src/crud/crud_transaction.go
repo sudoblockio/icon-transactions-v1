@@ -232,24 +232,25 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 	// Set table
 	db = db.Model(&[]models.Transaction{})
 
-	// Latest transactions first
-	db = db.Order("block_number desc")
-
-	// Only regular transactions
-	db = db.Where("type = ?", "transaction")
-
-	// From address or to address
-	db = db.Where("from_address = ? OR to_address = ?", address, address)
-
-	// Limit is required and defaulted to 1
-	// Note: Count before setting limit
-	db = db.Limit(limit)
-
-	// Skip
-	// Note: Count before setting skip
-	if skip != 0 {
-		db = db.Offset(skip)
-	}
+	db.Raw(`
+	WITH a (from_address, to_address, value, block_timestamp, hash, block_number, transaction_fee, receipt_status, type, method, value_decimal) AS MATERIALIZED (
+    SELECT
+        "transactions"."from_address",
+        "transactions"."to_address",
+        "transactions"."value",
+        "transactions"."block_timestamp",
+        "transactions"."hash",
+        "transactions"."block_number",
+        "transactions"."transaction_fee",
+        "transactions"."receipt_status",
+        "transactions"."type",
+        "transactions"."method",
+        "transactions"."value_decimal"
+    FROM "transactions"
+    WHERE type = 'transaction'
+    AND (from_address = '?' OR to_address = '?')
+	) SELECT * FROM a ORDER BY a.block_number desc LIMIT ? OFFSET ?;
+	`, address, address, limit, skip)
 
 	transactions := &[]models.TransactionAPIList{}
 	db = db.Find(transactions)
