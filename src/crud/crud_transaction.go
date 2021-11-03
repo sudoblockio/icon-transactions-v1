@@ -240,31 +240,31 @@ func (m *TransactionModel) SelectManyInternalAPI(
 ) (*[]models.TransactionInternalAPIList, error) {
 	db := m.db
 
+	// Set table
+	db = db.Model(&[]models.Transaction{})
+
+	// Latest transactions first
+	db = db.Order("block_number desc")
+
 	// Hash
 	if hash != "" {
 		db = db.Where("hash = ?", hash)
 	}
 
-	// Set table
-	db = db.Model(&[]models.Transaction{})
+	// Internal transactions only
+	db = db.Where("type = ?", "log")
 
-	// Where clause
-	whereClause := `WHERE type='log' AND (from_address = '` + address + `' OR to_address = '` + address + `'` + `)`
+	// Limit is required and defaulted to 1
+	// Note: Count before setting limit
+	db = db.Limit(limit)
 
-	// Order By Clause
-	orderByClause := "ORDER BY a.block_number DESC"
+	// Skip
+	// Note: Count before setting skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
 
-	db.Raw(formatSelectStatementForceCTE(
-		reflect.ValueOf(models.TransactionAPIList{}), // modelValueOf
-		reflect.TypeOf(models.TransactionAPIList{}),  // modelTypeOf
-		m.modelORM.TableName(),                       // tableName
-		whereClause,                                  // whereClause
-		orderByClause,                                // orderByClause
-		limit,                                        // limit
-		skip,                                         // skip
-	))
-
-	transactions := &[]models.TransactionAPIList{}
+	transactions := &[]models.TransactionInternalAPIList{}
 	db = db.Find(transactions)
 
 	return transactions, db.Error
