@@ -2,7 +2,6 @@ package crud
 
 import (
 	"reflect"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -108,54 +107,31 @@ func (m *TransactionModel) SelectMany(
 	// Set table
 	db = db.Model(&[]models.Transaction{})
 
-	// Where clause
-	whereClause := ""
+	// Latest transactions first
+	db = db.Order("block_number desc")
 
 	// Hash
 	if hash != "" {
-		if whereClause == "" {
-			whereClause += "WHERE "
-		} else {
-			whereClause += " AND "
-		}
-
-		whereClause += "hash = '" + hash + "'"
+		db = db.Where("hash = ?", hash)
 	}
 
 	// from
 	if from != "" {
-		if whereClause == "" {
-			whereClause += "WHERE "
-		} else {
-			whereClause += " AND "
-		}
-
-		whereClause += "from_address = '" + from + "'"
+		db = db.Where("from_address = ?", from)
 	}
 
 	// to
 	if to != "" {
-		if whereClause == "" {
-			whereClause += "WHERE "
-		} else {
-			whereClause += " AND "
-		}
-
-		whereClause += "to_address = '" + to + "'"
+		db = db.Where("to_address = ?", to)
 	}
 
-	// Order By Clause
-	orderByClause := "ORDER BY a.block_number DESC"
+	// Limit
+	db = db.Limit(limit)
 
-	db.Raw(formatSelectStatementForceCTE(
-		reflect.ValueOf(models.Transaction{}), // modelValueOf
-		reflect.TypeOf(models.Transaction{}),  // modelTypeOf
-		m.modelORM.TableName(),                // tableName
-		whereClause,                           // whereClause
-		orderByClause,                         // orderByClause
-		limit,                                 // limit
-		skip,                                  // skip
-	))
+	// Skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
 
 	transactions := &[]models.Transaction{}
 	db = db.Find(transactions)
@@ -182,76 +158,38 @@ func (m *TransactionModel) SelectManyAPI(
 	// Latest transactions first
 	db = db.Order("block_number desc")
 
-	// Where clause
-	whereClause := ""
-
 	// from
 	if from != "" {
-		if whereClause == "" {
-			whereClause += "WHERE "
-		} else {
-			whereClause += " AND "
-		}
-
-		whereClause += "from_address = '" + from + "'"
+		db = db.Where("from_address = ?", from)
 	}
 
 	// to
 	if to != "" {
-		if whereClause == "" {
-			whereClause += "WHERE "
-		} else {
-			whereClause += " AND "
-		}
-
-		whereClause += "to_address = '" + to + "'"
-	}
-
-	// method
-	if method != "" {
-		if whereClause == "" {
-			whereClause += "WHERE "
-		} else {
-			whereClause += " AND "
-		}
-
-		whereClause += "method = '" + method + "'"
+		db = db.Where("to_address = ?", to)
 	}
 
 	// type
 	if _type != "" {
-		if whereClause == "" {
-			whereClause += "WHERE "
-		} else {
-			whereClause += " AND "
-		}
-
-		whereClause += "type = '" + _type + "'"
+		db = db.Where("type = ?", _type)
 	}
 
 	// block number
 	if blockNumber != 0 {
-		if whereClause == "" {
-			whereClause += "WHERE "
-		} else {
-			whereClause += " AND "
-		}
-
-		whereClause += "block_number = " + strconv.Itoa(blockNumber)
+		db = db.Where("block_number = ?", blockNumber)
 	}
 
-	// Order By Clause
-	orderByClause := "ORDER BY a.block_number DESC"
+	// method
+	if method != "" {
+		db = db.Where("method = ?", method)
+	}
 
-	db.Raw(formatSelectStatementForceCTE(
-		reflect.ValueOf(models.TransactionAPIList{}), // modelValueOf
-		reflect.TypeOf(models.TransactionAPIList{}),  // modelTypeOf
-		m.modelORM.TableName(),                       // tableName
-		whereClause,                                  // whereClause
-		orderByClause,                                // orderByClause
-		limit,                                        // limit
-		skip,                                         // skip
-	))
+	// Limit is required and defaulted to 1
+	db = db.Limit(limit)
+
+	// Skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
 
 	transactions := &[]models.TransactionAPIList{}
 	db = db.Find(transactions)
