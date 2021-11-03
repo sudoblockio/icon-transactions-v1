@@ -55,16 +55,15 @@ func (m *TokenTransferModel) Migrate() error {
 }
 
 // SelectMany - select from token_transfers table
-// Returns: models, total count (if filters), error (if present)
+// Returns: models, error (if present)
 func (m *TokenTransferModel) SelectMany(
 	limit int,
 	skip int,
 	from string,
 	to string,
 	blockNumber int,
-) (*[]models.TokenTransfer, int64, error) {
+) (*[]models.TokenTransfer, error) {
 	db := m.db
-	computeCount := false
 
 	// Set table
 	db = db.Model(&[]models.TokenTransfer{})
@@ -74,34 +73,23 @@ func (m *TokenTransferModel) SelectMany(
 
 	// from
 	if from != "" {
-		computeCount = true
 		db = db.Where("from_address = ?", from)
 	}
 
 	// to
 	if to != "" {
-		computeCount = true
 		db = db.Where("to_address = ?", to)
 	}
 
 	// block number
 	if blockNumber != 0 {
-		computeCount = true
 		db = db.Where("block_number = ?", blockNumber)
 	}
 
-	// Count, if needed
-	count := int64(-1)
-	if computeCount {
-		db.Count(&count)
-	}
-
 	// Limit is required and defaulted to 1
-	// Note: Count before setting limit
 	db = db.Limit(limit)
 
 	// Skip
-	// Note: Count before setting skip
 	if skip != 0 {
 		db = db.Offset(skip)
 	}
@@ -109,11 +97,11 @@ func (m *TokenTransferModel) SelectMany(
 	tokenTransfers := &[]models.TokenTransfer{}
 	db = db.Find(tokenTransfers)
 
-	return tokenTransfers, count, db.Error
+	return tokenTransfers, db.Error
 }
 
 // SelectManyByAddress - select from token_transfers table by address
-// Returns: models, total count (if filters), error (if present)
+// Returns: models, error (if present)
 func (m *TokenTransferModel) SelectManyByAddress(
 	limit int,
 	skip int,
@@ -145,7 +133,7 @@ func (m *TokenTransferModel) SelectManyByAddress(
 }
 
 // SelectManyByTokenContracAddress - select from token_transfers table by token contract address
-// Returns: models, total count (if filters), error (if present)
+// Returns: models, error (if present)
 func (m *TokenTransferModel) SelectManyByTokenContractAddress(
 	limit int,
 	skip int,
