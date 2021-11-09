@@ -5,6 +5,7 @@ services:
     image: geometrylabs/iconetl:${ICON_ETL_TAG:-latest}
     command: [
       "stream",
+      "-s", "40000000",
       "-o", "kafka:9092",
       "--period-seconds", "1",
       "-p", "https://icon.geometry-dev.net/api/v3",
@@ -13,8 +14,6 @@ services:
     ]
     depends_on:
       - kafka
-    volumes:
-      - "./volumes/etl/last_synced_block.txt:/icon-etl/last_synced_block.txt"
 
   ############
   # Database #
