@@ -2,6 +2,7 @@ package tests
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -10,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Address test
-func TestTransactionsEndpointAddress(t *testing.T) {
+// List from address test
+func TestTransactionsEndpointDetail(t *testing.T) {
 	assert := assert.New(t)
 
 	transactionsServiceURL := os.Getenv("TRANSACTIONS_SERVICE_URL")
@@ -42,20 +43,26 @@ func TestTransactionsEndpointAddress(t *testing.T) {
 	assert.NotEqual(0, len(bodyMap))
 
 	// Get testable address
-	transactionFromAddress := bodyMap[0].(map[string]interface{})["from_address"].(string)
+	transactionHash := bodyMap[0].(map[string]interface{})["hash"].(string)
+	fmt.Println(transactionHash)
 
 	// Test number
-	resp, err = http.Get(transactionsServiceURL + transactionsServiceRestPrefx + "/transactions/address/" + transactionFromAddress)
+	resp, err = http.Get(transactionsServiceURL + transactionsServiceRestPrefx + "/transactions/details/" + transactionHash)
 	assert.Equal(nil, err)
 	assert.Equal(200, resp.StatusCode)
 
 	defer resp.Body.Close()
 
+	// Test headers
+	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
+
 	bytes, err = ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
 
-	bodyMap = make([]interface{}, 0)
-	err = json.Unmarshal(bytes, &bodyMap)
+	bodyMapResult := make(map[string]interface{})
+	err = json.Unmarshal(bytes, &bodyMapResult)
 	assert.Equal(nil, err)
-	assert.NotEqual(0, len(bodyMap))
+
+	transactionHashResult := bodyMapResult["hash"].(string)
+	assert.Equal(transactionHash, transactionHashResult)
 }
