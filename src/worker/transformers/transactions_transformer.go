@@ -25,7 +25,7 @@ func transactionsTransformer() {
 	consumerTopicNameTransactions := config.Config.ConsumerTopicTransactions
 
 	// Input channels
-	consumerTopicChanTransactions := kafka.KafkaTopicConsumers.TopicChannels[consumerTopicNameTransactions]
+	consumerTopicChanTransactions := kafka.KafkaTopicConsumer.TopicChannels[consumerTopicNameTransactions]
 
 	// Output channels
 	transactionLoaderChan := crud.GetTransactionModel().LoaderChannel

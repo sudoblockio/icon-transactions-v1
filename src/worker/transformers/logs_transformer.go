@@ -24,7 +24,7 @@ func logsTransformer() {
 	consumerTopicNameLogs := config.Config.ConsumerTopicLogs
 
 	// Input channels
-	consumerTopicChanLogs := kafka.KafkaTopicConsumers.TopicChannels[consumerTopicNameLogs]
+	consumerTopicChanLogs := kafka.KafkaTopicConsumer.TopicChannels[consumerTopicNameLogs]
 
 	// Output channels
 	transactionLoaderChan := crud.GetTransactionModel().LoaderChannel
