@@ -71,6 +71,10 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 		c.Status(422)
 		return c.SendString(`{"error": "limit must be greater than 0 and less than 101"}`)
 	}
+	if params.Skip < 0 || params.Skip > config.Config.MaxPageSkip {
+		c.Status(422)
+		return c.SendString(`{"error": "invalid skip"}`)
+	}
 
 	// NOTE: TEMP casting string types for type field
 	if params.Type == "regular" {
@@ -149,6 +153,10 @@ func handlerGetTransactionAddress(c *fiber.Ctx) error {
 	if params.Limit < 1 || params.Limit > config.Config.MaxPageSize {
 		c.Status(422)
 		return c.SendString(`{"error": "limit must be greater than 0 and less than 101"}`)
+	}
+	if params.Skip < 0 || params.Skip > config.Config.MaxPageSkip {
+		c.Status(422)
+		return c.SendString(`{"error": "invalid skip"}`)
 	}
 
 	transactions, err := crud.GetTransactionModel().SelectManyByAddressAPI(
@@ -243,6 +251,10 @@ func handlerGetInternalTransactionsByHash(c *fiber.Ctx) error {
 		c.Status(422)
 		return c.SendString(`{"error": "limit must be greater than 0 and less than 101"}`)
 	}
+	if params.Skip < 0 || params.Skip > config.Config.MaxPageSkip {
+		c.Status(422)
+		return c.SendString(`{"error": "invalid skip"}`)
+	}
 
 	if hash == "" {
 		c.Status(422)
@@ -306,6 +318,10 @@ func handlerGetInternalTransactionsAddress(c *fiber.Ctx) error {
 		c.Status(422)
 		return c.SendString(`{"error": "limit must be greater than 0 and less than 101"}`)
 	}
+	if params.Skip < 0 || params.Skip > config.Config.MaxPageSkip {
+		c.Status(422)
+		return c.SendString(`{"error": "invalid skip"}`)
+	}
 
 	internalTransactions, err := crud.GetTransactionModel().SelectManyInternalByAddressAPI(
 		params.Limit,
@@ -368,6 +384,10 @@ func handlerGetTokenTransfers(c *fiber.Ctx) error {
 	if params.Limit < 1 || params.Limit > config.Config.MaxPageSize {
 		c.Status(422)
 		return c.SendString(`{"error": "limit must be greater than 0 and less than 101"}`)
+	}
+	if params.Skip < 0 || params.Skip > config.Config.MaxPageSkip {
+		c.Status(422)
+		return c.SendString(`{"error": "invalid skip"}`)
 	}
 
 	// Get Transactions
@@ -439,6 +459,10 @@ func handlerGetTokenTransfersAddress(c *fiber.Ctx) error {
 		c.Status(422)
 		return c.SendString(`{"error": "limit must be greater than 0 and less than 101"}`)
 	}
+	if params.Skip < 0 || params.Skip > config.Config.MaxPageSkip {
+		c.Status(422)
+		return c.SendString(`{"error": "invalid skip"}`)
+	}
 
 	// Get Transactions
 	tokenTransfers, err := crud.GetTokenTransferModel().SelectManyByAddress(
@@ -508,6 +532,10 @@ func handlerGetTokenTransfersTokenContract(c *fiber.Ctx) error {
 	if params.Limit < 1 || params.Limit > config.Config.MaxPageSize {
 		c.Status(422)
 		return c.SendString(`{"error": "limit must be greater than 0 and less than 101"}`)
+	}
+	if params.Skip < 0 || params.Skip > config.Config.MaxPageSkip {
+		c.Status(422)
+		return c.SendString(`{"error": "invalid skip"}`)
 	}
 
 	// Get Transactions
