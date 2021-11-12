@@ -71,7 +71,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr-worker.outputs.registry }}
           ECR_REPOSITORY: icon-transactions-worker
-          IMAGE_TAG: ${{ steps.source.outputs.TAG }}
+          IMAGE_TAG: prod-${{ steps.source.outputs.TAG }}
         run: |
           docker build --target prod --build-arg SERVICE_NAME=worker -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
@@ -91,7 +91,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr-api.outputs.registry }}
           ECR_REPOSITORY: icon-transactions-api
-          IMAGE_TAG: ${{ steps.source.outputs.TAG }}
+          IMAGE_TAG: prod-${{ steps.source.outputs.TAG }}
         run: |
           docker build --target prod  --build-arg SERVICE_NAME=api -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
@@ -161,7 +161,7 @@ jobs:
           repository: geometry-labs/icon-charts
           valueFile: 'deployments/prod-us-west-2/mainnet/transactions/values.yaml'
           propertyPath: 'api.image.tag'
-          value: ${{ steps.source.outputs.TAG }}
+          value: prod-${{ steps.source.outputs.TAG }}
           branch: main
           createPR: 'false'
           updateFile: true
@@ -174,7 +174,7 @@ jobs:
           repository: geometry-labs/icon-charts
           valueFile: 'deployments/prod-us-west-2/mainnet/transactions/values.yaml'
           propertyPath: 'worker.image.tag'
-          value: ${{ steps.source.outputs.TAG }}
+          value: prod-${{ steps.source.outputs.TAG }}
           branch: main
           createPR: 'false'
           message: 'transactions prod deployment (mainnet) image versions to ${{ steps.source.outputs.TAG }}'
