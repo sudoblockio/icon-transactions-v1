@@ -123,7 +123,7 @@ jobs:
           repository: geometry-labs/icon-charts
           valueFile: 'deployments/dev/mainnet/transactions/values.yaml'
           propertyPath: 'api.image.tag'
-          value: ${{ github.run_number }}
+          value: dev-${{ github.run_number }}
           branch: main
           createPR: 'false'
           updateFile: true
@@ -136,7 +136,7 @@ jobs:
           repository: geometry-labs/icon-charts
           valueFile: 'deployments/dev/mainnet/transactions/values.yaml'
           propertyPath: 'worker.image.tag'
-          value: ${{ github.run_number }}
+          value: dev-${{ github.run_number }}
           branch: main
           createPR: 'false'
           message: 'transactions dev deployment (mainnet) image versions to ${{ github.run_number }}'
