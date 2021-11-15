@@ -28,7 +28,6 @@ func StartWorkerConsumers() {
 
 	// Init topic names
 	topicNames := []string{
-		config.Config.ConsumerTopicBlocks,
 		config.Config.ConsumerTopicTransactions,
 		config.Config.ConsumerTopicLogs,
 	}
