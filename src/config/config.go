@@ -25,6 +25,9 @@ type configType struct {
 	MaxPageSize int `envconfig:"MAX_PAGE_SIZE" required:"false" default:"100"`
 	MaxPageSkip int `envconfig:"MAX_PAGE_SKIP" required:"false" default:"1000000"`
 
+	// Icon node service
+	IconNodeServiceURL string `envconfig:"ICON_NODE_SERVICE_URL" required:"false" default:"https://ctz.solidwallet.io/api/v3"`
+
 	// CORS
 	CORSAllowOrigins  string `envconfig:"CORS_ALLOW_ORIGINS" required:"false" default:"*"`
 	CORSAllowHeaders  string `envconfig:"CORS_ALLOW_HEADERS" required:"false" default:"*"`

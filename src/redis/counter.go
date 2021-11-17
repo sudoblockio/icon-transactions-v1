@@ -7,6 +7,7 @@ import (
 	"github.com/go-redis/redis"
 )
 
+// Any key -> number
 func (c *Client) GetCount(countKey string) (int64, error) {
 
 	count := int64(0)

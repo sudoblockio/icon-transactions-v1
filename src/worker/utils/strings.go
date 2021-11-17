@@ -11,12 +11,17 @@ func StringInSlice(a string, list []string) bool {
 	return false
 }
 
-func StringHexBase18ToFloat64(hex string) float64 {
+func StringHexToFloat64(hex string, base int) float64 {
 	valueDecimal := float64(0)
 
 	valueBigInt, _ := new(big.Int).SetString(hex[2:], 16)
 
-	baseBigFloat, _ := new(big.Float).SetString("1000000000000000000") // 10^18
+	baseBigFloatString := "1"
+	for i := 0; i < base; i++ {
+		baseBigFloatString += "0"
+	}
+	baseBigFloat, _ := new(big.Float).SetString(baseBigFloatString) // 10^(base)
+
 	valueBigFloat := new(big.Float).SetInt(valueBigInt)
 	valueBigFloat = valueBigFloat.Quo(valueBigFloat, baseBigFloat)
 

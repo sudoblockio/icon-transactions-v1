@@ -124,7 +124,7 @@ func transformTransactionRawToTransaction(txRaw *models.TransactionRaw) *models.
 
 	// Transaction Decimal Value
 	// Hex -> float64
-	valueDecimal := utils.StringHexBase18ToFloat64(txRaw.Value)
+	valueDecimal := utils.StringHexToFloat64(txRaw.Value, 18)
 
 	return &models.Transaction{
 		Type:                      txRaw.Type,

@@ -143,7 +143,7 @@ func transformLogRawToTransaction(logRaw *models.LogRaw) *models.Transaction {
 
 	// Transaction Decimal Value
 	// Hex -> float64
-	valueDecimal := utils.StringHexBase18ToFloat64(value)
+	valueDecimal := utils.StringHexToFloat64(value, 18)
 
 	return &models.Transaction{
 		Type:                      logRaw.Type,
@@ -210,6 +210,9 @@ func transformLogRawToTokenTransfer(logRaw *models.LogRaw) *models.TokenTransfer
 		return nil
 	}
 
+	// Token Contract Address
+	tokenContractAddress := logRaw.Address
+
 	// From Address
 	fromAddress := indexed[1]
 
@@ -220,11 +223,16 @@ func transformLogRawToTokenTransfer(logRaw *models.LogRaw) *models.TokenTransfer
 	value := indexed[3]
 
 	// Transaction Decimal Value
-	// Hex -> float64
-	valueDecimal := utils.StringHexBase18ToFloat64(value)
+	// NOTE every token has a different decimal base
+	tokenDecimalBase, err := utils.IconNodeServiceGetTokenDecimalBase(tokenContractAddress)
+	if err != nil {
+		zap.S().Fatal(err)
+	}
+
+	valueDecimal := utils.StringHexToFloat64(value, tokenDecimalBase)
 
 	return &models.TokenTransfer{
-		TokenContractAddress: logRaw.Address,
+		TokenContractAddress: tokenContractAddress,
 		FromAddress:          fromAddress,
 		ToAddress:            toAddress,
 		Value:                value,

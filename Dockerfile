@@ -28,8 +28,13 @@ WORKDIR /build
 RUN go build -o main ./${SERVICE_NAME}
 
 FROM ubuntu as prod
+
+# For SSL certs
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
 COPY --from=builder /build/main /
 CMD ["/main"]
+
 
 FROM builder as test
 CMD ["go", "test", "./.../", "-v", "-timeout", "15m"]
