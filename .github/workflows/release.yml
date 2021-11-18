@@ -17,6 +17,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Create last_synced_block.txt
+        run: mkdir ./volumes && mkdir ./volumes/etl && echo "34000000" >> ./volumes/etl/last_synced_block.txt && chmod 777 ./volumes/etl/last_synced_block.txt
+
       - name: Bring up DBs
         run: docker-compose -f docker-compose.db.yml up -d && sleep 30
 
@@ -50,6 +53,13 @@ jobs:
 
       - name: Run integration tests
         run: cd tests && go test -v -covermode=atomic -coverprofile=coverage.out ./...
+
+      - uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./tests/coverage.out
+          flags: integration
+          fail_ci_if_error: true
 
       - name: Tag name
         id: source
@@ -129,7 +139,7 @@ jobs:
         with:
           context: .
           build-args: |
-            SERVICE_NAME=api
+            SERVICE_NAME=worker
           file: ./Dockerfile
           target: prod
           push: true
@@ -140,7 +150,7 @@ jobs:
         with:
           context: .
           build-args: |
-            SERVICE_NAME=api
+            SERVICE_NAME=worker
           file: ./Dockerfile
           target: prod
           push: true
@@ -154,7 +164,59 @@ jobs:
           path: charts
           token: ${{ secrets.ICON_CHARTS_PAT }}
 
-      - name: Update prod-mainnet deployment values file (API) and re-commit
+      - name: Update prod-sejong-us-west-2 deployment values file (API)
+        uses: fjogeleit/yaml-update-action@master
+        with:
+          workDir: charts
+          repository: geometry-labs/icon-charts
+          valueFile: 'deployments/prod-us-west-2/sejong/transactions/values.yaml'
+          propertyPath: 'api.image.tag'
+          value: prod-${{ steps.source.outputs.TAG }}
+          branch: main
+          createPR: 'false'
+          updateFile: true
+          commitChange: false
+
+      - name: Update prod-sejong-us-west-2 deployment values file (WORKER)
+        uses: fjogeleit/yaml-update-action@master
+        with:
+          workDir: charts
+          repository: geometry-labs/icon-charts
+          valueFile: 'deployments/prod-us-west-2/sejong/transactions/values.yaml'
+          propertyPath: 'worker.image.tag'
+          value: prod-${{ steps.source.outputs.TAG }}
+          branch: main
+          createPR: 'false'
+          updateFile: true
+          commitChange: false
+
+      - name: Update prod-mainnet-eu-west-1 deployment values file (API)
+        uses: fjogeleit/yaml-update-action@master
+        with:
+          workDir: charts
+          repository: geometry-labs/icon-charts
+          valueFile: 'deployments/prod-eu-west-1/mainnet/transactions/values.yaml'
+          propertyPath: 'api.image.tag'
+          value: prod-${{ steps.source.outputs.TAG }}
+          branch: main
+          createPR: 'false'
+          updateFile: true
+          commitChange: false
+
+      - name: Update prod-mainnet-eu-west-1 deployment values file (WORKER)
+        uses: fjogeleit/yaml-update-action@master
+        with:
+          workDir: charts
+          repository: geometry-labs/icon-charts
+          valueFile: 'deployments/prod-eu-west-1/mainnet/transactions/values.yaml'
+          propertyPath: 'worker.image.tag'
+          value: prod-${{ steps.source.outputs.TAG }}
+          branch: main
+          createPR: 'false'
+          updateFile: true
+          commitChange: false
+
+      - name: Update prod-mainnet-us-west-2 deployment values file (API)
         uses: fjogeleit/yaml-update-action@master
         with:
           workDir: charts
@@ -167,7 +229,7 @@ jobs:
           updateFile: true
           commitChange: false
 
-      - name: Update prod-mainnet deployment values file (WORKER) and re-commit
+      - name: Update prod-mainnet-us-west-2 deployment values file (WORKER) and re-commit
         uses: fjogeleit/yaml-update-action@master
         with:
           workDir: charts
@@ -177,14 +239,24 @@ jobs:
           value: prod-${{ steps.source.outputs.TAG }}
           branch: main
           createPR: 'false'
-          message: 'transactions prod deployment (mainnet) image versions to ${{ steps.source.outputs.TAG }}'
-          token: ${{ secrets.ICON_CHARTS_PAT }}
           updateFile: true
+          commitChange: false
+
+      - name: Configure credentials
+        uses: oleksiyrudenko/gha-git-credentials@v2-latest
+        with:
+          token: '${{ secrets.ICON_CHARTS_PAT }}'
+          global: true
+
+      - name: Commit all updates
+        run: |
+          git add -A
+          git commit -m "transactions prod deployment (mainnet) image versions to ${{ steps.source.outputs.TAG }}"
+          git push origin
+        working-directory: charts
 
       - name: Push tags
         run: |
-          git stash
-          git pull
           git tag -f transactions-prod-uswest2
           git tag -f transactions-prod-euwest2
           git push -f origin --tags
