@@ -56,6 +56,10 @@ type configType struct {
 	ConsumerTopicBlocks          string            `envconfig:"CONSUMER_TOPIC_BLOCKS" required:"false" default:"blocks"`
 	ConsumerTopicTransactions    string            `envconfig:"CONSUMER_TOPIC_TRANSACTIONS" required:"false" default:"transactions"`
 	ConsumerTopicLogs            string            `envconfig:"CONSUMER_TOPIC_LOGS" required:"false" default:"logs"`
+	ConsumerIsPartitionConsumer  bool              `envconfig:"CONSUMER_IS_PARTITION_CONSUMER" required:"false" default:"false"`
+	ConsumerPartition            int               `envconfig:"CONSUMER_PARTITION" required:"false" default:"0"`
+	ConsumerPartitionTopic       string            `envconfig:"CONSUMER_PARTITION_TOPIC" required:"false" default:"transactions"`
+	ConsumerPartitionStartOffset int               `envconfig:"CONSUMER_PARTITION_START_OFFSET" required:"false" default:"1"`
 	ProducerTopics               []string          `envconfig:"PRODUCER_TOPICS" required:"false" default:"transactions-ws"`
 	SchemaNameTopics             map[string]string `envconfig:"SCHEMA_NAME_TOPICS" required:"false" default:"transactions-ws:transactions"`
 	SchemaFolderPath             string            `envconfig:"SCHEMA_FOLDER_PATH" required:"false" default:"schemas/"`
