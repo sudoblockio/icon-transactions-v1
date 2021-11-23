@@ -8,6 +8,7 @@ import (
 	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/logging"
 	"github.com/geometry-labs/icon-transactions/metrics"
+	"github.com/geometry-labs/icon-transactions/worker/routines"
 	"github.com/geometry-labs/icon-transactions/worker/transformers"
 )
 
@@ -19,6 +20,13 @@ func main() {
 
 	// Start Prometheus client
 	metrics.Start()
+
+	if config.Config.OnlyRunTransactionCountByAddressRoutine == true {
+		// Start routine
+		routines.StartTransactionCountByAddressRoutine()
+
+		global.WaitShutdownSig()
+	}
 
 	// Start kafka consumer
 	kafka.StartWorkerConsumers()

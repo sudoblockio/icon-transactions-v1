@@ -72,6 +72,27 @@ func (m *TransactionCountByAddressModel) SelectOne(address string) (*models.Tran
 	return transactionCountByAddress, db.Error
 }
 
+// SelectMany - select from transactionCountByAddresss table
+func (m *TransactionCountByAddressModel) SelectMany(limit int, skip int) (*[]models.TransactionCountByAddress, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&[]models.TransactionCountByAddress{})
+
+	// Limit
+	db = db.Limit(limit)
+
+	// Skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
+
+	transactionCountByAddresses := &[]models.TransactionCountByAddress{}
+	db = db.Find(transactionCountByAddresses)
+
+	return transactionCountByAddresses, db.Error
+}
+
 // Select - select from transactionCountByAddresss table
 func (m *TransactionCountByAddressModel) SelectCount(address string) (uint64, error) {
 	db := m.db

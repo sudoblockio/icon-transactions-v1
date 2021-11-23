@@ -86,6 +86,9 @@ type configType struct {
 
 	// GORM
 	GormLoggingThresholdMilli int `envconfig:"GORM_LOGGING_THRESHOLD_MILLI" required:"false" default:"250"`
+
+	// Feature flags
+	OnlyRunTransactionCountByAddressRoutine bool `envconfig:"ONLY_RUN_TRANSACTION_COUNT_BY_ADDRESS_ROUTINE" required:"false" default:"false"`
 }
 
 var Config configType
