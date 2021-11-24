@@ -354,25 +354,6 @@ func (m *TransactionModel) SelectOneAPI(
 	return transaction, db.Error
 }
 
-// CountByType - count by type
-// NOTE will take long time to compute
-func (m *TransactionModel) CountByType(
-	_type string,
-) (int64, error) {
-	db := m.db
-
-	// Set table
-	db = db.Model(&[]models.Transaction{})
-
-	// Type
-	db = db.Where("type = ?", _type)
-
-	var count int64
-	db = db.Distinct("hash", "log_index").Count(&count)
-
-	return count, db.Error
-}
-
 func (m *TransactionModel) UpsertOne(
 	transaction *models.Transaction,
 ) error {

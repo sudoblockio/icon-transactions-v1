@@ -26,7 +26,7 @@ func transactionCountRoutine(duration time.Duration) {
 		/////////////
 
 		// Count
-		count, err := crud.GetTransactionModel().CountByType("transaction")
+		count, err := crud.GetTransactionCountIndexModel().Count()
 		if err != nil {
 			// Postgres error
 			zap.S().Warn(err)
@@ -54,7 +54,7 @@ func transactionCountRoutine(duration time.Duration) {
 		//////////////
 
 		// Count
-		count, err = crud.GetTransactionModel().CountByType("log")
+		count, err = crud.GetTransactionInternalCountIndexModel().Count()
 		if err != nil {
 			// Postgres error
 			zap.S().Warn(err)
@@ -82,35 +82,7 @@ func transactionCountRoutine(duration time.Duration) {
 		////////////////////
 
 		// Count
-		count, err = crud.GetTransactionModel().CountByType("transaction")
-		if err != nil {
-			// Postgres error
-			zap.S().Warn(err)
-			continue
-		}
-
-		// Update Redis
-		countKey = "icon_transactions_transaction_count_regular"
-		err = redis.GetRedisClient().SetCount(countKey, count)
-		if err != nil {
-			// Redis error
-			zap.S().Warn(err)
-			continue
-		}
-
-		// Update Postgres
-		transactionCount = &models.TransactionCount{
-			Type:  "regular",
-			Count: uint64(count),
-		}
-		err = crud.GetTransactionCountModel().UpsertOne(transactionCount)
-
-		//////////////
-		// Internal //
-		//////////////
-
-		// Count
-		count, err = crud.GetTokenTransferModel().Count()
+		count, err = crud.GetTransactionTokenTransferCountIndexModel().Count()
 		if err != nil {
 			// Postgres error
 			zap.S().Warn(err)
