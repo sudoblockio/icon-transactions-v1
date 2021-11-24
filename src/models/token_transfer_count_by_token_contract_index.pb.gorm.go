@@ -22,6 +22,7 @@ var _ = math.Inf
 
 type TokenTransferCountByTokenContractIndexORM struct {
 	LogIndex        uint64 `gorm:"primary_key"`
+	TokenContract   string
 	TransactionHash string `gorm:"primary_key"`
 }
 
@@ -42,6 +43,7 @@ func (m *TokenTransferCountByTokenContractIndex) ToORM(ctx context.Context) (Tok
 	}
 	to.TransactionHash = m.TransactionHash
 	to.LogIndex = m.LogIndex
+	to.TokenContract = m.TokenContract
 	if posthook, ok := interface{}(m).(TokenTransferCountByTokenContractIndexWithAfterToORM); ok {
 		err = posthook.AfterToORM(ctx, &to)
 	}
@@ -60,6 +62,7 @@ func (m *TokenTransferCountByTokenContractIndexORM) ToPB(ctx context.Context) (T
 	}
 	to.TransactionHash = m.TransactionHash
 	to.LogIndex = m.LogIndex
+	to.TokenContract = m.TokenContract
 	if posthook, ok := interface{}(m).(TokenTransferCountByTokenContractIndexWithAfterToPB); ok {
 		err = posthook.AfterToPB(ctx, &to)
 	}
@@ -137,6 +140,10 @@ func DefaultApplyFieldMaskTokenTransferCountByTokenContractIndex(ctx context.Con
 		}
 		if f == prefix+"LogIndex" {
 			patchee.LogIndex = patcher.LogIndex
+			continue
+		}
+		if f == prefix+"TokenContract" {
+			patchee.TokenContract = patcher.TokenContract
 			continue
 		}
 	}
