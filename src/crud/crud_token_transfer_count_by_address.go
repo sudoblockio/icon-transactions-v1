@@ -72,6 +72,27 @@ func (m *TokenTransferCountByAddressModel) SelectOne(address string) (*models.To
 	return tokenTransferCountByAddress, db.Error
 }
 
+// SelectMany - select from transactionCountByAddresss table
+func (m *TokenTransferCountByAddressModel) SelectMany(limit int, skip int) (*[]models.TokenTransferCountByAddress, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&[]models.TokenTransferCountByAddress{})
+
+	// Limit
+	db = db.Limit(limit)
+
+	// Skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
+
+	tokenTransferCountByAddresses := &[]models.TokenTransferCountByAddress{}
+	db = db.Find(tokenTransferCountByAddresses)
+
+	return tokenTransferCountByAddresses, db.Error
+}
+
 // Select - select from tokenTransferCountByAddresss table
 func (m *TokenTransferCountByAddressModel) SelectCount(address string) (uint64, error) {
 	db := m.db
