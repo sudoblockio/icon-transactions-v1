@@ -50,6 +50,21 @@ func (m *TransactionCountIndexModel) Migrate() error {
 	return err
 }
 
+// Count - count all entries in transaction_count_indices table
+// NOTE this function will take a long time
+func (m *TransactionCountIndexModel) Count() (int64, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&models.TransactionCountIndex{})
+
+	// Count
+	var count int64
+	db = db.Count(&count)
+
+	return count, db.Error
+}
+
 // Insert - Insert transactionCountByIndex into table
 func (m *TransactionCountIndexModel) Insert(transactionCountIndex *models.TransactionCountIndex) error {
 	db := m.db

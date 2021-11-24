@@ -164,6 +164,20 @@ func (m *TokenTransferModel) SelectManyByTokenContractAddress(
 	return tokenTransfers, db.Error
 }
 
+// Count - count by type
+// NOTE will take long time to compute
+func (m *TokenTransferModel) Count() (int64, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&[]models.TokenTransfer{})
+
+	var count int64
+	db = db.Distinct("transaction_hash", "log_index").Count(&count)
+
+	return count, db.Error
+}
+
 func (m *TokenTransferModel) UpsertOne(
 	tokenTransfer *models.TokenTransfer,
 ) error {

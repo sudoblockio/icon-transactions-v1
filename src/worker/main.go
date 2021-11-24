@@ -21,6 +21,20 @@ func main() {
 	// Start Prometheus client
 	metrics.Start()
 
+	// Feature flags
+	if config.Config.OnlyRunAllRoutines == true {
+		// Start routines
+		routines.StartTransactionCountRoutine()
+		routines.StartTransactionCountByAddressRoutine()
+
+		global.WaitShutdownSig()
+	}
+	if config.Config.OnlyRunTransactionCountRoutine == true {
+		// Start routine
+		routines.StartTransactionCountRoutine()
+
+		global.WaitShutdownSig()
+	}
 	if config.Config.OnlyRunTransactionCountByAddressRoutine == true {
 		// Start routine
 		routines.StartTransactionCountByAddressRoutine()
