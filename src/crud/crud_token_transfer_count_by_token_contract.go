@@ -164,6 +164,7 @@ func StartTokenTransferCountByTokenContractLoader() {
 			newTokenTransferCountByTokenContractIndex := &models.TokenTransferCountByTokenContractIndex{
 				TransactionHash: newTokenTransferCountByTokenContract.TransactionHash,
 				LogIndex:        newTokenTransferCountByTokenContract.LogIndex,
+				TokenContract:   newTokenTransferCountByTokenContract.TokenContract,
 			}
 			err = GetTokenTransferCountByTokenContractIndexModel().Insert(newTokenTransferCountByTokenContractIndex)
 			if err != nil {

@@ -26,18 +26,8 @@ func main() {
 		// Start routines
 		routines.StartTransactionCountRoutine()
 		routines.StartTransactionCountByAddressRoutine()
-
-		global.WaitShutdownSig()
-	}
-	if config.Config.OnlyRunTransactionCountRoutine == true {
-		// Start routine
-		routines.StartTransactionCountRoutine()
-
-		global.WaitShutdownSig()
-	}
-	if config.Config.OnlyRunTransactionCountByAddressRoutine == true {
-		// Start routine
-		routines.StartTransactionCountByAddressRoutine()
+		routines.StartTransactionInternalCountByAddressRoutine()
+		routines.StartTokenTransferCountByAddressRoutine()
 
 		global.WaitShutdownSig()
 	}

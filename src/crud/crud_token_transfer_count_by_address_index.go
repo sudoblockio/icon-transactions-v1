@@ -50,6 +50,24 @@ func (m *TokenTransferCountByAddressIndexModel) Migrate() error {
 	return err
 }
 
+// CountByAddress - Count transactionCountByIndex by address
+// NOTE this function may take very long for some addresses
+func (m *TokenTransferCountByAddressIndexModel) CountByAddress(address string) (int64, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&models.TokenTransferCountByAddressIndex{})
+
+	// Address
+	db = db.Where("address = ?", address)
+
+	// Count
+	var count int64
+	db = db.Count(&count)
+
+	return count, db.Error
+}
+
 // Insert - Insert transactionCountByIndex into table
 func (m *TokenTransferCountByAddressIndexModel) Insert(tokenTransferCountByAddressIndex *models.TokenTransferCountByAddressIndex) error {
 	db := m.db

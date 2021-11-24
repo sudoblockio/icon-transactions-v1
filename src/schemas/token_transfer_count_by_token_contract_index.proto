@@ -9,4 +9,5 @@ message TokenTransferCountByTokenContractIndex {
 
   string transaction_hash = 1 [(gorm.field).tag = {primary_key: true}];
   uint64 log_index = 2 [(gorm.field).tag = {primary_key: true}];
+  string token_contract = 3;
 }
