@@ -149,16 +149,16 @@ func handlerGetTransactionDetails(c *fiber.Ctx) error {
 }
 
 // Transactions by Block Number
-// @Summary Get Transactions by address
-// @Description get transactions by address
+// @Summary Get Transactions by block_number
+// @Description get transactions by block_number
 // @Tags Transactions
 // @BasePath /api/v1
 // @Accept */*
 // @Produce json
 // @Param limit query int false "amount of records"
 // @Param skip query int false "skip to a record"
-// @Param address path string true "address"
-// @Router /api/v1/transactions/address/{address} [get]
+// @Param block_number path string true "block_number"
+// @Router /api/v1/transactions/block-number/{block_number} [get]
 // @Success 200 {object} models.TransactionAPIList
 // @Failure 422 {object} map[string]interface{}
 func handlerGetTransactionBlockNumber(c *fiber.Ctx) error {
