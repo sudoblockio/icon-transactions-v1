@@ -162,10 +162,16 @@ func handlerGetTransactionDetails(c *fiber.Ctx) error {
 // @Success 200 {object} models.TransactionAPIList
 // @Failure 422 {object} map[string]interface{}
 func handlerGetTransactionBlockNumber(c *fiber.Ctx) error {
-	blockNumber := c.Params("block_number")
-	if blockNumber == "" {
+	blockNumberRaw := c.Params("block_number")
+	if blockNumberRaw == "" {
 		c.Status(422)
-		return c.SendString(`{"error": "blockNumber required"}`)
+		return c.SendString(`{"error": "block_number required"}`)
+	}
+
+	blockNumber, err := strconv.Atoi(blockNumberRaw)
+	if err != nil {
+		c.Status(422)
+		return c.SendString(`{"error": "invalid block_number"}`)
 	}
 
 	params := new(TransactionsQuery)
