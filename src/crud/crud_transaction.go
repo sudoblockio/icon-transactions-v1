@@ -354,6 +354,21 @@ func (m *TransactionModel) SelectOneAPI(
 	return transaction, db.Error
 }
 
+// Select - select from logCountByAddresss table
+func (m *TransactionModel) SelectCountByBlockNumber(blockNumber int) (uint64, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&models.Transaction{})
+
+	db = db.Where("block_number = ?", blockNumber)
+
+	count := int64(0)
+	db = db.Count(&count)
+
+	return uint64(count), db.Error
+}
+
 func (m *TransactionModel) UpsertOne(
 	transaction *models.Transaction,
 ) error {
