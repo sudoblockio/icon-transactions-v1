@@ -220,7 +220,7 @@ func handlerGetTransactionBlockNumber(c *fiber.Ctx) error {
 		zap.S().Warn("Could not retrieve transaction count: ", err.Error())
 	}
 
-	c.Append("X-TOTAL-COUNT", strconv.FormatUint(count, 10))
+	c.Append("X-TOTAL-COUNT", strconv.FormatInt(count, 10))
 
 	body, _ := json.Marshal(&transactions)
 	return c.SendString(string(body))

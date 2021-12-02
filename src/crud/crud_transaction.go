@@ -356,7 +356,7 @@ func (m *TransactionModel) SelectOneAPI(
 
 // SelectCount - select from blockCounts table
 // NOTE very slow operation
-func (m *TransactionModel) SelectCountRegular() (uint64, error) {
+func (m *TransactionModel) SelectCountRegular() (int64, error) {
 	db := m.db
 
 	// Set table
@@ -369,7 +369,7 @@ func (m *TransactionModel) SelectCountRegular() (uint64, error) {
 	count := int64(0)
 	db = db.Count(&count)
 
-	return uint64(count), db.Error
+	return count, db.Error
 }
 
 // SelectCountInternal - select from blockCounts table
