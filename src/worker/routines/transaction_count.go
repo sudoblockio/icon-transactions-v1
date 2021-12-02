@@ -26,7 +26,7 @@ func transactionCountRoutine(duration time.Duration) {
 		/////////////
 
 		// Count
-		count, err := crud.GetTransactionCountIndexModel().Count()
+		count, err := crud.GetTransactionModel().SelectCountRegular()
 		if err != nil {
 			// Postgres error
 			zap.S().Warn(err)
@@ -54,7 +54,7 @@ func transactionCountRoutine(duration time.Duration) {
 		//////////////
 
 		// Count
-		count, err = crud.GetTransactionInternalCountIndexModel().Count()
+		count, err = crud.GetTransactionModel().SelectCountInternal()
 		if err != nil {
 			// Postgres error
 			zap.S().Warn(err)
@@ -82,7 +82,7 @@ func transactionCountRoutine(duration time.Duration) {
 		////////////////////
 
 		// Count
-		count, err = crud.GetTransactionTokenTransferCountIndexModel().Count()
+		count, err = crud.GetTokenTransferModel().SelectCount()
 		if err != nil {
 			// Postgres error
 			zap.S().Warn(err)

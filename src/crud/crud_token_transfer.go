@@ -164,6 +164,20 @@ func (m *TokenTransferModel) SelectManyByTokenContractAddress(
 	return tokenTransfers, db.Error
 }
 
+// SelectCount - select from blockCounts table
+// NOTE very slow operation
+func (m *TokenTransferModel) SelectCount() (int64, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&models.TokenTransfer{})
+
+	count := int64(0)
+	db = db.Count(&count)
+
+	return count, db.Error
+}
+
 func (m *TokenTransferModel) UpsertOne(
 	tokenTransfer *models.TokenTransfer,
 ) error {

@@ -366,32 +366,14 @@ func (m *TransactionModel) SelectCountRegular() (uint64, error) {
 	// Only select base transactions
 	db = db.Where("log_index = ?", -1)
 
-	count := int64(0)
-	db = db.Count(&count)
-
-	return uint64(count), db.Error
-}
-
-// SelectCountInternal - select from blockCounts table
-// NOTE very slow operation
-func (m *TransactionModel) SelectCountInternal() (int64, error) {
-	db := m.db
-
-	// Set table
-	db = db.Model(&models.Transaction{})
-
-	// Log Index
-	// Only select internal transactions
-	db = db.Where("log_index > ?", -1)
-
-	count := int64(0)
+	count := uint64(0)
 	db = db.Count(&count)
 
 	return count, db.Error
 }
 
 // Select - select from logCountByAddresss table
-func (m *TransactionModel) SelectCountByBlockNumber(blockNumber int) (int64, error) {
+func (m *TransactionModel) SelectCountByBlockNumber(blockNumber int) (uint64, error) {
 	db := m.db
 
 	// Set table
@@ -402,7 +384,7 @@ func (m *TransactionModel) SelectCountByBlockNumber(blockNumber int) (int64, err
 	count := int64(0)
 	db = db.Count(&count)
 
-	return count, db.Error
+	return uint64(count), db.Error
 }
 
 func (m *TransactionModel) UpsertOne(
