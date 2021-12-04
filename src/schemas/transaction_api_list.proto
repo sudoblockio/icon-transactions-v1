@@ -15,4 +15,5 @@ message TransactionAPIList {
   string type = 9;
   string method = 10;
   double value_decimal = 11;
+  string data = 12;
 }
