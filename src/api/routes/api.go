@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/geometry-labs/icon-transactions/config"
 	"github.com/geometry-labs/icon-transactions/global"
@@ -44,6 +45,9 @@ func Start() {
 	app.Use(compress.New(compress.Config{
 		// refer to gofiber/fiber/blob/v1.14.6/middleware/compress.go#L17
 		Level: compress.Level(config.Config.RestCompressLevel),
+		Next: func(c *fiber.Ctx) bool {
+			return strings.Contains(c.Path(), "/docs/")
+		},
 	}))
 
 	// Swagger docs
