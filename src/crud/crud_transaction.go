@@ -156,7 +156,7 @@ func (m *TransactionModel) SelectManyAPI(
 	db = db.Model(&[]models.Transaction{})
 
 	// Latest transactions first
-	db = db.Order("block_number desc")
+	db = db.Order("block_number desc, transaction_index")
 
 	// from
 	if from != "" {
