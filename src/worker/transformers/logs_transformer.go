@@ -194,6 +194,7 @@ func transformTransactionToTransactionInternalCountByAddress(tx *models.Transact
 		LogIndex:        uint64(tx.LogIndex),
 		Address:         address,
 		Count:           0, // Adds in loader
+		BlockNumber:     tx.BlockNumber,
 	}
 }
 
@@ -231,6 +232,15 @@ func transformLogRawToTokenTransfer(logRaw *models.LogRaw) *models.TokenTransfer
 
 	valueDecimal := utils.StringHexToFloat64(value, tokenDecimalBase)
 
+	// Block Timestamp
+	blockTimestamp := logRaw.BlockTimestamp
+
+	// Token Contract Name
+	tokenContractName, err := utils.IconNodeServiceGetTokenContractName(tokenContractAddress)
+	if err != nil {
+		zap.S().Fatal(err)
+	}
+
 	return &models.TokenTransfer{
 		TokenContractAddress: tokenContractAddress,
 		FromAddress:          fromAddress,
@@ -240,6 +250,9 @@ func transformLogRawToTokenTransfer(logRaw *models.LogRaw) *models.TokenTransfer
 		LogIndex:             int32(logRaw.LogIndex),
 		BlockNumber:          logRaw.BlockNumber,
 		ValueDecimal:         valueDecimal,
+		BlockTimestamp:       blockTimestamp,
+		TokenContractName:    tokenContractName,
+		TransactionFee:       "",
 	}
 }
 
@@ -277,6 +290,7 @@ func transformTokenTransferToTokenTransferCountByAddress(tokenTransfer *models.T
 		LogIndex:        uint64(tokenTransfer.LogIndex),
 		Address:         address,
 		Count:           0, // Adds in loader
+		BlockNumber:     tokenTransfer.BlockNumber,
 	}
 }
 
@@ -287,5 +301,6 @@ func transformTokenTransferToTokenTransferCountByTokenContract(tokenTransfer *mo
 		LogIndex:        uint64(tokenTransfer.LogIndex),
 		TokenContract:   tokenTransfer.TokenContractAddress,
 		Count:           0, // Adds in loader
+		BlockNumber:     tokenTransfer.BlockNumber,
 	}
 }

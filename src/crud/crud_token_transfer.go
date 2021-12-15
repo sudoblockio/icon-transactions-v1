@@ -1,6 +1,7 @@
 package crud
 
 import (
+	"errors"
 	"reflect"
 	"sync"
 
@@ -54,6 +55,29 @@ func (m *TokenTransferModel) Migrate() error {
 	return err
 }
 
+// SelectOne - select from token_transfers table
+// Returns: models, error (if present)
+func (m *TokenTransferModel) SelectOne(
+	transactionHash string,
+	logIndex int32,
+) (*models.TokenTransfer, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&[]models.TokenTransfer{})
+
+	// Transaction Hash
+	db = db.Where("transaction_hash = ?", transactionHash)
+
+	// Log Index
+	db = db.Where("log_index = ?", logIndex)
+
+	tokenTransfer := &models.TokenTransfer{}
+	db = db.First(tokenTransfer)
+
+	return tokenTransfer, db.Error
+}
+
 // SelectMany - select from token_transfers table
 // Returns: models, error (if present)
 func (m *TokenTransferModel) SelectMany(
@@ -62,6 +86,7 @@ func (m *TokenTransferModel) SelectMany(
 	from string,
 	to string,
 	blockNumber int,
+	transactionHash string,
 ) (*[]models.TokenTransfer, error) {
 	db := m.db
 
@@ -84,6 +109,11 @@ func (m *TokenTransferModel) SelectMany(
 	// block number
 	if blockNumber != 0 {
 		db = db.Where("block_number = ?", blockNumber)
+	}
+
+	// transaction hash
+	if transactionHash != "" {
+		db = db.Where("transaction_hash = ?", transactionHash)
 	}
 
 	// Limit is required and defaulted to 1
@@ -207,10 +237,30 @@ func StartTokenTransferLoader() {
 			// Read tokenTransfer
 			newTokenTransfer := <-postgresLoaderChan
 
+			/////////////////
+			// Enrichments //
+			/////////////////
+			transactionFee := ""
+
+			// Transaction Fee
+			transaction, err := GetTransactionModel().SelectOne(newTokenTransfer.TransactionHash, -1)
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// No block_time entry yet
+				transactionFee = "0x0"
+			} else if err == nil {
+				// Success
+				transactionFee = transaction.TransactionFee
+			} else {
+				// Postgres error
+				zap.S().Fatal(err.Error())
+			}
+
+			newTokenTransfer.TransactionFee = transactionFee
+
 			//////////////////////
 			// Load to postgres //
 			//////////////////////
-			err := GetTokenTransferModel().UpsertOne(newTokenTransfer)
+			err = GetTokenTransferModel().UpsertOne(newTokenTransfer)
 			zap.S().Debug("Loader=TokenTransfer, Hash=", newTokenTransfer.TransactionHash, " LogIndex=", newTokenTransfer.LogIndex, " - Upserted")
 			if err != nil {
 				// Postgres error
@@ -219,4 +269,22 @@ func StartTokenTransferLoader() {
 			}
 		}
 	}()
+}
+
+// reloadTokenTransfer - Send block back to loader for updates
+func reloadTokenTransfer(transactionHash string, logIndex int32) error {
+
+	curTokenTransfer, err := GetTokenTransferModel().SelectOne(transactionHash, logIndex)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// Create empty token transfer
+		curTokenTransfer = &models.TokenTransfer{}
+		curTokenTransfer.TransactionHash = transactionHash
+		curTokenTransfer.LogIndex = logIndex
+	} else if err != nil {
+		// Postgres error
+		return err
+	}
+	GetTokenTransferModel().LoaderChannel <- curTokenTransfer
+
+	return nil
 }

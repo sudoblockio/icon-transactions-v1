@@ -22,6 +22,7 @@ var _ = math.Inf
 
 type TransactionInternalCountByAddressORM struct {
 	Address         string `gorm:"primary_key"`
+	BlockNumber     uint64
 	Count           uint64
 	LogIndex        uint64
 	TransactionHash string
@@ -46,6 +47,7 @@ func (m *TransactionInternalCountByAddress) ToORM(ctx context.Context) (Transact
 	to.LogIndex = m.LogIndex
 	to.Address = m.Address
 	to.Count = m.Count
+	to.BlockNumber = m.BlockNumber
 	if posthook, ok := interface{}(m).(TransactionInternalCountByAddressWithAfterToORM); ok {
 		err = posthook.AfterToORM(ctx, &to)
 	}
@@ -66,6 +68,7 @@ func (m *TransactionInternalCountByAddressORM) ToPB(ctx context.Context) (Transa
 	to.LogIndex = m.LogIndex
 	to.Address = m.Address
 	to.Count = m.Count
+	to.BlockNumber = m.BlockNumber
 	if posthook, ok := interface{}(m).(TransactionInternalCountByAddressWithAfterToPB); ok {
 		err = posthook.AfterToPB(ctx, &to)
 	}
@@ -151,6 +154,10 @@ func DefaultApplyFieldMaskTransactionInternalCountByAddress(ctx context.Context,
 		}
 		if f == prefix+"Count" {
 			patchee.Count = patcher.Count
+			continue
+		}
+		if f == prefix+"BlockNumber" {
+			patchee.BlockNumber = patcher.BlockNumber
 			continue
 		}
 	}

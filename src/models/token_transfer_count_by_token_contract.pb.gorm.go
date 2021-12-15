@@ -21,6 +21,7 @@ var _ = fmt.Errorf
 var _ = math.Inf
 
 type TokenTransferCountByTokenContractORM struct {
+	BlockNumber     uint64
 	Count           uint64
 	LogIndex        uint64
 	TokenContract   string `gorm:"primary_key"`
@@ -46,6 +47,7 @@ func (m *TokenTransferCountByTokenContract) ToORM(ctx context.Context) (TokenTra
 	to.LogIndex = m.LogIndex
 	to.TokenContract = m.TokenContract
 	to.Count = m.Count
+	to.BlockNumber = m.BlockNumber
 	if posthook, ok := interface{}(m).(TokenTransferCountByTokenContractWithAfterToORM); ok {
 		err = posthook.AfterToORM(ctx, &to)
 	}
@@ -66,6 +68,7 @@ func (m *TokenTransferCountByTokenContractORM) ToPB(ctx context.Context) (TokenT
 	to.LogIndex = m.LogIndex
 	to.TokenContract = m.TokenContract
 	to.Count = m.Count
+	to.BlockNumber = m.BlockNumber
 	if posthook, ok := interface{}(m).(TokenTransferCountByTokenContractWithAfterToPB); ok {
 		err = posthook.AfterToPB(ctx, &to)
 	}
@@ -151,6 +154,10 @@ func DefaultApplyFieldMaskTokenTransferCountByTokenContract(ctx context.Context,
 		}
 		if f == prefix+"Count" {
 			patchee.Count = patcher.Count
+			continue
+		}
+		if f == prefix+"BlockNumber" {
+			patchee.BlockNumber = patcher.BlockNumber
 			continue
 		}
 	}

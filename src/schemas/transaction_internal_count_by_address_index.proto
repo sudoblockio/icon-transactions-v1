@@ -10,4 +10,5 @@ message TransactionInternalCountByAddressIndex {
   string transaction_hash = 1 [(gorm.field).tag = {primary_key: true}];
   uint64 log_index = 2 [(gorm.field).tag = {primary_key: true}];
   string address = 3 [(gorm.field).tag = {primary_key: true}];
+  uint64 block_number = 4 [(gorm.field).tag = {index: "transaction_internal_count_by_address_index_idx_block_number"}];
 }

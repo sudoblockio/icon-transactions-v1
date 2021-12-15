@@ -15,4 +15,7 @@ message TokenTransfer {
   int32  log_index = 6 [(gorm.field).tag = {primary_key: true}];
   uint64 block_number = 7 [(gorm.field).tag = {index: "token_transfer_idx_block_number"}];
   double value_decimal = 8 [(gorm.field).tag = {index: "token_transfer_idx_value_decimal"}];
+  uint64 block_timestamp = 9;
+  string token_contract_name = 10;
+  string transaction_fee = 11;
 }

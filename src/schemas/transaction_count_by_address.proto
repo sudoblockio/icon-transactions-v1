@@ -10,4 +10,5 @@ message TransactionCountByAddress {
   string address = 1 [(gorm.field).tag = {primary_key: true}];
   string transaction_hash = 2;
   uint64 count = 3 [(gorm.field).tag = {index: "transaction_count_by_address_idx_count"}];
+  uint64 block_number = 4;
 }

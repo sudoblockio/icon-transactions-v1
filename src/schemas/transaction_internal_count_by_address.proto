@@ -11,4 +11,5 @@ message TransactionInternalCountByAddress {
   uint64 log_index = 2;
   string address = 3 [(gorm.field).tag = {primary_key: true}];
   uint64 count = 4;
+  uint64 block_number = 5;
 }

@@ -1,6 +1,7 @@
 package crud
 
 import (
+	"errors"
 	"reflect"
 	"strings"
 	"sync"
@@ -434,6 +435,37 @@ func StartTransactionLoader() {
 			// Read transaction
 			newTransaction := <-postgresLoaderChan
 
+			/////////////////
+			// Enrichments //
+			/////////////////
+
+			// Contract Created transactions
+			// NOTE method set in transactions transformer
+			if newTransaction.Method == "_create_contract_" {
+				// Set Accept/Reject transactions
+
+				transactionCreateScore, err := GetTransactionCreateScoreModel().SelectOne(newTransaction.Hash)
+				if err == nil {
+					acceptTransactionHash := transactionCreateScore.AcceptTransactionHash
+					rejectTransactionHash := transactionCreateScore.RejectTransactionHash
+
+					// Update accept/reject transactions
+					var updateTransaction *models.Transaction = nil
+					if acceptTransactionHash != "" {
+						updateTransaction, err = GetTransactionModel().SelectOne(acceptTransactionHash, -1)
+					} else if rejectTransactionHash != "" {
+						updateTransaction, err = GetTransactionModel().SelectOne(rejectTransactionHash, -1)
+					}
+
+					updateTransaction.ToAddress = newTransaction.ToAddress
+
+					if err == nil {
+						GetTransactionModel().UpsertOne(updateTransaction)
+					}
+
+				}
+			}
+
 			//////////////////////
 			// Load to postgres //
 			//////////////////////
@@ -444,6 +476,37 @@ func StartTransactionLoader() {
 				zap.S().Info("Loader=Transaction, Hash=", newTransaction.Hash, " LogIndex=", newTransaction.LogIndex, " - FATAL")
 				zap.S().Fatal(err.Error())
 			}
+
+			// Reload all tokenTransfers
+			tokenTransfers, _ := GetTokenTransferModel().SelectMany(
+				100,                 // Limit
+				0,                   // Skip
+				"",                  // From
+				"",                  // To
+				0,                   // Block Number
+				newTransaction.Hash, // Transaction Hash
+			)
+			for _, tokenTransfer := range *tokenTransfers {
+				reloadTokenTransfer(tokenTransfer.TransactionHash, tokenTransfer.LogIndex)
+			}
 		}
 	}()
+}
+
+// reloadTransaction - Send block back to loader for updates
+func reloadTransaction(transactionHash string) error {
+
+	curTransaction, err := GetTransactionModel().SelectOne(transactionHash, -1)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// Create empty token transfer
+		curTransaction = &models.Transaction{}
+		curTransaction.Hash = transactionHash
+		curTransaction.LogIndex = -1
+	} else if err != nil {
+		// Postgres error
+		return err
+	}
+	GetTransactionModel().LoaderChannel <- curTransaction
+
+	return nil
 }

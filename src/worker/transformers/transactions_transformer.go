@@ -29,6 +29,7 @@ func transactionsTransformer() {
 
 	// Output channels
 	transactionLoaderChan := crud.GetTransactionModel().LoaderChannel
+	transactionCreateScoreLoaderChan := crud.GetTransactionCreateScoreModel().LoaderChannel
 	transactionWebsocketLoaderChan := crud.GetTransactionWebsocketIndexModel().LoaderChannel
 	transactionCountLoaderChan := crud.GetTransactionCountModel().LoaderChannel
 	transactionCountByAddressLoaderChan := crud.GetTransactionCountByAddressModel().LoaderChannel
@@ -54,6 +55,12 @@ func transactionsTransformer() {
 		// Loads to: transactions
 		transaction := transformTransactionRawToTransaction(transactionRaw)
 		transactionLoaderChan <- transaction
+
+		// Loads to: transaction_contract_creations
+		transactionCreateScore := transformTransactionToTransactionCreateScore(transaction)
+		if transactionCreateScore != nil {
+			transactionCreateScoreLoaderChan <- transactionCreateScore
+		}
 
 		// Loads to: transaction_websocket_indices
 		transactionWebsocket := transformTransactionToTransactionWS(transaction)
@@ -112,6 +119,15 @@ func transformTransactionRawToTransaction(txRaw *models.TransactionRaw) *models.
 		}
 	}
 
+	// Is contract creation transaction?
+	if txRaw.ToAddress == "cx0000000000000000000000000000000000000000" &&
+		txRaw.ReceiptScoreAddress != "None" {
+		txRaw.ToAddress = txRaw.ReceiptScoreAddress
+
+		// NOTE method used by crud transactions loader
+		method = "_create_contract_"
+	}
+
 	// Transaction fee calculation
 	// Use big int
 	// NOTE: transaction fees, once calculated (price*used) may be too large for postgres
@@ -156,6 +172,60 @@ func transformTransactionRawToTransaction(txRaw *models.TransactionRaw) *models.
 		LogIndex:                  -1,
 		Method:                    method,
 		ValueDecimal:              valueDecimal,
+	}
+}
+
+func transformTransactionToTransactionCreateScore(tx *models.Transaction) *models.TransactionCreateScore {
+
+	if !(tx.Method == "acceptScore" || tx.Method == "rejectScore") {
+		// Not contract accept/reject transaction
+		return nil
+	}
+
+	// Accept Transaction Hash
+	acceptTransactionHash := ""
+	if tx.Method == "acceptScore" {
+		acceptTransactionHash = tx.Hash
+	}
+
+	// Reject Transaction Hash
+	rejectTransactionHash := ""
+	if tx.Method == "rejectScore" {
+		rejectTransactionHash = tx.Hash
+	}
+
+	// Creation Transaction Hash
+	creationTransactionHash := ""
+	if tx.Data != "" {
+		dataJSON := map[string]interface{}{}
+		err := json.Unmarshal([]byte(tx.Data), &dataJSON)
+		if err == nil {
+
+			paramsInterface, ok := dataJSON["params"]
+			if ok {
+				// Params field is in dataJSON
+				params := paramsInterface.(map[string]interface{})
+
+				creationTransactionHashInterface, ok := params["txHash"]
+				if ok {
+					// Parsing successful
+					creationTransactionHash = creationTransactionHashInterface.(string)
+				}
+			}
+			if ok == false {
+				// Parsing error
+				zap.S().Fatal("Transaction params field parsing error: ", err.Error(), ",Hash=", tx.Hash)
+			}
+		} else {
+			// Parsing error
+			zap.S().Fatal("Transaction data field parsing error: ", err.Error(), ",Hash=", tx.Hash)
+		}
+	}
+
+	return &models.TransactionCreateScore{
+		CreationTransactionHash: creationTransactionHash,
+		AcceptTransactionHash:   acceptTransactionHash,
+		RejectTransactionHash:   rejectTransactionHash,
 	}
 }
 
@@ -214,5 +284,6 @@ func transformTransactionToTransactionCountByAddress(tx *models.Transaction, isF
 		TransactionHash: tx.Hash,
 		Address:         address,
 		Count:           0, // Adds in loader
+		BlockNumber:     tx.BlockNumber,
 	}
 }

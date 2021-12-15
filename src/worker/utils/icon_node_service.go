@@ -95,3 +95,84 @@ func IconNodeServiceGetTokenDecimalBase(tokenContractAddress string) (int, error
 
 	return int(decimals), nil
 }
+
+func IconNodeServiceGetTokenContractName(tokenContractAddress string) (string, error) {
+
+	// Redis cache
+	redisCacheKey := "icon_transactions_token_contract_name_" + tokenContractAddress
+	tokenContractName, err := redis.GetRedisClient().GetValue(redisCacheKey)
+	if err != nil {
+		zap.S().Fatal(err)
+	} else if tokenContractName != "" {
+		return tokenContractName, nil
+	}
+
+	// Request icon contract
+	url := config.Config.IconNodeServiceURL
+	method := "POST"
+	payload := fmt.Sprintf(`{
+    "jsonrpc": "2.0",
+    "id": 1234,
+    "method": "icx_call",
+    "params": {
+        "to": "%s",
+        "dataType": "call",
+        "data": {
+            "method": "name",
+            "params": {}
+        }
+    }
+	}`, tokenContractAddress)
+
+	// Create http client
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, strings.NewReader(payload))
+	if err != nil {
+		return "", err
+	}
+
+	// Execute request
+	req.Header.Add("Content-Type", "application/json")
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	// Read body
+	bodyString, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	// Check status code
+	if res.StatusCode != 200 {
+		return "", errors.New(
+			"StatusCode=" + strconv.Itoa(res.StatusCode) +
+				",Request=" + payload +
+				",Response=" + string(bodyString),
+		)
+	}
+
+	// Parse body
+	body := map[string]interface{}{}
+	err = json.Unmarshal(bodyString, &body)
+	if err != nil {
+		return "", err
+	}
+
+	// Extract balance
+	tokenContractName, ok := body["result"].(string)
+	if ok == false {
+		return "", errors.New("Invalid response")
+	}
+
+	// Redis cache
+	err = redis.GetRedisClient().SetValue(redisCacheKey, tokenContractName)
+	if err != nil {
+		// Redis error
+		zap.S().Fatal(err)
+	}
+
+	return tokenContractName, nil
+}

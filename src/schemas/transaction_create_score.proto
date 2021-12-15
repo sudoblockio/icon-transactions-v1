@@ -1,0 +1,13 @@
+syntax = "proto3";
+package models;
+option go_package = "./models";
+
+import "github.com/infobloxopen/protoc-gen-gorm/options/gorm.proto";
+
+message TransactionCreateScore {
+  option (gorm.opts) = {ormable: true};
+
+  string creation_transaction_hash = 1 [(gorm.field).tag = {primary_key: true}];
+  string accept_transaction_hash = 2;
+  string reject_transaction_hash = 3;
+}

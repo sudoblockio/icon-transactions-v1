@@ -185,6 +185,7 @@ func StartTransactionCountByAddressLoader() {
 			newTransactionCountByAddressIndex := &models.TransactionCountByAddressIndex{
 				TransactionHash: newTransactionCountByAddress.TransactionHash,
 				Address:         newTransactionCountByAddress.Address,
+				BlockNumber:     newTransactionCountByAddress.BlockNumber,
 			}
 			err = GetTransactionCountByAddressIndexModel().Insert(newTransactionCountByAddressIndex)
 			if err != nil {

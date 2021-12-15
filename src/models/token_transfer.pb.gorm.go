@@ -22,10 +22,13 @@ var _ = math.Inf
 
 type TokenTransferORM struct {
 	BlockNumber          uint64 `gorm:"index:token_transfer_idx_block_number"`
+	BlockTimestamp       uint64
 	FromAddress          string `gorm:"index:token_transfer_idx_from_address"`
 	LogIndex             int32  `gorm:"primary_key"`
 	ToAddress            string `gorm:"index:token_transfer_idx_to_address"`
 	TokenContractAddress string `gorm:"index:token_transfer_idx_token_contract_address"`
+	TokenContractName    string
+	TransactionFee       string
 	TransactionHash      string `gorm:"primary_key"`
 	Value                string
 	ValueDecimal         float64 `gorm:"index:token_transfer_idx_value_decimal"`
@@ -54,6 +57,9 @@ func (m *TokenTransfer) ToORM(ctx context.Context) (TokenTransferORM, error) {
 	to.LogIndex = m.LogIndex
 	to.BlockNumber = m.BlockNumber
 	to.ValueDecimal = m.ValueDecimal
+	to.BlockTimestamp = m.BlockTimestamp
+	to.TokenContractName = m.TokenContractName
+	to.TransactionFee = m.TransactionFee
 	if posthook, ok := interface{}(m).(TokenTransferWithAfterToORM); ok {
 		err = posthook.AfterToORM(ctx, &to)
 	}
@@ -78,6 +84,9 @@ func (m *TokenTransferORM) ToPB(ctx context.Context) (TokenTransfer, error) {
 	to.LogIndex = m.LogIndex
 	to.BlockNumber = m.BlockNumber
 	to.ValueDecimal = m.ValueDecimal
+	to.BlockTimestamp = m.BlockTimestamp
+	to.TokenContractName = m.TokenContractName
+	to.TransactionFee = m.TransactionFee
 	if posthook, ok := interface{}(m).(TokenTransferWithAfterToPB); ok {
 		err = posthook.AfterToPB(ctx, &to)
 	}
@@ -181,6 +190,18 @@ func DefaultApplyFieldMaskTokenTransfer(ctx context.Context, patchee *TokenTrans
 			patchee.ValueDecimal = patcher.ValueDecimal
 			continue
 		}
+		if f == prefix+"BlockTimestamp" {
+			patchee.BlockTimestamp = patcher.BlockTimestamp
+			continue
+		}
+		if f == prefix+"TokenContractName" {
+			patchee.TokenContractName = patcher.TokenContractName
+			continue
+		}
+		if f == prefix+"TransactionFee" {
+			patchee.TransactionFee = patcher.TransactionFee
+			continue
+		}
 	}
 	if err != nil {
 		return nil, err
@@ -210,7 +231,7 @@ func DefaultListTokenTransfer(ctx context.Context, db *gorm1.DB) ([]*TokenTransf
 		}
 	}
 	db = db.Where(&ormObj)
-	db = db.Order("transaction_hash")
+	db = db.Order("log_index")
 	ormResponse := []TokenTransferORM{}
 	if err := db.Find(&ormResponse).Error; err != nil {
 		return nil, err

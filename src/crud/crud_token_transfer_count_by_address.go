@@ -186,6 +186,7 @@ func StartTokenTransferCountByAddressLoader() {
 				TransactionHash: newTokenTransferCountByAddress.TransactionHash,
 				LogIndex:        newTokenTransferCountByAddress.LogIndex,
 				Address:         newTokenTransferCountByAddress.Address,
+				BlockNumber:     newTokenTransferCountByAddress.BlockNumber,
 			}
 			err = GetTokenTransferCountByAddressIndexModel().Insert(newTokenTransferCountByAddressIndex)
 			if err != nil {

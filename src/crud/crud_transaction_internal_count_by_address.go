@@ -186,6 +186,7 @@ func StartTransactionInternalCountByAddressLoader() {
 				TransactionHash: newTransactionInternalCountByAddress.TransactionHash,
 				LogIndex:        newTransactionInternalCountByAddress.LogIndex,
 				Address:         newTransactionInternalCountByAddress.Address,
+				BlockNumber:     newTransactionInternalCountByAddress.BlockNumber,
 			}
 			err = GetTransactionInternalCountByAddressIndexModel().Insert(newTransactionInternalCountByAddressIndex)
 			if err != nil {

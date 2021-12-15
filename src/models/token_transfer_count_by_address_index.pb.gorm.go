@@ -22,6 +22,7 @@ var _ = math.Inf
 
 type TokenTransferCountByAddressIndexORM struct {
 	Address         string `gorm:"primary_key"`
+	BlockNumber     uint64 `gorm:"index:token_transfer_count_by_address_index_idx_block_number"`
 	LogIndex        uint64 `gorm:"primary_key"`
 	TransactionHash string `gorm:"primary_key"`
 }
@@ -44,6 +45,7 @@ func (m *TokenTransferCountByAddressIndex) ToORM(ctx context.Context) (TokenTran
 	to.TransactionHash = m.TransactionHash
 	to.LogIndex = m.LogIndex
 	to.Address = m.Address
+	to.BlockNumber = m.BlockNumber
 	if posthook, ok := interface{}(m).(TokenTransferCountByAddressIndexWithAfterToORM); ok {
 		err = posthook.AfterToORM(ctx, &to)
 	}
@@ -63,6 +65,7 @@ func (m *TokenTransferCountByAddressIndexORM) ToPB(ctx context.Context) (TokenTr
 	to.TransactionHash = m.TransactionHash
 	to.LogIndex = m.LogIndex
 	to.Address = m.Address
+	to.BlockNumber = m.BlockNumber
 	if posthook, ok := interface{}(m).(TokenTransferCountByAddressIndexWithAfterToPB); ok {
 		err = posthook.AfterToPB(ctx, &to)
 	}
@@ -144,6 +147,10 @@ func DefaultApplyFieldMaskTokenTransferCountByAddressIndex(ctx context.Context, 
 		}
 		if f == prefix+"Address" {
 			patchee.Address = patcher.Address
+			continue
+		}
+		if f == prefix+"BlockNumber" {
+			patchee.BlockNumber = patcher.BlockNumber
 			continue
 		}
 	}
