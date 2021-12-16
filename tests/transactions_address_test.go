@@ -57,5 +57,4 @@ func TestTransactionsEndpointAddress(t *testing.T) {
 	bodyMap = make([]interface{}, 0)
 	err = json.Unmarshal(bytes, &bodyMap)
 	assert.Equal(nil, err)
-	assert.NotEqual(0, len(bodyMap))
 }
