@@ -51,6 +51,42 @@ func (m *TransactionCountByAddressIndexModel) Migrate() error {
 }
 
 // CountByAddress - Count transactionCountByIndex by address
+func (m *TransactionCountByAddressIndexModel) SelectTransactionHashesByAddress(
+	limit int,
+	skip int,
+	address string,
+) (*[]string, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&models.TransactionCountByAddressIndex{})
+
+	// Latest transactions first
+	db = db.Order("block_number desc")
+
+	// Address
+	db = db.Where("address = ?", address)
+
+	// Select
+	db = db.Select("transaction_hash")
+
+	// Limit is required and defaulted to 1
+	// Note: Count before setting limit
+	db = db.Limit(limit)
+
+	// Skip
+	// Note: Count before setting skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
+
+	transactionHashes := &[]string{}
+	db = db.Find(transactionHashes)
+
+	return transactionHashes, db.Error
+}
+
+// CountByAddress - Count transactionCountByIndex by address
 // NOTE this function may take very long for some addresses
 func (m *TransactionCountByAddressIndexModel) CountByAddress(address string) (int64, error) {
 	db := m.db

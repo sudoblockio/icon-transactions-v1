@@ -207,24 +207,20 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 ) (*[]models.TransactionAPIList, error) {
 	db := m.db
 
+	// Select transaction hashes from transction_count_by_address_indices
+	transactionHashes, err := GetTransactionCountByAddressIndexModel().SelectTransactionHashesByAddress(limit, skip, address)
+	if err != nil {
+		return nil, err
+	}
+
 	// Set table
 	db = db.Model(&[]models.Transaction{})
 
-	// Where clause
-	whereClause := `WHERE type='transaction' AND (from_address = '` + address + `' OR to_address = '` + address + `'` + `)`
+	// Address
+	db = db.Where("hash in ?", *transactionHashes)
 
-	// Order By Clause
-	orderByClause := "ORDER BY a.block_number DESC"
-
-	db.Raw(formatSelectStatementForceCTE(
-		reflect.ValueOf(models.TransactionAPIList{}), // modelValueOf
-		reflect.TypeOf(models.TransactionAPIList{}),  // modelTypeOf
-		m.modelORM.TableName(),                       // tableName
-		whereClause,                                  // whereClause
-		orderByClause,                                // orderByClause
-		limit,                                        // limit
-		skip,                                         // skip
-	))
+	// Type
+	db = db.Where("type = ?", "transaction")
 
 	transactions := &[]models.TransactionAPIList{}
 	db = db.Find(transactions)
