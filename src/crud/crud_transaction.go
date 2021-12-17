@@ -491,17 +491,17 @@ func StartTransactionLoader() {
 			}
 
 			// Reload all tokenTransfers
-			tokenTransfers, _ := GetTokenTransferModel().SelectMany(
-				100,                 // Limit
-				0,                   // Skip
-				"",                  // From
-				"",                  // To
-				0,                   // Block Number
-				newTransaction.Hash, // Transaction Hash
-			)
-			for _, tokenTransfer := range *tokenTransfers {
-				reloadTokenTransfer(tokenTransfer.TransactionHash, tokenTransfer.LogIndex)
-			}
+			//tokenTransfers, _ := GetTokenTransferModel().SelectMany(
+			//		100,                 // Limit
+			//		0,                   // Skip
+			//		"",                  // From
+			//		"",                  // To
+			//		0,                   // Block Number
+			//		newTransaction.Hash, // Transaction Hash
+			//	)
+			//	for _, tokenTransfer := range *tokenTransfers {
+			//		reloadTokenTransfer(tokenTransfer.TransactionHash, tokenTransfer.LogIndex)
+			//	}
 		}
 	}()
 }
