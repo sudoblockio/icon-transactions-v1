@@ -142,16 +142,24 @@ func (m *TokenTransferModel) SelectManyByAddress(
 	// Set table
 	db = db.Model(&[]models.TokenTransfer{})
 
-	// Latest transactions first
-	db = db.Order("block_number desc")
+	db = db.Select("*")
 
-	// address
-	db = db.Where("from_address = ? OR to_address = ?", address, address)
+	db = db.Joins(`LEFT JOIN token_transfer_count_by_address_indices
+		ON
+			token_transfer_count_by_address_indices.transaction_hash = token_transfers.transaction_hash
+		AND
+			token_transfer_count_by_address_indices.log_index = token_transfers.log_index`,
+	)
+
+	// Address
+	db = db.Where("token_transfer_count_by_address_indices.address = ?", address)
 
 	// Limit is required and defaulted to 1
+	// Note: Count before setting limit
 	db = db.Limit(limit)
 
 	// Skip
+	// Note: Count before setting skip
 	if skip != 0 {
 		db = db.Offset(skip)
 	}

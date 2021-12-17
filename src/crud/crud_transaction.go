@@ -207,20 +207,31 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 ) (*[]models.TransactionAPIList, error) {
 	db := m.db
 
-	// Select transaction hashes from transction_count_by_address_indices
-	transactionHashes, err := GetTransactionCountByAddressIndexModel().SelectTransactionHashesByAddress(limit, skip, address)
-	if err != nil {
-		return nil, err
-	}
-
 	// Set table
 	db = db.Model(&[]models.Transaction{})
 
+	db = db.Select("*")
+
+	db = db.Joins(`LEFT JOIN transaction_count_by_address_indices
+		ON
+			transaction_count_by_address_indices.transaction_hash = transactions.hash`,
+	)
+
 	// Address
-	db = db.Where("hash in ?", *transactionHashes)
+	db = db.Where("transaction_count_by_address_indices.address = ?", address)
 
 	// Type
-	db = db.Where("type = ?", "transaction")
+	db = db.Where("transactions.type = ?", "transaction")
+
+	// Limit is required and defaulted to 1
+	// Note: Count before setting limit
+	db = db.Limit(limit)
+
+	// Skip
+	// Note: Count before setting skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
 
 	transactions := &[]models.TransactionAPIList{}
 	db = db.Find(transactions)
@@ -279,14 +290,20 @@ func (m *TransactionModel) SelectManyInternalByAddressAPI(
 	// Set table
 	db = db.Model(&[]models.Transaction{})
 
-	// Latest transactions first
-	db = db.Order("block_number desc")
+	db = db.Select("*")
 
-	// Internal transactions only
-	db = db.Where("type = ?", "log")
+	db = db.Joins(`LEFT JOIN transaction_internal_count_by_address_indices
+		ON
+			transaction_internal_count_by_address_indices.transaction_hash = transactions.hash
+		AND
+			transaction_internal_count_by_address_indices.log_index = transactions.log_index`,
+	)
 
-	// From address or to address
-	db = db.Where("from_address = ? OR to_address = ?", address, address)
+	// Address
+	db = db.Where("transaction_internal_count_by_address_indices.address = ?", address)
+
+	// Type
+	db = db.Where("transactions.type = ?", "log")
 
 	// Limit is required and defaulted to 1
 	// Note: Count before setting limit
