@@ -28,6 +28,7 @@ func main() {
 		routines.StartTransactionCountByAddressRoutine()
 		routines.StartTransactionInternalCountByAddressRoutine()
 		routines.StartTokenTransferCountByAddressRoutine()
+		routines.StartTokenHoldersRoutine()
 
 		global.WaitShutdownSig()
 	}

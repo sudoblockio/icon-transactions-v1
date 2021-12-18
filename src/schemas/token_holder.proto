@@ -1,0 +1,14 @@
+syntax = "proto3";
+package models;
+option go_package = "./models";
+
+import "github.com/infobloxopen/protoc-gen-gorm/options/gorm.proto";
+
+message TokenHolder {
+  option (gorm.opts) = {ormable: true};
+
+  string token_contract_address = 1 [(gorm.field).tag = {primary_key: true, index: "token_holders_idx_token_contract_address"}];
+  string holder_address = 2 [(gorm.field).tag = {primary_key: true}];
+  string value = 3;
+  double value_decimal = 4 [(gorm.field).tag = {index: "token_holders_idx_value_decimal"}];
+}
