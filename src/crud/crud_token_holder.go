@@ -56,7 +56,7 @@ func (m *TokenHolderModel) Migrate() error {
 
 // SelectMany - select from token_transfers table
 // Returns: models, error (if present)
-func (m *TokenHolderModel) SelectManyByTokenContract(
+func (m *TokenHolderModel) SelectManyByTokenContractAddress(
 	limit int,
 	skip int,
 	tokenContractAddress string,

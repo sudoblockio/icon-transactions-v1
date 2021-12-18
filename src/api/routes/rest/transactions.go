@@ -35,6 +35,7 @@ func TransactionsAddHandlers(app *fiber.App) {
 	app.Get(prefix+"/token-transfers", handlerGetTokenTransfers)
 	app.Get(prefix+"/token-transfers/address/:address", handlerGetTokenTransfersAddress)
 	app.Get(prefix+"/token-transfers/token-contract/:token_contract_address", handlerGetTokenTransfersTokenContract)
+	app.Get(prefix+"/token-holders/token-contract/:token_contract_address", handlerGetTokenHoldersTokenContract)
 }
 
 // Transactions
@@ -647,5 +648,69 @@ func handlerGetTokenTransfersTokenContract(c *fiber.Ctx) error {
 	c.Append("X-TOTAL-COUNT", strconv.FormatUint(count, 10))
 
 	body, _ := json.Marshal(&tokenTransfers)
+	return c.SendString(string(body))
+}
+
+// TokenHoldersTokenContract
+// @Summary Get token holders by token contract
+// @Description get token holders
+// @Tags Transactions
+// @BasePath /api/v1
+// @Accept */*
+// @Produce json
+// @Param limit query int false "amount of records"
+// @Param skip query int false "skip to a record"
+// @Param token_contract_address path string true "find by token contract address"
+// @Router /api/v1/transactions/token-holders/token-contract/{token_contract_address} [get]
+// @Success 200 {object} []models.TokenHolder
+// @Failure 422 {object} map[string]interface{}
+func handlerGetTokenHoldersTokenContract(c *fiber.Ctx) error {
+	tokenContractAddress := c.Params("token_contract_address")
+	if tokenContractAddress == "" {
+		c.Status(422)
+		return c.SendString(`{"error": "token_contract_address required"}`)
+	}
+
+	params := new(TransactionsQuery)
+	if err := c.QueryParser(params); err != nil {
+		zap.S().Warnf("Transactions Get Handler ERROR: %s", err.Error())
+
+		c.Status(422)
+		return c.SendString(`{"error": "could not parse query parameters"}`)
+	}
+
+	// Default Params
+	if params.Limit <= 0 {
+		params.Limit = 25
+	}
+
+	// Check Params
+	if params.Limit < 1 || params.Limit > config.Config.MaxPageSize {
+		c.Status(422)
+		return c.SendString(`{"error": "limit must be greater than 0 and less than 101"}`)
+	}
+	if params.Skip < 0 || params.Skip > config.Config.MaxPageSkip {
+		c.Status(422)
+		return c.SendString(`{"error": "invalid skip"}`)
+	}
+
+	// Get Transactions
+	tokenHolders, err := crud.GetTokenHolderModel().SelectManyByTokenContractAddress(
+		params.Limit,
+		params.Skip,
+		tokenContractAddress,
+	)
+	if err != nil {
+		zap.S().Warnf("Transactions CRUD ERROR: %s", err.Error())
+		c.Status(500)
+		return c.SendString(`{"error": "could not retrieve transactions"}`)
+	}
+
+	if len(*tokenHolders) == 0 {
+		// No Content
+		c.Status(204)
+	}
+
+	body, _ := json.Marshal(&tokenHolders)
 	return c.SendString(string(body))
 }
