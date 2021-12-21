@@ -222,7 +222,7 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 	// Set table
 	db = db.Model(&[]models.Transaction{})
 
-	db = db.Select("*")
+	db = db.Select("*, transactions.block_number")
 
 	db = db.Joins(`LEFT JOIN transaction_count_by_address_indices
 		ON
