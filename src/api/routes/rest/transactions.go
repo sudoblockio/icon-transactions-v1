@@ -12,14 +12,16 @@ import (
 )
 
 type TransactionsQuery struct {
-	Limit           int    `query:"limit"`
-	Skip            int    `query:"skip"`
-	From            string `query:"from"`
-	To              string `query:"to"`
-	Type            string `query:"type"`
-	BlockNumber     int    `query:"block_number"`
-	Method          string `query:"method"`
-	TransactionHash string `query:"transaction_hash"`
+	Limit            int    `query:"limit"`
+	Skip             int    `query:"skip"`
+	From             string `query:"from"`
+	To               string `query:"to"`
+	Type             string `query:"type"`
+	BlockNumber      int    `query:"block_number"`
+	StartBlockNumber int    `query:"start_block_number"`
+	EndBlockNumber   int    `query:"end_block_number"`
+	Method           string `query:"method"`
+	TransactionHash  string `query:"transaction_hash"`
 }
 
 func TransactionsAddHandlers(app *fiber.App) {
@@ -51,6 +53,8 @@ func TransactionsAddHandlers(app *fiber.App) {
 // @Param to query string false "find by to address"
 // @Param type query string false "find by type"
 // @Param block_number query int false "find by block number"
+// @Param start_block_number query int false "find by block number range"
+// @Param end_block_number query int false "find by block number range"
 // @Param method query string false "find by method"
 // @Router /api/v1/transactions [get]
 // @Success 200 {object} []models.TransactionAPIList
@@ -94,6 +98,8 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 		params.To,
 		params.Type,
 		params.BlockNumber,
+		params.StartBlockNumber,
+		params.EndBlockNumber,
 		params.Method,
 	)
 	if err != nil {
@@ -207,6 +213,8 @@ func handlerGetTransactionBlockNumber(c *fiber.Ctx) error {
 		"",
 		"",
 		blockNumber,
+		0,
+		0,
 		"",
 	)
 	if err != nil {

@@ -149,6 +149,8 @@ func (m *TransactionModel) SelectManyAPI(
 	to string,
 	_type string,
 	blockNumber int,
+	startBlockNumber int,
+	endBlockNumber int,
 	method string,
 ) (*[]models.TransactionAPIList, error) {
 	db := m.db
@@ -177,6 +179,16 @@ func (m *TransactionModel) SelectManyAPI(
 	// block number
 	if blockNumber != 0 {
 		db = db.Where("block_number = ?", blockNumber)
+	}
+
+	// block number
+	if startBlockNumber != 0 {
+		db = db.Where("block_number >= ?", startBlockNumber)
+	}
+
+	// block number
+	if endBlockNumber != 0 {
+		db = db.Where("block_number <= ?", endBlockNumber)
 	}
 
 	// method
