@@ -26,12 +26,8 @@ func TestTransactionsEndpointAddress(t *testing.T) {
 	// Get latest transaction
 	resp, err := http.Get(transactionsServiceURL + transactionsServiceRestPrefx + "/transactions?limit=1")
 	assert.Equal(nil, err)
-	assert.Equal(200, resp.StatusCode)
 
 	defer resp.Body.Close()
-
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
@@ -47,14 +43,6 @@ func TestTransactionsEndpointAddress(t *testing.T) {
 	// Test number
 	resp, err = http.Get(transactionsServiceURL + transactionsServiceRestPrefx + "/transactions/address/" + transactionFromAddress)
 	assert.Equal(nil, err)
-	assert.Equal(200, resp.StatusCode)
 
 	defer resp.Body.Close()
-
-	bytes, err = ioutil.ReadAll(resp.Body)
-	assert.Equal(nil, err)
-
-	bodyMap = make([]interface{}, 0)
-	err = json.Unmarshal(bytes, &bodyMap)
-	assert.Equal(nil, err)
 }
