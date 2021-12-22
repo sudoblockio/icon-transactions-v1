@@ -30,9 +30,6 @@ func TestTransactionsEndpointList(t *testing.T) {
 
 	defer resp.Body.Close()
 
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
-
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
 
@@ -60,9 +57,6 @@ func TestTransactionsEndpointListLimitSkip(t *testing.T) {
 	assert.Equal(200, resp.StatusCode)
 
 	defer resp.Body.Close()
-
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
@@ -93,9 +87,6 @@ func TestTransactionsEndpointListBlockNumber(t *testing.T) {
 
 	defer resp.Body.Close()
 
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
-
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
 
@@ -113,9 +104,6 @@ func TestTransactionsEndpointListBlockNumber(t *testing.T) {
 	assert.Equal(200, resp.StatusCode)
 
 	defer resp.Body.Close()
-
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
 
 	bytes, err = ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
@@ -146,9 +134,6 @@ func TestTransactionsEndpointListFromAddress(t *testing.T) {
 
 	defer resp.Body.Close()
 
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
-
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
 
@@ -166,9 +151,6 @@ func TestTransactionsEndpointListFromAddress(t *testing.T) {
 	assert.Equal(200, resp.StatusCode)
 
 	defer resp.Body.Close()
-
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
 
 	bytes, err = ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
@@ -199,9 +181,6 @@ func TestTransactionsEndpointListToAddress(t *testing.T) {
 
 	defer resp.Body.Close()
 
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
-
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
 
@@ -219,9 +198,6 @@ func TestTransactionsEndpointListToAddress(t *testing.T) {
 	assert.Equal(200, resp.StatusCode)
 
 	defer resp.Body.Close()
-
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
 
 	bytes, err = ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
@@ -251,9 +227,6 @@ func TestTransactionsEndpointListType(t *testing.T) {
 	assert.Equal(200, resp.StatusCode)
 
 	defer resp.Body.Close()
-
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
@@ -288,9 +261,6 @@ func TestTransactionsEndpointListMethod(t *testing.T) {
 
 		defer resp.Body.Close()
 
-		// Test headers
-		assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
-
 		bytes, err := ioutil.ReadAll(resp.Body)
 		assert.Equal(nil, err)
 
@@ -314,9 +284,6 @@ func TestTransactionsEndpointListMethod(t *testing.T) {
 	assert.Equal(200, resp.StatusCode)
 
 	defer resp.Body.Close()
-
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)

@@ -30,9 +30,6 @@ func TestTransactionsTokenTransferEndpointList(t *testing.T) {
 
 	defer resp.Body.Close()
 
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
-
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
 
@@ -60,9 +57,6 @@ func TestTransactionsTokenTransferEndpointListLimitSkip(t *testing.T) {
 	assert.Equal(200, resp.StatusCode)
 
 	defer resp.Body.Close()
-
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
@@ -93,9 +87,6 @@ func TestTransactionsTokenTransferEndpointListBlockNumber(t *testing.T) {
 
 	defer resp.Body.Close()
 
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
-
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
 
@@ -113,9 +104,6 @@ func TestTransactionsTokenTransferEndpointListBlockNumber(t *testing.T) {
 	assert.Equal(200, resp.StatusCode)
 
 	defer resp.Body.Close()
-
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
 
 	bytes, err = ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
@@ -146,9 +134,6 @@ func TestTransactionsTokenTransferEndpointListFromAddress(t *testing.T) {
 
 	defer resp.Body.Close()
 
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
-
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
 
@@ -166,9 +151,6 @@ func TestTransactionsTokenTransferEndpointListFromAddress(t *testing.T) {
 	assert.Equal(200, resp.StatusCode)
 
 	defer resp.Body.Close()
-
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
 
 	bytes, err = ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
@@ -199,9 +181,6 @@ func TestTransactionsTokenTransferEndpointListToAddress(t *testing.T) {
 
 	defer resp.Body.Close()
 
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
-
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
 
@@ -219,9 +198,6 @@ func TestTransactionsTokenTransferEndpointListToAddress(t *testing.T) {
 	assert.Equal(200, resp.StatusCode)
 
 	defer resp.Body.Close()
-
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
 
 	bytes, err = ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)

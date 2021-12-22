@@ -31,9 +31,6 @@ func TestTransactionsEndpointDetail(t *testing.T) {
 
 	defer resp.Body.Close()
 
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
-
 	bytes, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
 
@@ -52,9 +49,6 @@ func TestTransactionsEndpointDetail(t *testing.T) {
 	assert.Equal(200, resp.StatusCode)
 
 	defer resp.Body.Close()
-
-	// Test headers
-	assert.NotEqual("0", resp.Header.Get("X-TOTAL-COUNT"))
 
 	bytes, err = ioutil.ReadAll(resp.Body)
 	assert.Equal(nil, err)
