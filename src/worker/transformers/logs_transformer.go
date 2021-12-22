@@ -30,7 +30,7 @@ func logsTransformer() {
 	transactionLoaderChan := crud.GetTransactionModel().LoaderChannel
 	tokenTransferLoaderChan := crud.GetTokenTransferModel().LoaderChannel
 	transactionWebsocketLoaderChan := crud.GetTransactionWebsocketIndexModel().LoaderChannel
-	transactionCountLoaderChan := crud.GetTransactionCountModel().LoaderChannel
+	// transactionCountLoaderChan := crud.GetTransactionCountModel().LoaderChannel
 	transactionInternalCountByAddressLoaderChan := crud.GetTransactionInternalCountByAddressModel().LoaderChannel
 	tokenTransferCountByAddressLoaderChan := crud.GetTokenTransferCountByAddressModel().LoaderChannel
 	tokenTransferCountByTokenContractLoaderChan := crud.GetTokenTransferCountByTokenContractModel().LoaderChannel
@@ -67,7 +67,7 @@ func logsTransformer() {
 
 			// Loads to: transaction_counts
 			transactionCountInternal := transformTransactionToTransactionCountInternal(transaction)
-			transactionCountLoaderChan <- transactionCountInternal
+			// transactionCountLoaderChan <- transactionCountInternal
 
 			// Loads to: transaction_internal_count_by_addresses (from address)
 			transactionInternalCountByFromAddress := transformTransactionToTransactionInternalCountByAddress(transaction, true)
@@ -85,7 +85,7 @@ func logsTransformer() {
 
 			// Loads to: token_transfers_count
 			transactionCountTokenTransfer := transformTokenTransferToTransactionCountTokenTransfer(tokenTransfer)
-			transactionCountLoaderChan <- transactionCountTokenTransfer
+			// transactionCountLoaderChan <- transactionCountTokenTransfer
 
 			// Loads to: token_transfer_by_addresses (from address)
 			tokenTransferCountByFromAddress := transformTokenTransferToTokenTransferCountByAddress(tokenTransfer, true)
