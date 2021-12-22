@@ -229,6 +229,9 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 			transaction_count_by_address_indices.transaction_hash = transactions.hash`,
 	)
 
+	// Latest transactions first
+	db = db.Order("transactions.block_number DESC")
+
 	// Address
 	db = db.Where("transaction_count_by_address_indices.address = ?", address)
 
@@ -302,7 +305,7 @@ func (m *TransactionModel) SelectManyInternalByAddressAPI(
 	// Set table
 	db = db.Model(&[]models.Transaction{})
 
-	db = db.Select("*")
+	db = db.Select("*, transactions.block_number")
 
 	db = db.Joins(`LEFT JOIN transaction_internal_count_by_address_indices
 		ON
@@ -310,6 +313,9 @@ func (m *TransactionModel) SelectManyInternalByAddressAPI(
 		AND
 			transaction_internal_count_by_address_indices.log_index = transactions.log_index`,
 	)
+
+	// Latest transactions first
+	db = db.Order("transactions.block_number DESC")
 
 	// Address
 	db = db.Where("transaction_internal_count_by_address_indices.address = ?", address)

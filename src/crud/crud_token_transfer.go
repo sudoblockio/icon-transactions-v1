@@ -142,7 +142,7 @@ func (m *TokenTransferModel) SelectManyByAddress(
 	// Set table
 	db = db.Model(&[]models.TokenTransfer{})
 
-	db = db.Select("*")
+	db = db.Select("*, token_transfers.block_number")
 
 	db = db.Joins(`LEFT JOIN token_transfer_count_by_address_indices
 		ON
@@ -150,6 +150,9 @@ func (m *TokenTransferModel) SelectManyByAddress(
 		AND
 			token_transfer_count_by_address_indices.log_index = token_transfers.log_index`,
 	)
+
+	// Latest transactions first
+	db = db.Order("token_transfers.block_number desc")
 
 	// Address
 	db = db.Where("token_transfer_count_by_address_indices.address = ?", address)
