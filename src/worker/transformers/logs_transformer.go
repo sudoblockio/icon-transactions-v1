@@ -66,7 +66,7 @@ func logsTransformer() {
 			transactionWebsocketLoaderChan <- transactionWebsocket
 
 			// Loads to: transaction_counts
-			transactionCountInternal := transformTransactionToTransactionCountInternal(transaction)
+			// transactionCountInternal := transformTransactionToTransactionCountInternal(transaction)
 			// transactionCountLoaderChan <- transactionCountInternal
 
 			// Loads to: transaction_internal_count_by_addresses (from address)
@@ -84,7 +84,7 @@ func logsTransformer() {
 			tokenTransferLoaderChan <- tokenTransfer
 
 			// Loads to: token_transfers_count
-			transactionCountTokenTransfer := transformTokenTransferToTransactionCountTokenTransfer(tokenTransfer)
+			// transactionCountTokenTransfer := transformTokenTransferToTransactionCountTokenTransfer(tokenTransfer)
 			// transactionCountLoaderChan <- transactionCountTokenTransfer
 
 			// Loads to: token_transfer_by_addresses (from address)

@@ -67,7 +67,7 @@ func transactionsTransformer() {
 		transactionWebsocketLoaderChan <- transactionWebsocket
 
 		// Loads to: transaction_counts
-		transactionCount := transformTransactionToTransactionCount(transaction)
+		// transactionCount := transformTransactionToTransactionCount(transaction)
 		// transactionCountLoaderChan <- transactionCount
 
 		// Loads to: transaction_count_by_addresses (from address)
