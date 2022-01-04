@@ -720,7 +720,7 @@ func handlerGetTokenHoldersTokenContract(c *fiber.Ctx) error {
 	}
 
 	// X-TOTAL-COUNT
-	count, err := crud.GetTokenHolderCountByTokenContract().SelectCount(tokenContractAddress)
+	count, err := crud.GetTokenHolderCountByTokenContractModel().SelectCount(tokenContractAddress)
 	if err != nil {
 		count = 0
 		zap.S().Warn("Could not retrieve token transfer count: ", err.Error())
