@@ -278,11 +278,9 @@ func (m *TransactionModel) SelectManyInternalAPI(
 	db = db.Where("type = ?", "log")
 
 	// Limit is required and defaulted to 1
-	// Note: Count before setting limit
 	db = db.Limit(limit)
 
 	// Skip
-	// Note: Count before setting skip
 	if skip != 0 {
 		db = db.Offset(skip)
 	}
@@ -388,7 +386,7 @@ func (m *TransactionModel) SelectOneAPI(
 
 // SelectCount - select from blockCounts table
 // NOTE very slow operation
-func (m *TransactionModel) SelectCountRegular() (int64, error) {
+func (m *TransactionModel) CountRegular() (int64, error) {
 	db := m.db
 
 	// Set table
@@ -406,7 +404,7 @@ func (m *TransactionModel) SelectCountRegular() (int64, error) {
 
 // SelectCountInternal - select from blockCounts table
 // NOTE very slow operation
-func (m *TransactionModel) SelectCountInternal() (int64, error) {
+func (m *TransactionModel) CountInternal() (int64, error) {
 	db := m.db
 
 	// Set table
@@ -423,7 +421,7 @@ func (m *TransactionModel) SelectCountInternal() (int64, error) {
 }
 
 // Select - select from logCountByAddresss table
-func (m *TransactionModel) SelectCountByBlockNumber(blockNumber int) (int64, error) {
+func (m *TransactionModel) CountByBlockNumber(blockNumber int) (int64, error) {
 	db := m.db
 
 	// Set table

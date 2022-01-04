@@ -224,7 +224,7 @@ func handlerGetTransactionBlockNumber(c *fiber.Ctx) error {
 	}
 
 	// X-TOTAL-COUNT
-	count, err := crud.GetTransactionModel().SelectCountByBlockNumber(blockNumber)
+	count, err := crud.GetTransactionModel().CountByBlockNumber(blockNumber)
 	if err != nil {
 		count = 0
 		zap.S().Warn("Could not retrieve transaction count: ", err.Error())

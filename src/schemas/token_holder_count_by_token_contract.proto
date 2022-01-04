@@ -1,0 +1,12 @@
+syntax = "proto3";
+package models;
+option go_package = "./models";
+
+import "github.com/infobloxopen/protoc-gen-gorm/options/gorm.proto";
+
+message TokenHolderCountByTokenContract {
+  option (gorm.opts) = {ormable: true};
+
+  string token_contract_address = 1 [(gorm.field).tag = {primary_key: true}];
+  uint64 count = 2;
+}

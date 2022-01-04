@@ -205,9 +205,9 @@ func (m *TokenTransferModel) SelectManyByTokenContractAddress(
 	return tokenTransfers, db.Error
 }
 
-// SelectCount - select from blockCounts table
+// Count - Count all token transfers
 // NOTE very slow operation
-func (m *TokenTransferModel) SelectCount() (int64, error) {
+func (m *TokenTransferModel) Count() (int64, error) {
 	db := m.db
 
 	// Set table

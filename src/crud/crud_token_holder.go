@@ -56,6 +56,33 @@ func (m *TokenHolderModel) Migrate() error {
 
 // SelectMany - select from token_transfers table
 // Returns: models, error (if present)
+func (m *TokenHolderModel) SelectMany(
+	limit int,
+	skip int,
+) (*[]models.TokenHolder, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&[]models.TokenHolder{})
+
+	db = db.Order("value_decimal desc")
+
+	// Limit is required and defaulted to 1
+	db = db.Limit(limit)
+
+	// Skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
+
+	tokenHolders := &[]models.TokenHolder{}
+	db = db.Find(tokenHolders)
+
+	return tokenHolders, db.Error
+}
+
+// SelectMany - select from token_transfers table
+// Returns: models, error (if present)
 func (m *TokenHolderModel) SelectManyByTokenContractAddress(
 	limit int,
 	skip int,
@@ -83,6 +110,23 @@ func (m *TokenHolderModel) SelectManyByTokenContractAddress(
 	db = db.Find(tokenHolders)
 
 	return tokenHolders, db.Error
+}
+
+// CountByTokenContract - select from blockCounts table
+// NOTE very slow operation
+func (m *TokenHolderModel) CountByTokenContract(tokenContractAddress string) (int64, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&models.TokenHolder{})
+
+	// Token Contract Address
+	db = db.Where("token_contract_address = ?", tokenContractAddress)
+
+	count := int64(0)
+	db = db.Count(&count)
+
+	return count, db.Error
 }
 
 func (m *TokenHolderModel) UpsertOne(
