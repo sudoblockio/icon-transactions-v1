@@ -67,10 +67,31 @@ func (m *TokenHolderCountByTokenContractModel) SelectOne(
 	// Token Contract Address
 	db = db.Where("token_contract_address = ?", tokenContractAddress)
 
-	tokenHolderCountByTokenContractCountByTokenContract := &models.TokenHolderCountByTokenContract{}
-	db = db.First(tokenHolderCountByTokenContractCountByTokenContract)
+	tokenHolderCountByTokenContract := &models.TokenHolderCountByTokenContract{}
+	db = db.First(tokenHolderCountByTokenContract)
 
-	return tokenHolderCountByTokenContractCountByTokenContract, db.Error
+	return tokenHolderCountByTokenContract, db.Error
+}
+
+// Select - select from transactionCountByAddresss table
+func (m *TokenHolderCountByTokenContractModel) SelectCount(tokenContractAddress string) (uint64, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&models.TokenHolderCountByTokenContract{})
+
+	// Address
+	db = db.Where("token_contract_address = ?", tokenContractAddress)
+
+	tokenHolderCountByTokenContract := &models.TokenHolderCountByTokenContract{}
+	db = db.First(tokenHolderCountByTokenContract)
+
+	count := uint64(0)
+	if tokenHolderCountByTokenContract != nil {
+		count = tokenHolderCountByTokenContract.Count
+	}
+
+	return count, db.Error
 }
 
 func (m *TokenHolderCountByTokenContractModel) UpsertOne(
