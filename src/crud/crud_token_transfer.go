@@ -219,6 +219,21 @@ func (m *TokenTransferModel) Count() (int64, error) {
 	return count, db.Error
 }
 
+// CountByTokenContract - Count by token contract
+func (m *TokenTransferModel) CountByTokenContract(tokenContractAddress string) (int64, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&models.TokenTransfer{})
+
+	db = db.Where("token_contract_address = ?", tokenContractAddress)
+
+	count := int64(0)
+	db = db.Count(&count)
+
+	return count, db.Error
+}
+
 func (m *TokenTransferModel) UpsertOne(
 	tokenTransfer *models.TokenTransfer,
 ) error {

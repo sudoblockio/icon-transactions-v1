@@ -28,6 +28,7 @@ func main() {
 		routines.StartTransactionCountByAddressRoutine()
 		routines.StartTransactionInternalCountByAddressRoutine()
 		routines.StartTokenTransferCountByAddressRoutine()
+		routines.StartTokenTransferCountByTokenContractRoutine()
 		routines.StartTokenHoldersRoutine()
 		routines.StartTokenHolderCountByTokenContractRoutine()
 
