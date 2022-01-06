@@ -205,6 +205,87 @@ func (m *TokenTransferModel) SelectManyByTokenContractAddress(
 	return tokenTransfers, db.Error
 }
 
+// SelectManyDistinctTokenContracts - select from token_transfers
+func (m *TokenTransferModel) SelectManyDistinctTokenContracts(
+	limit int,
+	skip int,
+) (*[]models.TokenTransfer, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&[]models.TokenTransfer{})
+
+	// Distinct
+	db = db.Distinct("token_contract_address")
+
+	// Limit is required and defaulted to 1
+	db = db.Limit(limit)
+
+	// Skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
+
+	tokenTransfers := &[]models.TokenTransfer{}
+	db = db.Find(tokenTransfers)
+
+	return tokenTransfers, db.Error
+}
+
+// SelectManyDistinctFromAddress - select from token_transfers
+func (m *TokenTransferModel) SelectManyDistinctFromAddresses(
+	limit int,
+	skip int,
+) (*[]models.TokenTransfer, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&[]models.TokenTransfer{})
+
+	// Distinct
+	db = db.Distinct("from_address", "token_contract_address")
+
+	// Limit is required and defaulted to 1
+	db = db.Limit(limit)
+
+	// Skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
+
+	tokenTransfers := &[]models.TokenTransfer{}
+	db = db.Find(tokenTransfers)
+
+	return tokenTransfers, db.Error
+}
+
+// SelectManyDistinctToAddress - select from token_transfers
+func (m *TokenTransferModel) SelectManyDistinctToAddresses(
+	limit int,
+	skip int,
+) (*[]models.TokenTransfer, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&[]models.TokenTransfer{})
+
+	// Distinct
+	db = db.Distinct("to_address", "token_contract_address")
+
+	// Limit is required and defaulted to 1
+	db = db.Limit(limit)
+
+	// Skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
+
+	tokenTransfers := &[]models.TokenTransfer{}
+	db = db.Find(tokenTransfers)
+
+	return tokenTransfers, db.Error
+}
+
 // Count - Count all token transfers
 // NOTE very slow operation
 func (m *TokenTransferModel) Count() (int64, error) {

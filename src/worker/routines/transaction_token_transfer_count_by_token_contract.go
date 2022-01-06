@@ -25,9 +25,9 @@ func tokenTransferCountByTokenContractRoutine(duration time.Duration) {
 
 		// Loop through all addresses
 		skip := 0
-		limit := 100
+		limit := 1000
 		for {
-			tokenTransfers, err := crud.GetTokenTransferModel().SelectMany(limit, skip, "", "", 0, "")
+			tokenTransfers, err := crud.GetTokenTransferModel().SelectManyDistinctTokenContracts(limit, skip)
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				// Sleep
 				zap.S().Info("Routine=TokenTransferCountByTokenContract", " - No records found, sleeping...")

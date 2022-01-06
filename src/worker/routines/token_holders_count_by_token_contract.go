@@ -24,7 +24,7 @@ func tokenHolderCountByTokenContractRoutine(duration time.Duration) {
 
 		// Loop through all addresses
 		skip := 0
-		limit := 100
+		limit := 1000
 		for {
 			tokenHolders, err := crud.GetTokenHolderModel().SelectMany(limit, skip)
 			if errors.Is(err, gorm.ErrRecordNotFound) {

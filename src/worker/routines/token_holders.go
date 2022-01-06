@@ -15,19 +15,26 @@ import (
 func StartTokenHoldersRoutine() {
 
 	// routine every day
-	go tokenHoldersRoutine(3600 * time.Second)
+	go tokenHoldersRoutine(3600*time.Second, true)
+	go tokenHoldersRoutine(3600*time.Second, false)
 }
 
-func tokenHoldersRoutine(duration time.Duration) {
+func tokenHoldersRoutine(duration time.Duration, isFromAddress bool) {
 
 	// Loop every duration
 	for {
 
 		// Loop through all addresses
 		skip := 0
-		limit := 100
+		limit := 1000
 		for {
-			tokenTransfers, err := crud.GetTokenTransferModel().SelectMany(limit, skip, "", "", 0, "")
+			var tokenTransfers *[]models.TokenTransfer
+			var err error
+			if isFromAddress {
+				tokenTransfers, err = crud.GetTokenTransferModel().SelectManyDistinctFromAddresses(limit, skip)
+			} else {
+				tokenTransfers, err = crud.GetTokenTransferModel().SelectManyDistinctToAddresses(limit, skip)
+			}
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				// Sleep
 				break
@@ -41,13 +48,15 @@ func tokenHoldersRoutine(duration time.Duration) {
 
 			zap.S().Info("Routine=TokenHolders", " - Processing ", len(*tokenTransfers), " token transfers...")
 			for _, t := range *tokenTransfers {
-
-				//////////////////
-				// From Address //
-				//////////////////
+				address := ""
+				if isFromAddress {
+					address = t.FromAddress
+				} else {
+					address = t.ToAddress
+				}
 
 				// Node call
-				value, err := utils.IconNodeServiceGetTokenBalance(t.TokenContractAddress, t.FromAddress)
+				value, err := utils.IconNodeServiceGetTokenBalance(t.TokenContractAddress, address)
 				if err != nil {
 					// Icon node error
 					zap.S().Warn("Routine=TokenHolder - Error: ", err.Error())
@@ -65,38 +74,7 @@ func tokenHoldersRoutine(duration time.Duration) {
 
 				tokenHolder := &models.TokenHolder{
 					TokenContractAddress: t.TokenContractAddress,
-					HolderAddress:        t.FromAddress,
-					Value:                value,
-					ValueDecimal:         valueDecimal,
-				}
-
-				// Insert to database
-				crud.GetTokenHolderModel().LoaderChannel <- tokenHolder
-
-				////////////////
-				// To Address //
-				////////////////
-
-				// Node call
-				value, err = utils.IconNodeServiceGetTokenBalance(t.TokenContractAddress, t.ToAddress)
-				if err != nil {
-					// Icon node error
-					zap.S().Warn("Routine=TokenHolder - Error: ", err.Error())
-					continue
-				}
-
-				// Hex -> float64
-				decimalBase, err = utils.IconNodeServiceGetTokenDecimalBase(t.TokenContractAddress)
-				if err != nil {
-					// Icon node error
-					zap.S().Warn("Routine=TokenHolder - Error: ", err.Error())
-					continue
-				}
-				valueDecimal = utils.StringHexToFloat64(value, decimalBase)
-
-				tokenHolder = &models.TokenHolder{
-					TokenContractAddress: t.TokenContractAddress,
-					HolderAddress:        t.ToAddress,
+					HolderAddress:        address,
 					Value:                value,
 					ValueDecimal:         valueDecimal,
 				}

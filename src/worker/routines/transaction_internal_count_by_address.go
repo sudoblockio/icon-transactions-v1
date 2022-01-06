@@ -25,7 +25,7 @@ func transactionInternalCountByAddressRoutine(duration time.Duration) {
 
 		// Loop through all addresses
 		skip := 0
-		limit := 100
+		limit := 1000
 		for {
 			addresses, err := crud.GetTransactionInternalCountByAddressModel().SelectMany(limit, skip)
 			if errors.Is(err, gorm.ErrRecordNotFound) {
