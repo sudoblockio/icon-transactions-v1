@@ -37,11 +37,7 @@ func StringHexToFloat64(hex string, base int) float64 {
 	valueBigFloat := new(big.Float).SetInt(valueBigInt)
 	valueBigFloat = valueBigFloat.Quo(valueBigFloat, baseBigFloat)
 
-	valueDecimal, success = valueBigFloat.Float64()
-	if success == false {
-		zap.S().Warn("Set String Error: hex=", hex)
-		return 0
-	}
+	valueDecimal, _ = valueBigFloat.Float64()
 
 	return valueDecimal
 }
