@@ -226,17 +226,16 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 
 	db = db.Joins(`LEFT JOIN transaction_count_by_address_indices
 		ON
-			transaction_count_by_address_indices.transaction_hash = transactions.hash`,
+			transaction_count_by_address_indices.transaction_hash = transactions.hash
+		AND
+			transaction_count_by_address_indices.address = ?
+		AND
+			transactions.type = 'transaction'`,
+		address,
 	)
 
 	// Latest transactions first
 	db = db.Order("transactions.block_number DESC")
-
-	// Address
-	db = db.Where("transaction_count_by_address_indices.address = ?", address)
-
-	// Type
-	db = db.Where("transactions.type = ?", "transaction")
 
 	// Limit is required and defaulted to 1
 	// Note: Count before setting limit
@@ -309,17 +308,16 @@ func (m *TransactionModel) SelectManyInternalByAddressAPI(
 		ON
 			transaction_internal_count_by_address_indices.transaction_hash = transactions.hash
 		AND
-			transaction_internal_count_by_address_indices.log_index = transactions.log_index`,
+			transaction_internal_count_by_address_indices.log_index = transactions.log_index
+		AND
+			transaction_internal_count_by_address_indices.address = ?
+		AND
+			transactions.type = 'log'`,
+		address,
 	)
 
 	// Latest transactions first
 	db = db.Order("transactions.block_number DESC")
-
-	// Address
-	db = db.Where("transaction_internal_count_by_address_indices.address = ?", address)
-
-	// Type
-	db = db.Where("transactions.type = ?", "log")
 
 	// Limit is required and defaulted to 1
 	// Note: Count before setting limit

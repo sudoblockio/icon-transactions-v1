@@ -148,14 +148,14 @@ func (m *TokenTransferModel) SelectManyByAddress(
 		ON
 			token_transfer_count_by_address_indices.transaction_hash = token_transfers.transaction_hash
 		AND
-			token_transfer_count_by_address_indices.log_index = token_transfers.log_index`,
+			token_transfer_count_by_address_indices.log_index = token_transfers.log_index
+		AND
+			token_transfer_count_by_address_indices.address = ?`,
+		address,
 	)
 
 	// Latest transactions first
 	db = db.Order("token_transfers.block_number desc")
-
-	// Address
-	db = db.Where("token_transfer_count_by_address_indices.address = ?", address)
 
 	// Limit is required and defaulted to 1
 	// Note: Count before setting limit
