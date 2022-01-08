@@ -55,6 +55,8 @@ x-env: &env
   # Endpoints
   MAX_PAGE_SIZE: 100
 
+  GORM_LOGGING_THRESHOLD_MILLI: "1"
+
 services:
   transactions-api:
     build:

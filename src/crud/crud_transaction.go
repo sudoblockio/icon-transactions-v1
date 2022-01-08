@@ -222,20 +222,22 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 	// Set table
 	db = db.Model(&[]models.Transaction{})
 
-	db = db.Select("*, transactions.block_number")
-
-	db = db.Joins(`LEFT JOIN transaction_count_by_address_indices
-		ON
-			transaction_count_by_address_indices.transaction_hash = transactions.hash
-		AND
-			transaction_count_by_address_indices.address = ?
-		AND
-			transactions.type = 'transaction'`,
-		address,
-	)
-
 	// Latest transactions first
-	db = db.Order("transactions.block_number DESC")
+	db = db.Order("block_number DESC")
+
+	// Address
+	db = db.Where(`hash
+	IN (
+		SELECT
+			transaction_hash
+		FROM
+			transaction_count_by_address_indices
+		where
+			address = ?
+	)`, address)
+
+	// Type
+	db = db.Where("type = ?", "transaction")
 
 	// Limit is required and defaulted to 1
 	// Note: Count before setting limit
@@ -302,22 +304,22 @@ func (m *TransactionModel) SelectManyInternalByAddressAPI(
 	// Set table
 	db = db.Model(&[]models.Transaction{})
 
-	db = db.Select("*, transactions.block_number")
-
-	db = db.Joins(`LEFT JOIN transaction_internal_count_by_address_indices
-		ON
-			transaction_internal_count_by_address_indices.transaction_hash = transactions.hash
-		AND
-			transaction_internal_count_by_address_indices.log_index = transactions.log_index
-		AND
-			transaction_internal_count_by_address_indices.address = ?
-		AND
-			transactions.type = 'log'`,
-		address,
-	)
-
 	// Latest transactions first
 	db = db.Order("transactions.block_number DESC")
+
+	// Address
+	db = db.Where(`(hash, log_index)
+	IN (
+		SELECT
+			transaction_hash, log_index
+		FROM
+			transaction_internal_count_by_address_indices
+		where
+			address = ?
+	)`, address)
+
+	// Type
+	db = db.Where("type = ?", "log")
 
 	// Limit is required and defaulted to 1
 	// Note: Count before setting limit
