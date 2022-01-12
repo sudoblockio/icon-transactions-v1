@@ -164,12 +164,12 @@ jobs:
           path: charts
           token: ${{ secrets.ICON_CHARTS_PAT }}
 
-      - name: Update prod-sejong-us-west-2 deployment values file (API)
+      - name: Update prod-lisbon-us-west-2 deployment values file (API)
         uses: fjogeleit/yaml-update-action@master
         with:
           workDir: charts
           repository: geometry-labs/icon-charts
-          valueFile: 'deployments/prod-us-west-2/sejong/transactions/values.yaml'
+          valueFile: 'deployments/prod-us-west-2/lisbon/transactions/values.yaml'
           propertyPath: 'api.image.tag'
           value: prod-${{ steps.source.outputs.TAG }}
           branch: main
@@ -177,12 +177,38 @@ jobs:
           updateFile: true
           commitChange: false
 
-      - name: Update prod-sejong-us-west-2 deployment values file (WORKER)
+      - name: Update prod-lisbon-us-west-2 deployment values file (WORKER)
         uses: fjogeleit/yaml-update-action@master
         with:
           workDir: charts
           repository: geometry-labs/icon-charts
-          valueFile: 'deployments/prod-us-west-2/sejong/transactions/values.yaml'
+          valueFile: 'deployments/prod-us-west-2/lisbon/transactions/values.yaml'
+          propertyPath: 'worker.image.tag'
+          value: prod-${{ steps.source.outputs.TAG }}
+          branch: main
+          createPR: 'false'
+          updateFile: true
+          commitChange: false
+
+      - name: Update prod-berlin-us-west-2 deployment values file (API)
+        uses: fjogeleit/yaml-update-action@master
+        with:
+          workDir: charts
+          repository: geometry-labs/icon-charts
+          valueFile: 'deployments/prod-us-west-2/berlin/transactions/values.yaml'
+          propertyPath: 'api.image.tag'
+          value: prod-${{ steps.source.outputs.TAG }}
+          branch: main
+          createPR: 'false'
+          updateFile: true
+          commitChange: false
+
+      - name: Update prod-berlin-us-west-2 deployment values file (WORKER)
+        uses: fjogeleit/yaml-update-action@master
+        with:
+          workDir: charts
+          repository: geometry-labs/icon-charts
+          valueFile: 'deployments/prod-us-west-2/berlin/transactions/values.yaml'
           propertyPath: 'worker.image.tag'
           value: prod-${{ steps.source.outputs.TAG }}
           branch: main
