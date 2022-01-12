@@ -182,7 +182,7 @@ func DefaultListTokenHolder(ctx context.Context, db *gorm1.DB) ([]*TokenHolder, 
 		}
 	}
 	db = db.Where(&ormObj)
-	db = db.Order("holder_address")
+	db = db.Order("token_contract_address")
 	ormResponse := []TokenHolderORM{}
 	if err := db.Find(&ormResponse).Error; err != nil {
 		return nil, err
