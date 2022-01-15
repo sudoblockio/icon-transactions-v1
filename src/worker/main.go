@@ -31,7 +31,10 @@ func main() {
 		routines.StartTokenTransferCountByTokenContractRoutine()
 		routines.StartTokenHoldersRoutine()
 		routines.StartTokenHolderCountByTokenContractRoutine()
+
+		// Temp TODO remove
 		routines.StartTransactionMissingRoutine()
+		routines.StartTransactionCountByAddressIndexRoutine()
 
 		global.WaitShutdownSig()
 	}
