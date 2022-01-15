@@ -188,7 +188,7 @@ func StartTransactionInternalCountByAddressLoader() {
 				Address:         newTransactionInternalCountByAddress.Address,
 				BlockNumber:     newTransactionInternalCountByAddress.BlockNumber,
 			}
-			err = GetTransactionInternalCountByAddressIndexModel().Insert(newTransactionInternalCountByAddressIndex)
+			err = GetTransactionInternalCountByAddressIndexModel().UpsertOne(newTransactionInternalCountByAddressIndex)
 			if err != nil {
 				// Record already exists, continue
 				continue

@@ -188,7 +188,7 @@ func StartTokenTransferCountByAddressLoader() {
 				Address:         newTokenTransferCountByAddress.Address,
 				BlockNumber:     newTokenTransferCountByAddress.BlockNumber,
 			}
-			err = GetTokenTransferCountByAddressIndexModel().Insert(newTokenTransferCountByAddressIndex)
+			err = GetTokenTransferCountByAddressIndexModel().UpsertOne(newTokenTransferCountByAddressIndex)
 			if err != nil {
 				// Record already exists, continue
 				continue

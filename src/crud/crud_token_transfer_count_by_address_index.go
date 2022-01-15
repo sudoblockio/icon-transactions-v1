@@ -1,10 +1,12 @@
 package crud
 
 import (
+	"reflect"
 	"sync"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/geometry-labs/icon-transactions/models"
 )
@@ -76,6 +78,26 @@ func (m *TokenTransferCountByAddressIndexModel) Insert(tokenTransferCountByAddre
 	db = db.Model(&models.TokenTransferCountByAddressIndex{})
 
 	db = db.Create(tokenTransferCountByAddressIndex)
+
+	return db.Error
+}
+
+func (m *TokenTransferCountByAddressIndexModel) UpsertOne(
+	tokenTransferCountByAddressIndex *models.TokenTransferCountByAddressIndex,
+) error {
+	db := m.db
+
+	// map[string]interface{}
+	updateOnConflictValues := extractFilledFieldsFromModel(
+		reflect.ValueOf(*tokenTransferCountByAddressIndex),
+		reflect.TypeOf(*tokenTransferCountByAddressIndex),
+	)
+
+	// Upsert
+	db = db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "transaction_hash"}, {Name: "log_index"}, {Name: "address"}}, // NOTE set to primary keys for table
+		DoUpdates: clause.Assignments(updateOnConflictValues),
+	}).Create(tokenTransferCountByAddressIndex)
 
 	return db.Error
 }
