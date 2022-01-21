@@ -23,10 +23,9 @@ func transactionInternalCountByAddressIndexRoutine(duration time.Duration) {
 	for {
 
 		// Loop through all addresses
-		skip := 0
 		limit := 1000
 		for {
-			transactions, err := crud.GetTransactionModel().SelectMany(limit, skip, "", "", "")
+			transactionInternalCountByAddressIndices, err := crud.GetTransactionInternalCountByAddressIndexModel().SelectMissingBlockNumbers(limit)
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				// Sleep
 				zap.S().Info("Routine=TransactionInternalCountByAddressIndex", " - No records found, sleeping...")
@@ -34,38 +33,28 @@ func transactionInternalCountByAddressIndexRoutine(duration time.Duration) {
 			} else if err != nil {
 				zap.S().Fatal(err.Error())
 			}
-			if len(*transactions) == 0 {
+			if len(*transactionInternalCountByAddressIndices) == 0 {
 				// Sleep
 				break
 			}
 
-			zap.S().Info("Routine=TransactionInternalCountByAddressIndex", " - Processing ", len(*transactions), " transactions...")
-			for _, t := range *transactions {
+			zap.S().Info("Routine=TransactionInternalCountByAddressIndex", " - Processing ", len(*transactionInternalCountByAddressIndices), " transactionInternalCountByAddressIndices...")
+			for _, t := range *transactionInternalCountByAddressIndices {
 
-				if t.Type == "transaction" {
-					// regular transaction
+				transactionInternal, err := crud.GetTransactionModel().SelectOne(t.TransactionHash, int32(t.LogIndex))
+				if err != nil {
 					continue
 				}
 
-				transactionInternalCountByAddressIndexFromAddress := &models.TransactionInternalCountByAddressIndex{
-					TransactionHash: t.Hash,
+				transactionInternalCountByAddressIndex := &models.TransactionInternalCountByAddressIndex{
+					TransactionHash: t.TransactionHash,
 					LogIndex:        uint64(t.LogIndex),
-					Address:         t.FromAddress,
-					BlockNumber:     t.BlockNumber,
+					Address:         t.Address,
+					BlockNumber:     transactionInternal.BlockNumber,
 				}
 
-				transactionInternalCountByAddressIndexToAddress := &models.TransactionInternalCountByAddressIndex{
-					TransactionHash: t.Hash,
-					LogIndex:        uint64(t.LogIndex),
-					Address:         t.ToAddress,
-					BlockNumber:     t.BlockNumber,
-				}
-
-				crud.GetTransactionInternalCountByAddressIndexModel().UpsertOne(transactionInternalCountByAddressIndexFromAddress)
-				crud.GetTransactionInternalCountByAddressIndexModel().UpsertOne(transactionInternalCountByAddressIndexToAddress)
+				crud.GetTransactionInternalCountByAddressIndexModel().UpsertOne(transactionInternalCountByAddressIndex)
 			}
-
-			skip += limit
 		}
 
 		zap.S().Info("Completed routine, sleeping...")

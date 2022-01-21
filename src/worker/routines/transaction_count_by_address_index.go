@@ -23,10 +23,9 @@ func transactionCountByAddressIndexRoutine(duration time.Duration) {
 	for {
 
 		// Loop through all addresses
-		skip := 0
 		limit := 1000
 		for {
-			transactions, err := crud.GetTransactionModel().SelectMany(limit, skip, "", "", "")
+			transactionCountByAddressIndices, err := crud.GetTransactionCountByAddressIndexModel().SelectMissingBlockNumbers(limit)
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				// Sleep
 				zap.S().Info("Routine=TransactionCountByAddressIndex", " - No records found, sleeping...")
@@ -34,36 +33,27 @@ func transactionCountByAddressIndexRoutine(duration time.Duration) {
 			} else if err != nil {
 				zap.S().Fatal(err.Error())
 			}
-			if len(*transactions) == 0 {
+			if len(*transactionCountByAddressIndices) == 0 {
 				// Sleep
 				break
 			}
 
-			zap.S().Info("Routine=TransactionCountByAddressIndex", " - Processing ", len(*transactions), " transactions...")
-			for _, t := range *transactions {
+			zap.S().Info("Routine=TransactionCountByAddressIndex", " - Processing ", len(*transactionCountByAddressIndices), " transactions...")
+			for _, t := range *transactionCountByAddressIndices {
 
-				if t.Type == "log" {
-					// internal transaction
+				transaction, err := crud.GetTransactionModel().SelectOne(t.TransactionHash, -1)
+				if err != nil {
 					continue
 				}
 
-				transactionCountByAddressIndexFromAddress := &models.TransactionCountByAddressIndex{
-					TransactionHash: t.Hash,
-					Address:         t.FromAddress,
-					BlockNumber:     t.BlockNumber,
+				transactionCountByAddressIndex := &models.TransactionCountByAddressIndex{
+					TransactionHash: t.TransactionHash,
+					Address:         t.Address,
+					BlockNumber:     transaction.BlockNumber,
 				}
 
-				transactionCountByAddressIndexToAddress := &models.TransactionCountByAddressIndex{
-					TransactionHash: t.Hash,
-					Address:         t.ToAddress,
-					BlockNumber:     t.BlockNumber,
-				}
-
-				crud.GetTransactionCountByAddressIndexModel().UpsertOne(transactionCountByAddressIndexFromAddress)
-				crud.GetTransactionCountByAddressIndexModel().UpsertOne(transactionCountByAddressIndexToAddress)
+				crud.GetTransactionCountByAddressIndexModel().UpsertOne(transactionCountByAddressIndex)
 			}
-
-			skip += limit
 		}
 
 		zap.S().Info("Completed routine, sleeping...")

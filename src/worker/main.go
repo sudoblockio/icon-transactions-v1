@@ -24,17 +24,19 @@ func main() {
 	// Feature flags
 	if config.Config.OnlyRunAllRoutines == true {
 		// Start routines
-		routines.StartTransactionCountRoutine()
-		routines.StartTransactionCountByAddressRoutine()
-		routines.StartTransactionInternalCountByAddressRoutine()
-		routines.StartTokenTransferCountByAddressRoutine()
-		routines.StartTokenTransferCountByTokenContractRoutine()
-		routines.StartTokenHoldersRoutine()
-		routines.StartTokenHolderCountByTokenContractRoutine()
+		// routines.StartTransactionCountRoutine()
+		// routines.StartTransactionCountByAddressRoutine()
+		// routines.StartTransactionInternalCountByAddressRoutine()
+		// routines.StartTokenTransferCountByAddressRoutine()
+		// routines.StartTokenTransferCountByTokenContractRoutine()
+		// routines.StartTokenHoldersRoutine()
+		// routines.StartTokenHolderCountByTokenContractRoutine()
 
 		// Temp TODO remove
-		routines.StartTransactionMissingRoutine()
+		// routines.StartTransactionMissingRoutine()
 		routines.StartTransactionCountByAddressIndexRoutine()
+		routines.StartTransactionInternalCountByAddressIndexRoutine()
+		routines.StartTokenTransferCountByAddressIndexRoutine()
 
 		global.WaitShutdownSig()
 	}

@@ -48,7 +48,7 @@ type TransactionORM struct {
 	TransactionIndex          uint32
 	Type                      string `gorm:"index:transaction_idx_type"`
 	Value                     string
-	ValueDecimal              float64 `gorm:"index:transaction_idx_value_decimal"`
+	ValueDecimal              float64
 	Version                   string
 }
 

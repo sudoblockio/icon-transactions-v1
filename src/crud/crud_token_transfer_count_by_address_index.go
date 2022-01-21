@@ -52,6 +52,25 @@ func (m *TokenTransferCountByAddressIndexModel) Migrate() error {
 	return err
 }
 
+func (m *TokenTransferCountByAddressIndexModel) SelectMissingBlockNumbers(
+	limit int,
+) (*[]models.TokenTransferCountByAddressIndex, error) {
+	db := m.db
+
+	// Set table
+	db = db.Model(&[]models.TokenTransferCountByAddressIndex{})
+
+	db = db.Where("block_number IS NULL")
+
+	// Limit
+	db = db.Limit(limit)
+
+	tokenTransferCountByAddressIndices := &[]models.TokenTransferCountByAddressIndex{}
+	db = db.Find(tokenTransferCountByAddressIndices)
+
+	return tokenTransferCountByAddressIndices, db.Error
+}
+
 // CountByAddress - Count transactionCountByIndex by address
 // NOTE this function may take very long for some addresses
 func (m *TokenTransferCountByAddressIndexModel) CountByAddress(address string) (int64, error) {

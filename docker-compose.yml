@@ -25,7 +25,7 @@ x-env: &env
   # Kafka
   KAFKA_BROKER_URL: "kafka:9092"
   SCHEMA_REGISTRY_URL: "schemaregistry:8081"
-  KAFKA_GROUP_ID: "transactions-service"
+  KAFKA_GROUP_ID: "transactions-new-1"
   CONSUMER_TOPIC_BLOCKS: "blocks"
   CONSUMER_TOPIC_TRANSACTIONS: "transactions"
   CONSUMER_TOPIC_LOGS: "logs"

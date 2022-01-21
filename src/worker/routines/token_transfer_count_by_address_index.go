@@ -23,10 +23,9 @@ func tokenTransferCountByAddressIndexRoutine(duration time.Duration) {
 	for {
 
 		// Loop through all addresses
-		skip := 0
 		limit := 1000
 		for {
-			transactions, err := crud.GetTokenTransferModel().SelectMany(limit, skip, "", "", 0, "")
+			tokenTransferCountByAddressIndices, err := crud.GetTokenTransferCountByAddressIndexModel().SelectMissingBlockNumbers(limit)
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				// Sleep
 				zap.S().Info("Routine=TokenTransferCountByAddressIndex", " - No records found, sleeping...")
@@ -34,33 +33,28 @@ func tokenTransferCountByAddressIndexRoutine(duration time.Duration) {
 			} else if err != nil {
 				zap.S().Fatal(err.Error())
 			}
-			if len(*transactions) == 0 {
+			if len(*tokenTransferCountByAddressIndices) == 0 {
 				// Sleep
 				break
 			}
 
-			zap.S().Info("Routine=TokenTransferCountByAddressIndex", " - Processing ", len(*transactions), " transactions...")
-			for _, t := range *transactions {
+			zap.S().Info("Routine=TokenTransferCountByAddressIndex", " - Processing ", len(*tokenTransferCountByAddressIndices), " tokenTransferCountByAddressIndices...")
+			for _, t := range *tokenTransferCountByAddressIndices {
 
-				tokenTransferCountByAddressIndexFromAddress := &models.TokenTransferCountByAddressIndex{
-					TransactionHash: t.TransactionHash,
-					LogIndex:        uint64(t.LogIndex),
-					Address:         t.FromAddress,
-					BlockNumber:     t.BlockNumber,
+				tokenTransfer, err := crud.GetTokenTransferModel().SelectOne(t.TransactionHash, int32(t.LogIndex))
+				if err != nil {
+					continue
 				}
 
-				tokenTransferCountByAddressIndexToAddress := &models.TokenTransferCountByAddressIndex{
+				tokenTransferCountByAddressIndex := &models.TokenTransferCountByAddressIndex{
 					TransactionHash: t.TransactionHash,
 					LogIndex:        uint64(t.LogIndex),
-					Address:         t.ToAddress,
-					BlockNumber:     t.BlockNumber,
+					Address:         t.Address,
+					BlockNumber:     tokenTransfer.BlockNumber,
 				}
 
-				crud.GetTokenTransferCountByAddressIndexModel().UpsertOne(tokenTransferCountByAddressIndexFromAddress)
-				crud.GetTokenTransferCountByAddressIndexModel().UpsertOne(tokenTransferCountByAddressIndexToAddress)
+				crud.GetTokenTransferCountByAddressIndexModel().UpsertOne(tokenTransferCountByAddressIndex)
 			}
-
-			skip += limit
 		}
 
 		zap.S().Info("Completed routine, sleeping...")
