@@ -152,14 +152,19 @@ func (m *TokenTransferModel) SelectManyByAddress(
 			transaction_hash, log_index
 		FROM
 			token_transfer_count_by_address_indices
-		WHERE
+		where
 			address = ?
-		AND
-			block_number IS NOT NULL
-		ORDER BY block_number desc
-		LIMIT ?
-		OFFSET ?
-	)`, address, limit, skip)
+	)`, address)
+
+	// Limit is required and defaulted to 1
+	// Note: Count before setting limit
+	db = db.Limit(limit)
+
+	// Skip
+	// Note: Count before setting skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
 
 	tokenTransfers := &[]models.TokenTransfer{}
 	db = db.Find(tokenTransfers)

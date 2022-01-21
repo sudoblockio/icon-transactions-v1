@@ -232,17 +232,22 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 			transaction_hash
 		FROM
 			transaction_count_by_address_indices
-		WHERE
+		where
 			address = ?
-		AND
-			block_number IS NOT NULL
-		ORDER BY block_number desc
-		LIMIT ?
-		OFFSET ?
-	)`, address, limit, skip)
+	)`, address)
 
 	// Type
 	db = db.Where("type = ?", "transaction")
+
+	// Limit is required and defaulted to 1
+	// Note: Count before setting limit
+	db = db.Limit(limit)
+
+	// Skip
+	// Note: Count before setting skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
 
 	transactions := &[]models.TransactionAPIList{}
 	db = db.Find(transactions)
@@ -309,17 +314,22 @@ func (m *TransactionModel) SelectManyInternalByAddressAPI(
 			transaction_hash, log_index
 		FROM
 			transaction_internal_count_by_address_indices
-		WHERE
+		where
 			address = ?
-		AND
-			block_number IS NOT NULL
-		ORDER BY block_number desc
-		LIMIT ?
-		OFFSET ?
-	)`, address, limit, skip)
+	)`, address)
 
 	// Type
 	db = db.Where("type = ?", "log")
+
+	// Limit is required and defaulted to 1
+	// Note: Count before setting limit
+	db = db.Limit(limit)
+
+	// Skip
+	// Note: Count before setting skip
+	if skip != 0 {
+		db = db.Offset(skip)
+	}
 
 	transactions := &[]models.TransactionInternalAPIList{}
 	db = db.Find(transactions)
