@@ -158,7 +158,7 @@ func (m *TokenTransferModel) SelectManyByAddress(
 			block_number IS NOT NULL
 		ORDER BY block_number desc
 		LIMIT ?
-		SKIP ?
+		OFFSET ?
 	)`, address, limit, skip)
 
 	tokenTransfers := &[]models.TokenTransfer{}

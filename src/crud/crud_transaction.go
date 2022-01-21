@@ -238,7 +238,7 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 			block_number IS NOT NULL
 		ORDER BY block_number desc
 		LIMIT ?
-		SKIP ?
+		OFFSET ?
 	)`, address, limit, skip)
 
 	// Type
@@ -315,7 +315,7 @@ func (m *TransactionModel) SelectManyInternalByAddressAPI(
 			block_number IS NOT NULL
 		ORDER BY block_number desc
 		LIMIT ?
-		SKIP ?
+		OFFSET ?
 	)`, address, limit, skip)
 
 	// Type
