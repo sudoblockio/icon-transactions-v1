@@ -33,10 +33,15 @@ func main() {
 		// routines.StartTokenHolderCountByTokenContractRoutine()
 
 		// Temp TODO remove
-		// routines.StartTransactionMissingRoutine()
 		routines.StartTransactionCountByAddressIndexRoutine()
 		routines.StartTransactionInternalCountByAddressIndexRoutine()
 		routines.StartTokenTransferCountByAddressIndexRoutine()
+
+		config.Config.ConsumerGroup = config.Config.ConsumerGroup + "-temp"
+		// Start kafka consumer
+		kafka.StartWorkerConsumers()
+		routines.StartTransactionMissingBlockNumbers()
+		routines.StartLogMissingBlockNumbers()
 
 		global.WaitShutdownSig()
 	}
