@@ -234,8 +234,6 @@ func (m *TransactionModel) SelectManyByAddressAPI(
 			transaction_count_by_address_indices
 		WHERE
 			address = ?
-		AND
-			block_number IS NOT NULL
 		ORDER BY block_number desc
 		LIMIT ?
 		OFFSET ?
@@ -311,8 +309,6 @@ func (m *TransactionModel) SelectManyInternalByAddressAPI(
 			transaction_internal_count_by_address_indices
 		WHERE
 			address = ?
-		AND
-			block_number IS NOT NULL
 		ORDER BY block_number desc
 		LIMIT ?
 		OFFSET ?

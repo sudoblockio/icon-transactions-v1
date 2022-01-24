@@ -154,8 +154,6 @@ func (m *TokenTransferModel) SelectManyByAddress(
 			token_transfer_count_by_address_indices
 		WHERE
 			address = ?
-		AND
-			block_number IS NOT NULL
 		ORDER BY block_number desc
 		LIMIT ?
 		OFFSET ?
