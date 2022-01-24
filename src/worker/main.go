@@ -24,24 +24,13 @@ func main() {
 	// Feature flags
 	if config.Config.OnlyRunAllRoutines == true {
 		// Start routines
-		// routines.StartTransactionCountRoutine()
-		// routines.StartTransactionCountByAddressRoutine()
-		// routines.StartTransactionInternalCountByAddressRoutine()
-		// routines.StartTokenTransferCountByAddressRoutine()
-		// routines.StartTokenTransferCountByTokenContractRoutine()
-		// routines.StartTokenHoldersRoutine()
-		// routines.StartTokenHolderCountByTokenContractRoutine()
-
-		// Temp TODO remove
-		routines.StartTransactionCountByAddressIndexRoutine()
-		routines.StartTransactionInternalCountByAddressIndexRoutine()
-		routines.StartTokenTransferCountByAddressIndexRoutine()
-
-		config.Config.ConsumerGroup = config.Config.ConsumerGroup + "-temp"
-		// Start kafka consumer
-		kafka.StartWorkerConsumers()
-		routines.StartTransactionMissingBlockNumbers()
-		routines.StartLogMissingBlockNumbers()
+		routines.StartTransactionCountRoutine()
+		routines.StartTransactionCountByAddressRoutine()
+		routines.StartTransactionInternalCountByAddressRoutine()
+		routines.StartTokenTransferCountByAddressRoutine()
+		routines.StartTokenTransferCountByTokenContractRoutine()
+		routines.StartTokenHoldersRoutine()
+		routines.StartTokenHolderCountByTokenContractRoutine()
 
 		global.WaitShutdownSig()
 	}
