@@ -32,11 +32,6 @@ func main() {
 		routines.StartTokenHoldersRoutine()
 		routines.StartTokenHolderCountByTokenContractRoutine()
 
-		config.Config.ConsumerGroup = config.Config.ConsumerGroup + "-temp"
-		// Start kafka consumer
-		kafka.StartWorkerConsumers()
-		routines.StartTransactionMissingBlockNumbers()
-
 		global.WaitShutdownSig()
 	}
 
