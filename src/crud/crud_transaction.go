@@ -152,6 +152,7 @@ func (m *TransactionModel) SelectManyAPI(
 	startBlockNumber int,
 	endBlockNumber int,
 	method string,
+	sort string,
 ) (*[]models.TransactionAPIList, error) {
 	db := m.db
 
@@ -159,7 +160,11 @@ func (m *TransactionModel) SelectManyAPI(
 	db = db.Model(&[]models.Transaction{})
 
 	// Latest transactions first
-	db = db.Order("block_number desc, transaction_index")
+	if sort != "" {
+		db = db.Order("block_number " + sort + ", transaction_index")
+	} else {
+		db = db.Order("transaction_index")
+	}
 
 	// from
 	if from != "" {
