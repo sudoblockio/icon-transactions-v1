@@ -22,6 +22,7 @@ type TransactionsQuery struct {
 	EndBlockNumber   int    `query:"end_block_number"`
 	Method           string `query:"method"`
 	TransactionHash  string `query:"transaction_hash"`
+	Sort             string `query:sort`
 }
 
 func TransactionsAddHandlers(app *fiber.App) {
@@ -56,6 +57,7 @@ func TransactionsAddHandlers(app *fiber.App) {
 // @Param start_block_number query int false "find by block number range"
 // @Param end_block_number query int false "find by block number range"
 // @Param method query string false "find by method"
+// @Param sort query string false "desc or asc"
 // @Router /api/v1/transactions [get]
 // @Success 200 {object} []models.TransactionAPIList
 // @Failure 422 {object} map[string]interface{}
@@ -72,6 +74,9 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 	if params.Limit <= 0 {
 		params.Limit = 25
 	}
+	if params.Sort == "" {
+		params.Sort = "desc"
+	}
 
 	// Check Params
 	if params.Limit < 1 || params.Limit > config.Config.MaxPageSize {
@@ -82,8 +87,11 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 		c.Status(422)
 		return c.SendString(`{"error": "invalid skip"}`)
 	}
+	if params.Sort != "desc" && params.Sort != "asc" {
+		params.Sort = "desc"
+	}
 
-	// NOTE: TEMP casting string types for type field
+	// NOTE: casting string types for type field
 	if params.Type == "regular" {
 		params.Type = "transaction"
 	} else if params.Type == "internal" {
@@ -101,6 +109,7 @@ func handlerGetTransactions(c *fiber.Ctx) error {
 		params.StartBlockNumber,
 		params.EndBlockNumber,
 		params.Method,
+		params.Sort,
 	)
 	if err != nil {
 		zap.S().Warnf("Transactions CRUD ERROR: %s", err.Error())
@@ -216,6 +225,7 @@ func handlerGetTransactionBlockNumber(c *fiber.Ctx) error {
 		0,
 		0,
 		"",
+		"desc",
 	)
 	if err != nil {
 		zap.S().Warnf("Transactions CRUD ERROR: %s", err.Error())
