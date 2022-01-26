@@ -31,7 +31,7 @@ func transactionsTransformer() {
 	transactionLoaderChan := crud.GetTransactionModel().LoaderChannel
 	transactionCreateScoreLoaderChan := crud.GetTransactionCreateScoreModel().LoaderChannel
 	transactionWebsocketLoaderChan := crud.GetTransactionWebsocketIndexModel().LoaderChannel
-	// transactionCountLoaderChan := crud.GetTransactionCountModel().LoaderChannel
+	transactionCountLoaderChan := crud.GetTransactionCountModel().LoaderChannel
 	transactionCountByAddressLoaderChan := crud.GetTransactionCountByAddressModel().LoaderChannel
 
 	zap.S().Debug("Transactions Transformer: started working")
@@ -67,8 +67,8 @@ func transactionsTransformer() {
 		transactionWebsocketLoaderChan <- transactionWebsocket
 
 		// Loads to: transaction_counts
-		// transactionCount := transformTransactionToTransactionCount(transaction)
-		// transactionCountLoaderChan <- transactionCount
+		transactionCount := transformTransactionToTransactionCount(transaction)
+		transactionCountLoaderChan <- transactionCount
 
 		// Loads to: transaction_count_by_addresses (from address)
 		transactionCountByFromAddress := transformTransactionToTransactionCountByAddress(transaction, true)
