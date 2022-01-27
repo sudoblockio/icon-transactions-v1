@@ -89,6 +89,7 @@ func (m *TokenTransferModel) SelectMany(
 	startBlockNumber int,
 	endBlockNumber int,
 	transactionHash string,
+	tokenContractAddress string,
 ) (*[]models.TokenTransfer, error) {
 	db := m.db
 
@@ -126,6 +127,11 @@ func (m *TokenTransferModel) SelectMany(
 	// transaction hash
 	if transactionHash != "" {
 		db = db.Where("transaction_hash = ?", transactionHash)
+	}
+
+	// token contract address
+	if tokenContractAddress != "" {
+		db = db.Where("token_contract_address = ?", tokenContractAddress)
 	}
 
 	// Limit is required and defaulted to 1

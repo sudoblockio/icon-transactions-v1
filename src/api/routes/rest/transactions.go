@@ -12,17 +12,18 @@ import (
 )
 
 type TransactionsQuery struct {
-	Limit            int    `query:"limit"`
-	Skip             int    `query:"skip"`
-	From             string `query:"from"`
-	To               string `query:"to"`
-	Type             string `query:"type"`
-	BlockNumber      int    `query:"block_number"`
-	StartBlockNumber int    `query:"start_block_number"`
-	EndBlockNumber   int    `query:"end_block_number"`
-	Method           string `query:"method"`
-	TransactionHash  string `query:"transaction_hash"`
-	Sort             string `query:sort`
+	Limit                int    `query:"limit"`
+	Skip                 int    `query:"skip"`
+	From                 string `query:"from"`
+	To                   string `query:"to"`
+	Type                 string `query:"type"`
+	BlockNumber          int    `query:"block_number"`
+	StartBlockNumber     int    `query:"start_block_number"`
+	EndBlockNumber       int    `query:"end_block_number"`
+	Method               string `query:"method"`
+	TransactionHash      string `query:"transaction_hash"`
+	Sort                 string `query:sort`
+	TokenContractAddress string `query:token_contract_address`
 }
 
 func TransactionsAddHandlers(app *fiber.App) {
@@ -462,6 +463,9 @@ func handlerGetInternalTransactionsAddress(c *fiber.Ctx) error {
 // @Param from query string false "find by from address"
 // @Param to query string false "find by to address"
 // @Param block_number query int false "find by block number"
+// @Param start_block_number query int false "find by block number range"
+// @Param end_block_number query int false "find by block number range"
+// @Param token_contract_address query string false "find by token contract"
 // @Param transaction_hash query string false "find by transaction hash"
 // @Router /api/v1/transactions/token-transfers [get]
 // @Success 200 {object} []models.TokenTransfer
@@ -500,6 +504,7 @@ func handlerGetTokenTransfers(c *fiber.Ctx) error {
 		params.StartBlockNumber,
 		params.EndBlockNumber,
 		params.TransactionHash,
+		params.TokenContractAddress,
 	)
 	if err != nil {
 		zap.S().Warnf("Transactions CRUD ERROR: %s", err.Error())
