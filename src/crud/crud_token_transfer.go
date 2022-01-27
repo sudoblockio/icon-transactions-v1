@@ -86,6 +86,8 @@ func (m *TokenTransferModel) SelectMany(
 	from string,
 	to string,
 	blockNumber int,
+	startBlockNumber int,
+	endBlockNumber int,
 	transactionHash string,
 ) (*[]models.TokenTransfer, error) {
 	db := m.db
@@ -109,6 +111,16 @@ func (m *TokenTransferModel) SelectMany(
 	// block number
 	if blockNumber != 0 {
 		db = db.Where("block_number = ?", blockNumber)
+	}
+
+	// start block number
+	if startBlockNumber != 0 {
+		db = db.Where("block_number >= ?", startBlockNumber)
+	}
+
+	// end block number
+	if endBlockNumber != 0 {
+		db = db.Where("block_number <= ?", endBlockNumber)
 	}
 
 	// transaction hash

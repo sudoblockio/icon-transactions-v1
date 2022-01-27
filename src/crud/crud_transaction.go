@@ -186,12 +186,12 @@ func (m *TransactionModel) SelectManyAPI(
 		db = db.Where("block_number = ?", blockNumber)
 	}
 
-	// block number
+	// start block number
 	if startBlockNumber != 0 {
 		db = db.Where("block_number >= ?", startBlockNumber)
 	}
 
-	// block number
+	// end block number
 	if endBlockNumber != 0 {
 		db = db.Where("block_number <= ?", endBlockNumber)
 	}

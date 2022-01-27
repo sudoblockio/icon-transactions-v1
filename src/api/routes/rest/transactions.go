@@ -497,6 +497,8 @@ func handlerGetTokenTransfers(c *fiber.Ctx) error {
 		params.From,
 		params.To,
 		params.BlockNumber,
+		params.StartBlockNumber,
+		params.EndBlockNumber,
 		params.TransactionHash,
 	)
 	if err != nil {
