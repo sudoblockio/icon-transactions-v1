@@ -32,6 +32,12 @@ func main() {
 		routines.StartTokenHoldersRoutine()
 		routines.StartTokenHolderCountByTokenContractRoutine()
 
+		// Backfill
+		config.Config.ConsumerGroup = config.Config.ConsumerGroup + "-backfiller-v1"
+		kafka.StartWorkerConsumers()
+
+		routines.StartLogsTopicBackfiller()
+
 		global.WaitShutdownSig()
 	}
 

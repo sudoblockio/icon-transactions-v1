@@ -3,7 +3,6 @@ package routines
 import (
 	"encoding/hex"
 	"encoding/json"
-	"strings"
 
 	"github.com/geometry-labs/icon-transactions/config"
 	"github.com/geometry-labs/icon-transactions/crud"
@@ -14,20 +13,19 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func StartLogMissingBlockNumbers() {
+func StartLogsTopicBackfiller() {
 
 	// routine every day
-	go logMissingBlockNumbers()
+	go logsTopicBackfiller()
 }
 
-func logMissingBlockNumbers() {
+func logsTopicBackfiller() {
 
 	consumerTopicNameLogs := config.Config.ConsumerTopicLogs
 
 	// Input channels
 	consumerTopicChanLogs := kafka.KafkaTopicConsumer.TopicChannels[consumerTopicNameLogs]
 
-	// Loop every duration
 	logsProccessed := uint64(0)
 	for {
 
@@ -42,52 +40,10 @@ func logMissingBlockNumbers() {
 			zap.S().Fatal("Unable to proceed cannot convert kafka msg value to LogRaw, err: ", err.Error())
 		}
 
-		// Internal Transaction
-		transaction := transformLogRawToTransaction(logRaw)
-		if transaction != nil {
-			if transaction.FromAddress != "None" {
-				txFromAddress := &models.TransactionInternalCountByAddressIndex{
-					TransactionHash: transaction.Hash,
-					LogIndex:        uint64(transaction.LogIndex),
-					Address:         transaction.FromAddress,
-					BlockNumber:     transaction.BlockNumber,
-				}
-				crud.GetTransactionInternalCountByAddressIndexModel().UpsertOne(txFromAddress)
-			}
-
-			if transaction.ToAddress != "None" {
-				txToAddress := &models.TransactionInternalCountByAddressIndex{
-					TransactionHash: transaction.Hash,
-					LogIndex:        uint64(transaction.LogIndex),
-					Address:         transaction.ToAddress,
-					BlockNumber:     transaction.BlockNumber,
-				}
-				crud.GetTransactionInternalCountByAddressIndexModel().UpsertOne(txToAddress)
-			}
-		}
-
 		// Token Transfer
 		tokenTransfer := transformLogRawToTokenTransfer(logRaw)
 		if tokenTransfer != nil {
-			if tokenTransfer.FromAddress != "None" {
-				txFromAddress := &models.TokenTransferCountByAddressIndex{
-					TransactionHash: tokenTransfer.TransactionHash,
-					LogIndex:        uint64(tokenTransfer.LogIndex),
-					Address:         tokenTransfer.FromAddress,
-					BlockNumber:     tokenTransfer.BlockNumber,
-				}
-				crud.GetTokenTransferCountByAddressIndexModel().UpsertOne(txFromAddress)
-			}
-
-			if tokenTransfer.ToAddress != "None" {
-				txToAddress := &models.TokenTransferCountByAddressIndex{
-					TransactionHash: tokenTransfer.TransactionHash,
-					LogIndex:        uint64(tokenTransfer.LogIndex),
-					Address:         tokenTransfer.ToAddress,
-					BlockNumber:     tokenTransfer.BlockNumber,
-				}
-				crud.GetTokenTransferCountByAddressIndexModel().UpsertOne(txToAddress)
-			}
+			crud.GetTokenTransferModel().UpsertOne(tokenTransfer)
 		}
 
 		logsProccessed += 1
@@ -107,67 +63,6 @@ func convertBytesToLogRawProtoBuf(value []byte) (*models.LogRaw, error) {
 	return &log, err
 }
 
-func transformLogRawToTransaction(logRaw *models.LogRaw) *models.Transaction {
-
-	var indexed []string
-	err := json.Unmarshal([]byte(logRaw.Indexed), &indexed)
-	if err != nil {
-		zap.S().Fatal("Unable to parse indexed field in log; indexed=", logRaw.Indexed, " error: ", err.Error())
-	}
-
-	// Method
-	method := strings.Split(indexed[0], "(")[0]
-	if method != "ICXTransfer" {
-		// Not internal transaction
-		return nil
-	}
-
-	// From Address
-	fromAddress := indexed[1]
-
-	// To Address
-	toAddress := indexed[2]
-
-	// Value
-	value := indexed[3]
-
-	// Transaction Decimal Value
-	// Hex -> float64
-	valueDecimal := utils.StringHexToFloat64(value, 18)
-
-	return &models.Transaction{
-		Type:                      logRaw.Type,
-		Version:                   "",
-		FromAddress:               fromAddress,
-		ToAddress:                 toAddress,
-		Value:                     value,
-		StepLimit:                 0,
-		Timestamp:                 "",
-		BlockTimestamp:            logRaw.BlockTimestamp,
-		Nid:                       0,
-		Nonce:                     "",
-		Hash:                      logRaw.TransactionHash,
-		TransactionIndex:          logRaw.TransactionIndex,
-		BlockHash:                 logRaw.BlockHash,
-		BlockNumber:               logRaw.BlockNumber,
-		TransactionFee:            "",
-		Signature:                 "",
-		DataType:                  "",
-		Data:                      logRaw.Data,
-		ReceiptCumulativeStepUsed: 0,
-		ReceiptStepUsed:           0,
-		ReceiptStepPrice:          0,
-		ReceiptScoreAddress:       "",
-		ReceiptLogs:               "",
-		ReceiptStatus:             1,
-		ItemId:                    logRaw.ItemId,
-		ItemTimestamp:             logRaw.ItemTimestamp,
-		LogIndex:                  int32(logRaw.LogIndex),
-		Method:                    method,
-		ValueDecimal:              valueDecimal,
-	}
-}
-
 func transformLogRawToTokenTransfer(logRaw *models.LogRaw) *models.TokenTransfer {
 
 	var indexed []string
@@ -184,44 +79,15 @@ func transformLogRawToTokenTransfer(logRaw *models.LogRaw) *models.TokenTransfer
 	// Token Contract Address
 	tokenContractAddress := logRaw.Address
 
-	// From Address
-	fromAddress := indexed[1]
-
-	// To Address
-	toAddress := indexed[2]
-
-	// Value
-	value := indexed[3]
-
-	// Transaction Decimal Value
-	// NOTE every token has a different decimal base
-	tokenDecimalBase, err := utils.IconNodeServiceGetTokenDecimalBase(tokenContractAddress)
-	if err != nil {
-		zap.S().Fatal(err)
-	}
-
-	valueDecimal := utils.StringHexToFloat64(value, tokenDecimalBase)
-
-	// Block Timestamp
-	blockTimestamp := logRaw.BlockTimestamp
-
-	// Token Contract Name
-	tokenContractName, err := utils.IconNodeServiceGetTokenContractName(tokenContractAddress)
+	// Token Contract Symbol
+	tokenContractSymbol, err := utils.IconNodeServiceGetTokenContractSymbol(tokenContractAddress)
 	if err != nil {
 		zap.S().Fatal(err)
 	}
 
 	return &models.TokenTransfer{
-		TokenContractAddress: tokenContractAddress,
-		FromAddress:          fromAddress,
-		ToAddress:            toAddress,
-		Value:                value,
-		TransactionHash:      logRaw.TransactionHash,
-		LogIndex:             int32(logRaw.LogIndex),
-		BlockNumber:          logRaw.BlockNumber,
-		ValueDecimal:         valueDecimal,
-		BlockTimestamp:       blockTimestamp,
-		TokenContractName:    tokenContractName,
-		TransactionFee:       "",
+		TransactionHash:     logRaw.TransactionHash,
+		LogIndex:            int32(logRaw.LogIndex),
+		TokenContractSymbol: tokenContractSymbol,
 	}
 }
