@@ -28,6 +28,7 @@ type TokenTransferORM struct {
 	ToAddress            string `gorm:"index:token_transfer_idx_to_address"`
 	TokenContractAddress string `gorm:"index:token_transfer_idx_token_contract_address"`
 	TokenContractName    string
+	TokenContractSymbol  string
 	TransactionFee       string
 	TransactionHash      string `gorm:"primary_key"`
 	Value                string
@@ -60,6 +61,7 @@ func (m *TokenTransfer) ToORM(ctx context.Context) (TokenTransferORM, error) {
 	to.BlockTimestamp = m.BlockTimestamp
 	to.TokenContractName = m.TokenContractName
 	to.TransactionFee = m.TransactionFee
+	to.TokenContractSymbol = m.TokenContractSymbol
 	if posthook, ok := interface{}(m).(TokenTransferWithAfterToORM); ok {
 		err = posthook.AfterToORM(ctx, &to)
 	}
@@ -87,6 +89,7 @@ func (m *TokenTransferORM) ToPB(ctx context.Context) (TokenTransfer, error) {
 	to.BlockTimestamp = m.BlockTimestamp
 	to.TokenContractName = m.TokenContractName
 	to.TransactionFee = m.TransactionFee
+	to.TokenContractSymbol = m.TokenContractSymbol
 	if posthook, ok := interface{}(m).(TokenTransferWithAfterToPB); ok {
 		err = posthook.AfterToPB(ctx, &to)
 	}
@@ -200,6 +203,10 @@ func DefaultApplyFieldMaskTokenTransfer(ctx context.Context, patchee *TokenTrans
 		}
 		if f == prefix+"TransactionFee" {
 			patchee.TransactionFee = patcher.TransactionFee
+			continue
+		}
+		if f == prefix+"TokenContractSymbol" {
+			patchee.TokenContractSymbol = patcher.TokenContractSymbol
 			continue
 		}
 	}

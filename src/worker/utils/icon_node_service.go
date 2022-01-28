@@ -269,6 +269,87 @@ func IconNodeServiceGetTokenContractName(tokenContractAddress string) (string, e
 	return tokenContractName, nil
 }
 
+func IconNodeServiceGetTokenContractSymbol(tokenContractAddress string) (string, error) {
+
+	// Redis cache
+	redisCacheKey := "icon_transactions_token_contract_symbol_" + tokenContractAddress
+	tokenContractSymbol, err := redis.GetRedisClient().GetValue(redisCacheKey)
+	if err != nil {
+		zap.S().Fatal(err)
+	} else if tokenContractSymbol != "" {
+		return tokenContractSymbol, nil
+	}
+
+	// Request icon contract
+	url := config.Config.IconNodeServiceURL
+	method := "POST"
+	payload := fmt.Sprintf(`{
+    "jsonrpc": "2.0",
+    "id": 1234,
+    "method": "icx_call",
+    "params": {
+        "to": "%s",
+        "dataType": "call",
+        "data": {
+            "method": "symbol",
+            "params": {}
+        }
+    }
+	}`, tokenContractAddress)
+
+	// Create http client
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, strings.NewReader(payload))
+	if err != nil {
+		return "", err
+	}
+
+	// Execute request
+	req.Header.Add("Content-Type", "application/json")
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	// Read body
+	bodyString, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	// Check status code
+	if res.StatusCode != 200 {
+		return "", errors.New(
+			"StatusCode=" + strconv.Itoa(res.StatusCode) +
+				",Request=" + payload +
+				",Response=" + string(bodyString),
+		)
+	}
+
+	// Parse body
+	body := map[string]interface{}{}
+	err = json.Unmarshal(bodyString, &body)
+	if err != nil {
+		return "", err
+	}
+
+	// Extract balance
+	tokenContractSymbol, ok := body["result"].(string)
+	if ok == false {
+		return "", errors.New("Invalid response")
+	}
+
+	// Redis cache
+	err = redis.GetRedisClient().SetValue(redisCacheKey, tokenContractSymbol)
+	if err != nil {
+		// Redis error
+		zap.S().Fatal(err)
+	}
+
+	return tokenContractSymbol, nil
+}
+
 func IconNodeServiceGetTokenBalance(tokenContractAddress string, tokenHolderAddress string) (string, error) {
 
 	// Request icon contract

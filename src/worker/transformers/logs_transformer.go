@@ -241,6 +241,12 @@ func transformLogRawToTokenTransfer(logRaw *models.LogRaw) *models.TokenTransfer
 		zap.S().Fatal(err)
 	}
 
+	// Token Contract Symbol
+	tokenContractSymbol, err := utils.IconNodeServiceGetTokenContractSymbol(tokenContractAddress)
+	if err != nil {
+		zap.S().Fatal(err)
+	}
+
 	return &models.TokenTransfer{
 		TokenContractAddress: tokenContractAddress,
 		FromAddress:          fromAddress,
@@ -253,6 +259,7 @@ func transformLogRawToTokenTransfer(logRaw *models.LogRaw) *models.TokenTransfer
 		BlockTimestamp:       blockTimestamp,
 		TokenContractName:    tokenContractName,
 		TransactionFee:       "",
+		TokenContractSymbol:  tokenContractSymbol,
 	}
 }
 

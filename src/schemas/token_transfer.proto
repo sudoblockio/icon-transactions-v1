@@ -18,4 +18,5 @@ message TokenTransfer {
   uint64 block_timestamp = 9;
   string token_contract_name = 10;
   string transaction_fee = 11;
+  string token_contract_symbol = 12;
 }
