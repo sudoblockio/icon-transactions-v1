@@ -93,6 +93,7 @@ type configType struct {
 
 	// Feature flags
 	OnlyRunAllRoutines bool `envconfig:"ONLY_RUN_ALL_ROUTINES" required:"false" default:"false"`
+	OnlyRunBackfill    bool `envconfig:"ONLY_RUN_BACKFILL" required:"false" default:"false"`
 }
 
 var Config configType
