@@ -1,4 +1,4 @@
-package routines
+package backfills
 
 import (
 	"encoding/hex"
@@ -11,13 +11,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func StartTransactionMissingBlockNumbers() {
+func StartTransactionsBackfill() {
 
 	// routine every day
-	go transactionMissingBlockNumbers()
+	go transactionBackfill()
 }
 
-func transactionMissingBlockNumbers() {
+func transactionBackfill() {
 
 	consumerTopicNameTransactions := config.Config.ConsumerTopicTransactions
 

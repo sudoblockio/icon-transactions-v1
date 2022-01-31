@@ -1,4 +1,4 @@
-package routines
+package backfills
 
 import (
 	"encoding/hex"
@@ -13,13 +13,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func StartLogsTopicBackfiller() {
+func StartLogsBackfill() {
 
 	// routine every day
-	go logsTopicBackfiller()
+	go logsBackfiller()
 }
 
-func logsTopicBackfiller() {
+func logsBackfiller() {
 
 	consumerTopicNameLogs := config.Config.ConsumerTopicLogs
 

@@ -8,6 +8,7 @@ import (
 	"github.com/geometry-labs/icon-transactions/kafka"
 	"github.com/geometry-labs/icon-transactions/logging"
 	"github.com/geometry-labs/icon-transactions/metrics"
+	"github.com/geometry-labs/icon-transactions/worker/backfills"
 	"github.com/geometry-labs/icon-transactions/worker/routines"
 	"github.com/geometry-labs/icon-transactions/worker/transformers"
 )
@@ -32,11 +33,15 @@ func main() {
 		routines.StartTokenHoldersRoutine()
 		routines.StartTokenHolderCountByTokenContractRoutine()
 
-		// Backfill
+		global.WaitShutdownSig()
+	} else if config.Config.OnlyRunBackfill {
+
+		// Start kafka consumer
 		config.Config.ConsumerGroup = config.Config.ConsumerGroup + "-backfiller-v1"
 		kafka.StartWorkerConsumers()
 
-		routines.StartLogsTopicBackfiller()
+		// Backfill
+		backfills.StartLogsBackfill()
 
 		global.WaitShutdownSig()
 	}
